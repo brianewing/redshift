@@ -1,4 +1,4 @@
-package main
+package animator
 
 import (
 	"time"
@@ -31,5 +31,9 @@ func (a *Animator) render() {
 	for _, effect := range a.Effects {
 		effect.Render(a.Strip)
 	}
+}
+
+func (a *Animator) Render() {
+	a.render()
 }
 

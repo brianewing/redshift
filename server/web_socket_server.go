@@ -18,7 +18,7 @@ type webSocketServer struct {
 	http.Handler
 }
 
-func Run(strip *strip.LEDStrip) {
+func RunWebSocketServer(strip *strip.LEDStrip) {
 	wss := &webSocketServer{
 		strip: strip,
 		upgrader: &websocket.Upgrader{
@@ -36,6 +36,8 @@ func (s *webSocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Print("WS upgrade error: ", err)
 		return
+	} else {
+		log.Print("Client connected ", c.RemoteAddr().String())
 	}
 
 	go s.readMessages(c)
@@ -45,7 +47,6 @@ func (s *webSocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (s *webSocketServer) readMessages(c *websocket.Conn) {
 	for {
-		log.Println("Waiting to read...")
 		_, message, err := c.ReadMessage()
 		if err != nil {
 			log.Println("Read error: ", err)
@@ -71,10 +72,10 @@ func (s *webSocketServer) streamStripBuffer(c *websocket.Conn) {
 }
 
 type jsonFormat struct {
-	Buffer *[][]int `json:"buffer"`
+	Buffer [][]int `json:"buffer"`
 }
 
 func serializeStrip(strip *strip.LEDStrip) ([]byte, error) {
-	return json.Marshal(&jsonFormat{&strip.Buffer})
+	return json.Marshal(&jsonFormat{strip.Buffer})
 }
 
