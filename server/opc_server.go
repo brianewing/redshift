@@ -1,55 +1,101 @@
 package server
 
 import (
-	"github.com/kellydunn/go-opc"
+	"net"
+	"log"
+	"errors"
+	"encoding/binary"
 	"redshift/strip"
-	"time"
 )
 
-type Device struct {
+type OpcMessage struct {
+	Channel, Command uint8
+
+	Length uint16
+	Data []byte
+}
+
+func (m *OpcMessage) WritePixels(buffer [][]int) {
+	for i, val := range m.Data {
+		buffer[i / 3][i % 3] = int(val)
+	}
+}
+
+type OpcServer struct {
 	Strip *strip.LEDStrip
-	channel uint8
-	onUpdate chan int
+	Messages chan *OpcMessage
 }
 
-func (d *Device) Write(m *opc.Message) error {
-	bytes := m.ByteArray()
-
-	if bytes[1] != 0 {
-		return nil
+func (s *OpcServer) ListenAndServe(protocol string, port string) error {
+	listener, err := net.Listen(protocol, port)
+	if err != nil {
+		return err
 	}
 
-	d.Strip.Sync.Lock()
-	for i, val := range bytes[4:] {
-		d.Strip.Buffer[i / 3][i % 3] = int(val)
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			log.Println("OPC accept error", err)
+			return err
+		} else {
+			log.Println("OPC client connected", conn.RemoteAddr())
+		}
+
+		go s.readMessages(conn)
 	}
-	d.onUpdate <- 1
-	d.Strip.Sync.Unlock()
-
-	return nil
 }
 
-func (d *Device) Channel() uint8 {
-	return 1
+func (s *OpcServer) readMessages(conn net.Conn) {
+	for {
+		err, msg := s.readMessage(conn)
+		if err != nil {
+			log.Println("OPC client read error", conn.RemoteAddr(), err)
+			break
+		}
+
+		s.Messages <- msg
+	}
+
+	conn.Close()
 }
 
-func RunOpcServer(strip *strip.LEDStrip, onUpdate chan int) {
-	s := opc.NewServer()
-	s.RegisterDevice(&Device{Strip: strip, onUpdate: onUpdate})
+// Format: [channel, command, length high byte, length low byte, data...]
+func (s *OpcServer) readMessage(conn net.Conn) (error, *OpcMessage) {
+	header := make([]byte, 4)
+	bytesRead, err := conn.Read(header)
 
-	go s.ListenOnPort("tcp", "localhost:7890")
-	go s.Process()
+	if err != nil {
+		return err, nil
+	} else if bytesRead != 4 {
+		return errors.New("bad header"), nil
+	}
 
-	time.Sleep(1 * time.Second)
+	msg := &OpcMessage{
+		Channel: header[0],
+		Command: header[1],
+		Length: binary.BigEndian.Uint16(header[2:4]),
+	}
 
-	//c := opc.NewClient()
-	//c.Connect("tcp", "localhost:7890")
-	//m := opc.NewMessage(0)
-	//
-	//m.SetPixelColor(1, 250, 251, 252)
-	//m.SetLength(6)
-	//fmt.Println("Valid", m.IsValid())
-	//
-	//// Send the message!
-	//c.Send(m)
+	msg.Data = make([]byte, msg.Length)
+	bytesRead, err = conn.Read(msg.Data)
+
+	if err != nil {
+		return err, msg
+	} else if bytesRead != int(msg.Length) {
+		return errors.New("data length mismatch"), msg
+	} else {
+		return nil, msg
+	}
+}
+
+func RunOpcServer(strip *strip.LEDStrip, buffer [][]int) error {
+	s := &OpcServer{Strip: strip, Messages: make(chan *OpcMessage)}
+
+	go func() {
+		for {
+			(<-s.Messages).WritePixels(buffer)
+		}
+	}()
+
+	return s.ListenAndServe("tcp", "localhost:7890")
 }

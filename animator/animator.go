@@ -9,12 +9,11 @@ import (
 type Animator struct {
 	Strip *strip.LEDStrip
 	Effects []effects.Effect
-	Interval time.Duration
 
 	Running bool
 }
 
-func (a *Animator) Run() {
+func (a *Animator) Run(interval time.Duration) {
 	a.Running = true
 	mutex := &a.Strip.Sync
 
@@ -23,7 +22,7 @@ func (a *Animator) Run() {
 		a.render()
 		mutex.Unlock()
 
-		time.Sleep(a.Interval)
+		time.Sleep(interval)
 	}
 }
 
@@ -32,8 +31,3 @@ func (a *Animator) render() {
 		effect.Render(a.Strip)
 	}
 }
-
-func (a *Animator) Render() {
-	a.render()
-}
-

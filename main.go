@@ -11,34 +11,29 @@ import (
 const LEDS = 60
 
 func main() {
-	//addr := flag.String("httpAddr", "localhost:9191", "http service address")
-	//flag.Parse()
-
 	ledStrip := strip.New(LEDS)
 	ledStrip.Clear()
 
-	onUpdate := make(chan int)
+	opcStrip := strip.New(LEDS)
+	opcStrip.Clear()
+
+	//addr := flag.String("httpAddr", "localhost:9191", "http service address")
+	//flag.Parse()
 
 	go server.RunWebSocketServer(ledStrip)
-	go server.RunOpcServer(ledStrip, onUpdate)
+	go server.RunOpcServer(ledStrip, opcStrip.Buffer)
 
 	animator := &animator.Animator{
 		Strip: ledStrip,
 		Effects: []effects.Effect{
 			//&effects.Clear{},
+			&effects.Buffer{Buffer: opcStrip.Buffer},
 			//&effects.RaceTestEffect{},
 			//&effects.RandomEffect{},
 			&effects.BlueEffect{},
 			&effects.LarsonEffect{Color: []int{0,0,0}},
 		},
-		Interval: 30 * time.Millisecond,
 	}
 
-	//animator.Run()
-
-	for {
-		<- onUpdate
-		//fmt.Println("Update")
-		animator.Render()
-	}
+	animator.Run(30 * time.Millisecond)
 }

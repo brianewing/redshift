@@ -18,7 +18,7 @@ type webSocketServer struct {
 	http.Handler
 }
 
-func RunWebSocketServer(strip *strip.LEDStrip) {
+func RunWebSocketServer(strip *strip.LEDStrip) error {
 	wss := &webSocketServer{
 		strip: strip,
 		upgrader: &websocket.Upgrader{
@@ -27,7 +27,7 @@ func RunWebSocketServer(strip *strip.LEDStrip) {
 	}
 
 	wss.server = &http.Server{Addr: "localhost:9191", Handler: wss}
-	wss.server.ListenAndServe()
+	return wss.server.ListenAndServe()
 }
 
 func (s *webSocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +37,7 @@ func (s *webSocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Print("WS upgrade error: ", err)
 		return
 	} else {
-		log.Print("Client connected ", c.RemoteAddr().String())
+		log.Print("WS client connected ", c.RemoteAddr().String())
 	}
 
 	go s.readMessages(c)
@@ -49,10 +49,10 @@ func (s *webSocketServer) readMessages(c *websocket.Conn) {
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
-			log.Println("Read error: ", err)
+			log.Println("WS read error: ", err)
 			break
 		} else {
-			log.Println("Got message: ", message)
+			log.Println("WS got message: ", message)
 		}
 	}
 }
@@ -64,7 +64,7 @@ func (s *webSocketServer) streamStripBuffer(c *websocket.Conn) {
 		err := c.WriteMessage(websocket.TextMessage, msg)
 		s.strip.Sync.Unlock()
 		if err != nil {
-			log.Println("Write error: ", err)
+			log.Println("WS write error: ", err)
 			break
 		}
 		time.Sleep(30 * time.Millisecond)
