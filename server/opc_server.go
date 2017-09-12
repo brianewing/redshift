@@ -17,6 +17,9 @@ type OpcMessage struct {
 
 func (m *OpcMessage) WritePixels(buffer [][]int) {
 	for i, val := range m.Data {
+		if len(buffer) == i / 3 {
+			break
+		}
 		buffer[i / 3][i % 3] = int(val)
 	}
 }

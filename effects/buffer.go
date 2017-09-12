@@ -7,7 +7,7 @@ type Buffer struct {
 }
 
 func (e *Buffer) Render(strip *strip.LEDStrip) {
-	for i := range e.Buffer {
+	for i := range strip.Buffer {
 		copy(strip.Buffer[i], e.Buffer[i])
 	}
 }
