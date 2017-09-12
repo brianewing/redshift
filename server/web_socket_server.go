@@ -26,7 +26,7 @@ func RunWebSocketServer(strip *strip.LEDStrip) error {
 		},
 	}
 
-	wss.server = &http.Server{Addr: "localhost:9191", Handler: wss}
+	wss.server = &http.Server{Addr: "0.0.0.0:9191", Handler: wss}
 	return wss.server.ListenAndServe()
 }
 
