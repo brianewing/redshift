@@ -9,6 +9,7 @@ import (
 )
 
 const LEDS = 60
+const ANIMATION_INTERVAL = 30 * time.Millisecond
 
 func main() {
 	ledStrip := strip.New(LEDS)
@@ -30,10 +31,11 @@ func main() {
 			&effects.Buffer{Buffer: opcStrip.Buffer},
 			//&effects.RaceTestEffect{},
 			//&effects.RandomEffect{},
-			&effects.BlueEffect{},
+			&effects.RainbowEffect{},
+			//&effects.BlueEffect{},
 			&effects.LarsonEffect{Color: []int{0,0,0}},
 		},
 	}
 
-	animator.Run(30 * time.Millisecond)
+	animator.Run(ANIMATION_INTERVAL)
 }

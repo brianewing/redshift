@@ -20,15 +20,12 @@ func (e *LarsonEffect) Render(s *strip.LEDStrip) {
 	}
 
 	color := e.getColor()
-	s.Buffer[e.position] = color
-	//s.Buffer[e.position][0] = color[0]
-	//s.Buffer[e.position][1] = color[1]
-	//s.Buffer[e.position][2] = color[2]
+	s.SetPixel(e.position, color)
 
 	if e.position != 0 {
-		s.Buffer[e.position-1] = s.Buffer[e.position]
+		s.SetPixel(e.position-1, color)
 	} else {
-		s.Buffer[e.position+1] = s.Buffer[e.position]
+		s.SetPixel(e.position+1, color)
 	}
 
 	e.position += e.velocity
@@ -39,13 +36,5 @@ func (e *LarsonEffect) getColor() []int {
 		return []int{rand.Intn(255), rand.Intn(255), rand.Intn(255)}
 	}
 
-	//return e.Color
-	return copyColor(e.Color)
-}
-
-func copyColor(c []int) []int {
-	c2 := make([]int, len(c))
-	copy(c2, c)
-
-	return c2
+	return e.Color
 }

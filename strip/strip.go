@@ -26,6 +26,12 @@ func (s *LEDStrip) Clear() {
 	}
 }
 
+func (s *LEDStrip) SetPixel(i int, color []int) {
+	if 0 <= i && i < len(s.Buffer) {
+		copy(s.Buffer[i], color)
+	}
+}
+
 func (s *LEDStrip) Randomize() {
 	for i:= range s.Buffer {
 		s.Buffer[i] = []int{rand.Intn(255), rand.Intn(255), rand.Intn(255)}

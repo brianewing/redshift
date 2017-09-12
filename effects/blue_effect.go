@@ -8,7 +8,7 @@ type BlueEffect struct {
 }
 
 func (e *BlueEffect) Render(s *strip.LEDStrip) {
-	if e.value == 254 {
+	if e.value == 255 {
 		e.direction = -1
 	} else if e.value < 1  {
 		e.direction = 1
