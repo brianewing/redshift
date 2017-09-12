@@ -31,7 +31,7 @@ func main() {
 			&effects.Buffer{Buffer: opcStrip.Buffer},
 			//&effects.RaceTestEffect{},
 			//&effects.RandomEffect{},
-			&effects.RainbowEffect{},
+			&effects.RainbowEffect{Size: 150, Speed: 1, Dynamic: true},
 			//&effects.BlueEffect{},
 			&effects.LarsonEffect{Color: []int{0,0,0}},
 		},
