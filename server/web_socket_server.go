@@ -13,14 +13,16 @@ import (
 type webSocketServer struct {
 	server *http.Server
 	strip *strip.LEDStrip
+	bufferInterval time.Duration
 
 	upgrader *websocket.Upgrader
 	http.Handler
 }
 
-func RunWebSocketServer(strip *strip.LEDStrip) error {
+func RunWebSocketServer(strip *strip.LEDStrip, bufferInterval time.Duration) error {
 	wss := &webSocketServer{
 		strip: strip,
+		bufferInterval: bufferInterval,
 		upgrader: &websocket.Upgrader{
 			CheckOrigin: func (r *http.Request) bool { return true },
 		},
@@ -61,13 +63,13 @@ func (s *webSocketServer) streamStripBuffer(c *websocket.Conn) {
 	for {
 		s.strip.Sync.Lock()
 		msg, _ := serializeStrip(s.strip)
-		err := c.WriteMessage(websocket.TextMessage, msg)
 		s.strip.Sync.Unlock()
+		err := c.WriteMessage(websocket.TextMessage, msg)
 		if err != nil {
 			log.Println("WS write error: ", err)
 			break
 		}
-		time.Sleep(30 * time.Millisecond)
+		time.Sleep(s.bufferInterval)
 	}
 }
 

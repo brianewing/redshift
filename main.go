@@ -10,6 +10,7 @@ import (
 
 const LEDS = 60
 const ANIMATION_INTERVAL = 30 * time.Millisecond
+const WSS_BUFFER_INTERVAL = 30 * time.Millisecond
 
 func main() {
 	ledStrip := strip.New(LEDS)
@@ -21,7 +22,7 @@ func main() {
 	//addr := flag.String("httpAddr", "localhost:9191", "http service address")
 	//flag.Parse()
 
-	go server.RunWebSocketServer(ledStrip)
+	go server.RunWebSocketServer(ledStrip, WSS_BUFFER_INTERVAL)
 	go server.RunOpcServer(ledStrip, opcStrip.Buffer)
 
 	animator := &animator.Animator{
