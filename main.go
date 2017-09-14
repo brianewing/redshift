@@ -27,7 +27,7 @@ func main() {
 	animator := &animator.Animator{
 		Strip: ledStrip,
 		Effects: []effects.Effect{
-			//&effects.Clear{},
+			&effects.Clear{},
 			&effects.Buffer{Buffer: opcStrip.Buffer},
 			//&effects.RaceTestEffect{},
 			//&effects.RandomEffect{},

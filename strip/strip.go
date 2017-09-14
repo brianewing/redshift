@@ -5,9 +5,6 @@ import (
 	"sync"
 )
 
-// todo: use go-colorful for representing colors
-// ^^ supports gamma / perception correction
-
 type LEDStrip struct {
 	Size int
 	Buffer [][]int
