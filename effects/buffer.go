@@ -11,7 +11,9 @@ type Buffer struct {
 
 func (e *Buffer) Render(strip *strip.LEDStrip) {
 	for i, led := range strip.Buffer {
-		if led[0] == 0 && led[1] == 0 && led[2] == 0  {
+		if i == len(e.Buffer) {
+			break
+		} else if led[0] == 0 && led[1] == 0 && led[2] == 0  {
 			copy(strip.Buffer[i], e.Buffer[i])
 		} else {
 			copy(strip.Buffer[i], blendRgb(strip.Buffer[i], e.Buffer[i]))
