@@ -6,6 +6,11 @@ import (
 	"redshift/strip"
 )
 
+// todo: imagine wheel was huge, say 1000-5000 steps..
+// ^^ Rotate it and sample e.g. each (wSize/sSize)th step to cover all hues
+// ^^ This would allow for finer speed controls (e.g. midi knobs) and richer color changes
+// ^^ Size of the wheel would determine the range/granularity of the speed control..
+
 type RainbowEffect struct {
 	Reverse bool
 	Size int
