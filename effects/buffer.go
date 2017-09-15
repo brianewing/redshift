@@ -23,15 +23,13 @@ func (e *Buffer) Render(strip *strip.LEDStrip) {
 
 func blendRgb(c1 []int, c2 []int) []int {
 	c1_, c2_ := colorfulRgb(c1), colorfulRgb(c2)
-	distance := c1_.DistanceRgb(c2_)
-	r, g, b := c1_.BlendRgb(c2_, distance / 2).Clamped().RGB255()
+	r, g, b := c1_.BlendRgb(c2_, 0.5).Clamped().RGB255()
 	return []int{int(r), int(g), int(b)}
 }
 
 func blendHcl(c1 []int, c2 []int) []int {
 	c1_, c2_ := colorfulRgb(c1), colorfulRgb(c2)
-	distance := c1_.DistanceCIE94(c2_)
-	r, g, b := c1_.BlendHcl(c2_, distance / 2).Clamped().RGB255()
+	r, g, b := c1_.BlendHcl(c2_, 0.75).Clamped().RGB255()
 	return []int{int(r), int(g), int(b)}
 }
 
