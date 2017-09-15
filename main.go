@@ -81,13 +81,24 @@ func writeEffectsJson(path string, effects_ []effects.Effect) error {
 	return ioutil.WriteFile(path, bytes, 0644)
 }
 
+type TestEffect struct {}
+func (e *TestEffect) Render(s *strip.LEDStrip) {
+	for _, led := range(s.Buffer) {
+		r := int(led[2]) - int(led[0])
+		if r < 0 { r = 0 }
+		led[0] = uint8(r)
+	}
+}
+
 func defaultEffects() []effects.Effect {
 	return []effects.Effect{
 		&effects.Clear{},
 		//&effects.RaceTestEffect{},
 		//&effects.RandomEffect{},
 		&effects.RainbowEffect{Size: 150, Speed: 1, Dynamic: true},
+		&effects.External{Program: "dev/scripts/test.js"},
+		//&TestEffect{},
 		//&effects.BlueEffect{},
-		&effects.LarsonEffect{Color: []uint8{0,0,0}},
+		//&effects.LarsonEffect{Color: []uint8{0,0,0}},
 	}
 }
