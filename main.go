@@ -9,20 +9,20 @@ import (
 	"flag"
 )
 
-const LEDS = 60
 const ANIMATION_INTERVAL = 30 * time.Millisecond
 const WSS_BUFFER_INTERVAL = 30 * time.Millisecond
 
+var numLeds = flag.Int("leds", 60, "number of leds")
 var httpAddr = flag.String("httpAddr", "0.0.0.0:9191", "http service address")
 var opcAddr = flag.String("opcAddr", "0.0.0.0:7890", "opc service address")
 
 func main() {
 	flag.Parse()
 
-	ledStrip := strip.New(LEDS)
+	ledStrip := strip.New(*numLeds)
 	ledStrip.Clear()
 
-	opcStrip := strip.New(LEDS)
+	opcStrip := strip.New(ledStrip.Size)
 	opcStrip.Clear()
 
 	go server.RunWebSocketServer(*httpAddr, ledStrip, WSS_BUFFER_INTERVAL)
