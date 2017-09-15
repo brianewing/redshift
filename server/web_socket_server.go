@@ -19,7 +19,7 @@ type webSocketServer struct {
 	http.Handler
 }
 
-func RunWebSocketServer(strip *strip.LEDStrip, bufferInterval time.Duration) error {
+func RunWebSocketServer(addr string, strip *strip.LEDStrip, bufferInterval time.Duration) error {
 	wss := &webSocketServer{
 		strip: strip,
 		bufferInterval: bufferInterval,
@@ -28,7 +28,7 @@ func RunWebSocketServer(strip *strip.LEDStrip, bufferInterval time.Duration) err
 		},
 	}
 
-	wss.server = &http.Server{Addr: "0.0.0.0:9191", Handler: wss}
+	wss.server = &http.Server{Addr: addr, Handler: wss}
 	return wss.server.ListenAndServe()
 }
 

@@ -25,7 +25,6 @@ func (m *OpcMessage) WritePixels(buffer [][]int) {
 }
 
 type OpcServer struct {
-	Strip *strip.LEDStrip
 	Messages chan *OpcMessage
 }
 
@@ -91,14 +90,17 @@ func (s *OpcServer) readMessage(conn net.Conn) (error, *OpcMessage) {
 	}
 }
 
-func RunOpcServer(strip *strip.LEDStrip, buffer [][]int) error {
-	s := &OpcServer{Strip: strip, Messages: make(chan *OpcMessage)}
+func RunOpcServer(addr string, strip *strip.LEDStrip) error {
+	s := &OpcServer{Messages: make(chan *OpcMessage)}
 
 	go func() {
 		for {
-			(<-s.Messages).WritePixels(buffer)
+			msg := <-s.Messages
+			if msg.Command == 0 {
+				msg.WritePixels(strip.Buffer)
+			}
 		}
 	}()
 
-	return s.ListenAndServe("tcp", "localhost:7890")
+	return s.ListenAndServe("tcp", addr)
 }

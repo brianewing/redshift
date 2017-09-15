@@ -6,24 +6,27 @@ import (
 	"redshift/strip"
 	"redshift/effects"
 	"redshift/animator"
+	"flag"
 )
 
 const LEDS = 60
 const ANIMATION_INTERVAL = 30 * time.Millisecond
 const WSS_BUFFER_INTERVAL = 30 * time.Millisecond
 
+var httpAddr = flag.String("httpAddr", "0.0.0.0:9191", "http service address")
+var opcAddr = flag.String("opcAddr", "0.0.0.0:7890", "opc service address")
+
 func main() {
+	flag.Parse()
+
 	ledStrip := strip.New(LEDS)
 	ledStrip.Clear()
 
 	opcStrip := strip.New(LEDS)
 	opcStrip.Clear()
 
-	//addr := flag.String("httpAddr", "localhost:9191", "http service address")
-	//flag.Parse()
-
-	go server.RunWebSocketServer(ledStrip, WSS_BUFFER_INTERVAL)
-	go server.RunOpcServer(ledStrip, opcStrip.Buffer)
+	go server.RunWebSocketServer(*httpAddr, ledStrip, WSS_BUFFER_INTERVAL)
+	go server.RunOpcServer(*opcAddr, opcStrip)
 
 	animator := &animator.Animator{
 		Strip: ledStrip,
