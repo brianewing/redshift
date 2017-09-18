@@ -19,14 +19,14 @@ func (a *Animator) Run(interval time.Duration) {
 
 	for a.Running {
 		mutex.Lock()
-		a.render()
+		a.Render()
 		mutex.Unlock()
 
 		time.Sleep(interval)
 	}
 }
 
-func (a *Animator) render() {
+func (a *Animator) Render() {
 	for _, effect := range a.Effects {
 		effect.Render(a.Strip)
 	}
