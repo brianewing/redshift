@@ -12,6 +12,6 @@ type RaceTestEffect struct {}
 func (e *RaceTestEffect) Render(s *strip.LEDStrip) {
 	s.Clear()
 	for i := range s.Buffer {
-		s.Buffer[i] = []int{255, 0, 0}
+		s.Buffer[i] = []uint8{255, 0, 0}
 	}
 }

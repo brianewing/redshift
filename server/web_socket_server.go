@@ -62,9 +62,11 @@ func (s *webSocketServer) readMessages(c *websocket.Conn) {
 func (s *webSocketServer) streamStripBuffer(c *websocket.Conn) {
 	for {
 		s.strip.Sync.Lock()
-		msg, _ := serializeStrip(s.strip)
+		//msg, _ := serializeStripJson(s.strip)
+		msg := serializeStripBytes(s.strip)
 		s.strip.Sync.Unlock()
-		err := c.WriteMessage(websocket.TextMessage, msg)
+		//err := c.WriteMessage(websocket.TextMessage, msg)
+		err := c.WriteMessage(websocket.BinaryMessage, msg)
 		if err != nil {
 			log.Println("WS write error: ", err)
 			break
@@ -74,10 +76,21 @@ func (s *webSocketServer) streamStripBuffer(c *websocket.Conn) {
 }
 
 type jsonFormat struct {
-	Buffer [][]int `json:"buffer"`
+	Buffer [][]uint8 `json:"buffer"`
 }
 
-func serializeStrip(strip *strip.LEDStrip) ([]byte, error) {
+func serializeStripJson(strip *strip.LEDStrip) ([]byte, error) {
 	return json.Marshal(&jsonFormat{strip.Buffer})
+}
+
+func serializeStripBytes(strip *strip.LEDStrip) []byte {
+	bytes := make([]byte, len(strip.Buffer) * 3)
+	for i, led := range strip.Buffer {
+		y := i * 3
+		bytes[y] = led[0]
+		bytes[y+1] = led[1]
+		bytes[y+2] = led[2]
+	}
+	return bytes
 }
 

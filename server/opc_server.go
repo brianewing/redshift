@@ -15,12 +15,12 @@ type OpcMessage struct {
 	Data []byte
 }
 
-func (m *OpcMessage) WritePixels(buffer [][]int) {
+func (m *OpcMessage) WritePixels(buffer [][]uint8) {
 	for i, val := range m.Data {
 		if len(buffer) == i / 3 {
 			break
 		}
-		buffer[i / 3][i % 3] = int(val)
+		buffer[i / 3][i % 3] = val
 	}
 }
 

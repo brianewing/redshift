@@ -13,11 +13,11 @@ import (
 
 type RainbowEffect struct {
 	Reverse bool
-	Size int
+	Size uint
 	Speed int
 	Dynamic bool
 
-	wheel [][]int
+	wheel [][]uint8
 	halting bool
 }
 
@@ -48,19 +48,19 @@ func (e *RainbowEffect) adjustParameters() {
 	}
 }
 
-func (e *RainbowEffect) getSize() int {
+func (e *RainbowEffect) getSize() uint {
 	if e.Size == 0 {
 		e.Size = 150
 	}
 	return e.Size
 }
 
-func generateWheel(size int) [][]int {
-	wheel := make([][]int, size)
+func generateWheel(size uint) [][]uint8 {
+	wheel := make([][]uint8, size)
 	for i := range wheel {
 		hue := float64(i) / float64(len(wheel)) * 360
 		r, g, b := colorful.Hsv(hue, 1, 1).RGB255()
-		wheel[i] = []int{int(r), int(g), int(b)}
+		wheel[i] = []uint8{r, g, b}
 	}
 	return wheel
 }

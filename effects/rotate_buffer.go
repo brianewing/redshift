@@ -3,7 +3,7 @@ package effects
 import "redshift/strip"
 
 type RotateBuffer struct {
-	Buffer *[][]int
+	Buffer *[][]uint8
 	Count int
 	Reverse bool
 }
@@ -13,7 +13,7 @@ func (e *RotateBuffer) Render(s *strip.LEDStrip) {
 	(&Buffer{Buffer: *e.Buffer}).Render(s)
 }
 
-func rotate(buffer [][]int, n int, reverse bool) [][]int {
+func rotate(buffer [][]uint8, n int, reverse bool) [][]uint8 {
 	if reverse {
 		head, tail := buffer[0:n], buffer[n:]
 		return append(tail, head...)

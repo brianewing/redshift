@@ -37,7 +37,7 @@ func main() {
 			//&effects.RandomEffect{},
 			&effects.RainbowEffect{Size: 150, Speed: 1, Dynamic: true},
 			//&effects.BlueEffect{},
-			&effects.LarsonEffect{Color: []int{0,0,0}},
+			&effects.LarsonEffect{Color: []uint8{0,0,0}},
 		},
 	}
 

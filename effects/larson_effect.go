@@ -6,7 +6,7 @@ import (
 )
 
 type LarsonEffect struct {
-	Color []int
+	Color []uint8
 
 	velocity int
 	position int
@@ -31,9 +31,9 @@ func (e *LarsonEffect) Render(s *strip.LEDStrip) {
 	e.position += e.velocity
 }
 
-func (e *LarsonEffect) getColor() []int {
+func (e *LarsonEffect) getColor() []uint8 {
 	if len(e.Color) == 0 {
-		return []int{rand.Intn(255), rand.Intn(255), rand.Intn(255)}
+		return []uint8{uint8(rand.Intn(255)), uint8(rand.Intn(255)), uint8(rand.Intn(255))}
 	}
 
 	return e.Color
