@@ -9,8 +9,8 @@ import (
 	"flag"
 )
 
-const ANIMATION_INTERVAL = 30 * time.Millisecond
-const WSS_BUFFER_INTERVAL = 30 * time.Millisecond
+const ANIMATION_INTERVAL = 16 * time.Millisecond
+const WSS_BUFFER_INTERVAL = 16 * time.Millisecond
 
 var numLeds = flag.Int("leds", 60, "number of leds")
 var httpAddr = flag.String("httpAddr", "0.0.0.0:9191", "http service address")
