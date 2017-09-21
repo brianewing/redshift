@@ -20,10 +20,7 @@ func main() {
 	flag.Parse()
 
 	ledStrip := strip.New(*numLeds)
-	ledStrip.Clear()
-
 	opcStrip := strip.New(ledStrip.Size)
-	opcStrip.Clear()
 
 	go server.RunWebSocketServer(*httpAddr, ledStrip, WSS_BUFFER_INTERVAL)
 	go server.RunOpcServer(*opcAddr, opcStrip)

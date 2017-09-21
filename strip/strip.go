@@ -14,7 +14,9 @@ type LEDStrip struct {
 
 func New(size int) *LEDStrip {
 	buffer := make([][]uint8, size)
-	return &LEDStrip{Size: size, Buffer: buffer}
+	newStrip := &LEDStrip{Size: size, Buffer: buffer}
+	newStrip.Clear()
+	return newStrip
 }
 
 func (s *LEDStrip) Clear() {
