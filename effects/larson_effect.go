@@ -7,28 +7,27 @@ import (
 
 type LarsonEffect struct {
 	Color []uint8
-
+	Position int
 	velocity int
-	position int
 }
 
 func (e *LarsonEffect) Render(s *strip.LEDStrip) {
-	if e.position <= 1 {
+	if e.Position <= 1 || e.velocity == 0 {
 		e.velocity = 1
-	} else if e.position == s.Size - 1 {
+	} else if e.Position == s.Size - 1 {
 		e.velocity = -1
 	}
 
 	color := e.getColor()
-	s.SetPixel(e.position, color)
+	s.SetPixel(e.Position, color)
 
-	if e.position != 0 {
-		s.SetPixel(e.position-1, color)
+	if e.Position != 0 {
+		s.SetPixel(e.Position-1, color)
 	} else {
-		s.SetPixel(e.position+1, color)
+		s.SetPixel(e.Position+1, color)
 	}
 
-	e.position += e.velocity
+	e.Position += e.velocity
 }
 
 func (e *LarsonEffect) getColor() []uint8 {
