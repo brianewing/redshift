@@ -1,8 +1,11 @@
 package effects
 
-import "redshift/strip"
+import (
+	"redshift/strip"
+)
 
 type Effect interface {
 	Render(strip *strip.LEDStrip)
 }
+
 

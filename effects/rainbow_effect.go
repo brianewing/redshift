@@ -33,10 +33,10 @@ func (e *RainbowEffect) Render(s *strip.LEDStrip) {
 }
 
 func (e *RainbowEffect) adjustParameters() {
-	if x := rand.Intn(200); x == 43 {
+	if x := rand.Intn(300); x == 43 {
 		e.Reverse = !e.Reverse
 	} else if x == 89 {
-		e.Speed += 2
+		e.Speed += 1
 	} else if x == 48 && e.Speed > 1 {
 		e.Speed -= 1
 	} else if x == 31 && e.Speed > 1 {

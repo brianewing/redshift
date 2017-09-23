@@ -7,6 +7,8 @@ import (
 	"redshift/effects"
 	"redshift/animator"
 	"flag"
+	"log"
+	"github.com/luci/go-render/render"
 )
 
 const ANIMATION_INTERVAL = 16 * time.Millisecond
@@ -22,9 +24,6 @@ func main() {
 	ledStrip := strip.New(*numLeds)
 	opcStrip := strip.New(ledStrip.Size)
 
-	go server.RunWebSocketServer(*httpAddr, ledStrip, WSS_BUFFER_INTERVAL)
-	go server.RunOpcServer(*opcAddr, opcStrip)
-
 	animator := &animator.Animator{
 		Strip: ledStrip,
 		Effects: []effects.Effect{
@@ -37,6 +36,16 @@ func main() {
 			&effects.LarsonEffect{Color: []uint8{0,0,0}},
 		},
 	}
+
+	//log.Println(render.Render(animator.Effects))
+	json, err := effects.MarshalJson(animator.Effects)
+	log.Println(string(json), err)
+
+	effects2, err := effects.UnmarshalJson(json)
+	log.Println(render.Render(effects2), err)
+
+	go server.RunWebSocketServer(*httpAddr, ledStrip, animator.Effects, WSS_BUFFER_INTERVAL)
+	go server.RunOpcServer(*opcAddr, opcStrip)
 
 	animator.Run(ANIMATION_INTERVAL)
 }
