@@ -11,12 +11,17 @@ import (
 	"io/ioutil"
 )
 
-const ANIMATION_INTERVAL = 16 * time.Millisecond
-const WSS_BUFFER_INTERVAL = 16 * time.Millisecond
+var animationInterval = flag.Duration("animationInterval", 16 * time.Millisecond, "interval between animation frames")
+var wssStreamInterval = flag.Duration("wssBufferInterval", 16 * time.Millisecond, "interval between buffer updates to web socket clients")
 
-var numLeds = flag.Int("leds", 60, "number of leds")
+var wsInterval = flag.Duration("wsInterval", 16 * time.Millisecond, "ws2811/2812(b) refresh interval")
+var wsPin = flag.Int("wsPin", 0, "ws2811/2812(b) gpio pin")
+var wsBrightness = flag.Int("wsBrightness", 50, "ws2811/2812(b) brightness")
+
 var httpAddr = flag.String("httpAddr", "0.0.0.0:9191", "http service address")
 var opcAddr = flag.String("opcAddr", "0.0.0.0:7890", "opc service address")
+
+var numLeds = flag.Int("leds", 60, "number of leds")
 var pathToEffectsJson = flag.String("effectsJson", "", "path to effects json")
 
 func main() {
@@ -27,6 +32,10 @@ func main() {
 	ledStrip := strip.New(*numLeds)
 	opcStrip := strip.New(ledStrip.Size)
 
+	if *wsPin != 0 {
+		go ledStrip.RunWs2811(*wsPin, *wsInterval, *wsBrightness)
+	}
+
 	animator := &animator.Animator{
 		Strip: ledStrip,
 		Effects: append(
@@ -35,10 +44,10 @@ func main() {
 		),
 	}
 
-	go server.RunWebSocketServer(*httpAddr, ledStrip, animator.Effects, WSS_BUFFER_INTERVAL)
+	go server.RunWebSocketServer(*httpAddr, ledStrip, animator.Effects, *wssStreamInterval)
 	go server.RunOpcServer(*opcAddr, opcStrip)
 
-	animator.Run(ANIMATION_INTERVAL)
+	animator.Run(*animationInterval)
 }
 
 func getEffects() []effects.Effect {
