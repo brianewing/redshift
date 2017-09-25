@@ -42,3 +42,30 @@ func UnmarshalJson(s []byte) ([]Effect, error) {
 
 	return effects, nil
 }
+
+/*
+ * Combine Effect
+ */
+
+type jsonFormatCombine struct {
+	Effects json.RawMessage // encoded with MarshalJson()
+}
+
+func (e *Combine) MarshalJSON() ([]byte, error) {
+	effectsJson, _ := MarshalJson(e.Effects)
+	return json.Marshal(&jsonFormatCombine{Effects: effectsJson})
+}
+
+func (e *Combine) UnmarshalJSON(b []byte) error {
+	tmp := jsonFormatCombine{}
+	if err := json.Unmarshal(b, &tmp); err == nil {
+		if effects, err := UnmarshalJson(tmp.Effects); err == nil {
+			e.Effects = effects
+			return nil
+		} else {
+			return err
+		}
+	} else {
+		return err
+	}
+}

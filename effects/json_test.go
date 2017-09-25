@@ -9,13 +9,13 @@ func animationSet() []Effect {
 	return []Effect{
 		&Clear{},
 		&RainbowEffect{Size: 150, Speed: 1, Dynamic: true},
-		//&Combine{
-		//	Effects: []Effect{
-		//		&Clear{},
-		//		&RainbowEffect{Size: 100, Speed: 1, Dynamic: false},
-		//		&Brightness{Brightness: 200},
-		//	},
-		//},
+		&Combine{
+			Effects: []Effect{
+				&Clear{},
+				&RainbowEffect{Size: 100, Speed: 1, Dynamic: false},
+				&Brightness{Brightness: 200},
+			},
+		},
 		&BlueEffect{},
 		&LarsonEffect{Color: []uint8{0,0,0}},
 	}
