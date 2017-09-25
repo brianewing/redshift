@@ -8,7 +8,6 @@ import (
 	"redshift/animator"
 	"flag"
 	"log"
-	"github.com/luci/go-render/render"
 	"io/ioutil"
 )
 
@@ -35,13 +34,6 @@ func main() {
 			&effects.Buffer{Buffer: opcStrip.Buffer},
 		),
 	}
-
-	//log.Println(render.Render(animator.Effects))
-	json, err := effects.MarshalJson(animator.Effects)
-	log.Println(string(json), err)
-
-	effects2, err := effects.UnmarshalJson(json)
-	log.Println(render.Render(effects2), err)
 
 	go server.RunWebSocketServer(*httpAddr, ledStrip, animator.Effects, WSS_BUFFER_INTERVAL)
 	go server.RunOpcServer(*opcAddr, opcStrip)
