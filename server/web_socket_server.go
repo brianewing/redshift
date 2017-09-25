@@ -8,20 +8,26 @@ import (
 
 	"github.com/gorilla/websocket"
 	"redshift/strip"
+	"redshift/effects"
+	"sync"
 )
 
 type webSocketServer struct {
 	server *http.Server
 	strip *strip.LEDStrip
+	effects []effects.Effect
 	bufferInterval time.Duration
+
+	writeMutex sync.Mutex
 
 	upgrader *websocket.Upgrader
 	http.Handler
 }
 
-func RunWebSocketServer(addr string, strip *strip.LEDStrip, bufferInterval time.Duration) error {
+func RunWebSocketServer(addr string, strip *strip.LEDStrip, effects []effects.Effect, bufferInterval time.Duration) error {
 	wss := &webSocketServer{
 		strip: strip,
+		effects: effects,
 		bufferInterval: bufferInterval,
 		upgrader: &websocket.Upgrader{
 			CheckOrigin: func (r *http.Request) bool { return true },
@@ -44,6 +50,7 @@ func (s *webSocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	go s.readMessages(c)
 	go s.streamStripBuffer(c)
+	//go s.streamEffectsJson(c)
 	//defer c.Close()
 }
 
@@ -66,9 +73,25 @@ func (s *webSocketServer) streamStripBuffer(c *websocket.Conn) {
 		msg := serializeStripBytes(s.strip)
 		s.strip.Sync.Unlock()
 		//err := c.WriteMessage(websocket.TextMessage, msg)
+		s.writeMutex.Lock()
 		err := c.WriteMessage(websocket.BinaryMessage, msg)
+		s.writeMutex.Unlock()
 		if err != nil {
 			log.Println("WS write error: ", err)
+			break
+		}
+		time.Sleep(s.bufferInterval)
+	}
+}
+
+func (s *webSocketServer) streamEffectsJson(c *websocket.Conn) {
+	for {
+		effectsJson, _ := effects.MarshalJson(s.effects)
+		s.writeMutex.Lock()
+		err := c.WriteMessage(websocket.TextMessage, effectsJson)
+		s.writeMutex.Unlock()
+		if err != nil {
+			log.Println("WS", "effects", "write error", err)
 			break
 		}
 		time.Sleep(s.bufferInterval)
