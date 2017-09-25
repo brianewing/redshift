@@ -13,12 +13,16 @@ func (e *Buffer) Render(strip *strip.LEDStrip) {
 	for i, led := range strip.Buffer {
 		if i == len(e.Buffer) {
 			break
-		} else if led[0] == 0 && led[1] == 0 && led[2] == 0  {
+		} else if isOff(led) {
 			copy(strip.Buffer[i], e.Buffer[i])
-		} else {
+		} else if !isOff(e.Buffer[i]) {
 			copy(strip.Buffer[i], blendRgb(strip.Buffer[i], e.Buffer[i]))
 		}
 	}
+}
+
+func isOff(led []uint8) bool {
+	return led[0] == 0 && led[1] == 0 && led[2] == 0
 }
 
 func blendRgb(c1 []uint8, c2 []uint8) []uint8 {
