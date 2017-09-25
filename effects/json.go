@@ -3,39 +3,42 @@ package effects
 import (
 	"encoding/json"
 	"reflect"
-	"github.com/luci/go-render/render"
 )
 
-type jsonFormat struct {
+// todo: document how this works!
+
+type jsonEnvelope struct {
 	Type string
 	Params interface{}
 }
 
-func jsonEnvelope(effect Effect) jsonFormat {
-	t := reflect.TypeOf(effect).Elem().Name()
-	return jsonFormat{Type: t, Params: effect}
+type unmarshalFormat struct {
+	jsonEnvelope
+	Params json.RawMessage
 }
 
 func MarshalJson(effects []Effect) ([]byte, error) {
-	envelopes := make([]jsonFormat, len(effects))
+	envelopes := make([]jsonEnvelope, len(effects))
 
 	for i, effect := range effects {
-		envelopes[i] = jsonEnvelope(effect)
+		envelopes[i] = jsonEnvelope{
+			Type: reflect.TypeOf(effect).Elem().Name(),
+			Params: effect,
+		}
 	}
 
 	return json.Marshal(envelopes)
-}
-
-type unmarshalFormat struct {
-	jsonFormat
-	Params json.RawMessage
 }
 
 func UnmarshalJson(s []byte) ([]Effect, error) {
 	var envelopes []unmarshalFormat
 	json.Unmarshal(s, &envelopes)
 
-	println(render.Render(envelopes))
+	effects := make([]Effect, len(envelopes))
+	for i, envelope := range envelopes {
+		effects[i] = newEffectByName(envelope.Type)
+		json.Unmarshal(envelope.Params, &effects[i])
+	}
 
-	return []Effect{}, nil
+	return effects, nil
 }
