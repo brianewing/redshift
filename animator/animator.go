@@ -15,7 +15,7 @@ type Animator struct {
 
 func (a *Animator) Run(interval time.Duration) {
 	a.Running = true
-	mutex := &a.Strip.Sync
+	mutex := a.Strip
 
 	for a.Running {
 		mutex.Lock()

@@ -13,12 +13,12 @@ func (s *LEDStrip) RunWs2811(gpioPin int, refreshInterval time.Duration, maxBrig
 	}
 
 	for {
-		s.Sync.Lock()
+		s.Lock()
 		for i, color := range s.Buffer {
 			color32 := uint32((uint32(0) << 24) | (uint32(color[0]) << 16) | (uint32(color[1]) << 8) | uint32(color[2]))
 			ws2811.SetLed(i, color32)
 		}
-		s.Sync.Unlock()
+		s.Unlock()
 		ws2811.Render()
 		time.Sleep(refreshInterval)
 	}

@@ -9,7 +9,7 @@ type LEDStrip struct {
 	Size int
 	Buffer [][]uint8
 
-	Sync sync.Mutex
+	sync.Mutex
 }
 
 func New(size int) *LEDStrip {

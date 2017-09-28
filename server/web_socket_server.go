@@ -30,7 +30,7 @@ func RunWebSocketServer(addr string, strip *strip.LEDStrip, effects []effects.Ef
 		effects: effects,
 		bufferInterval: bufferInterval,
 		upgrader: &websocket.Upgrader{
-			CheckOrigin: func (r *http.Request) bool { return true },
+			CheckOrigin: func (r *http.Request) bool { return true }, // ALLOW CROSS-ORIGIN REQUESTS
 		},
 	}
 
@@ -49,9 +49,13 @@ func (s *webSocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go s.readMessages(c)
-	go s.streamStripBuffer(c)
-	//go s.streamEffectsJson(c)
-	//defer c.Close()
+
+	println(r.URL.Path)
+
+	switch r.URL.Path {
+		case "/strip": go s.streamStripBuffer(c)
+		case "/effects": go s.streamEffectsJson(c)
+	}
 }
 
 func (s *webSocketServer) readMessages(c *websocket.Conn) {
@@ -68,18 +72,18 @@ func (s *webSocketServer) readMessages(c *websocket.Conn) {
 
 func (s *webSocketServer) streamStripBuffer(c *websocket.Conn) {
 	for {
-		s.strip.Sync.Lock()
-		//msg, _ := serializeStripJson(s.strip)
+		s.strip.Lock()
 		msg := serializeStripBytes(s.strip)
-		s.strip.Sync.Unlock()
-		//err := c.WriteMessage(websocket.TextMessage, msg)
+		s.strip.Unlock()
+
 		s.writeMutex.Lock()
 		err := c.WriteMessage(websocket.BinaryMessage, msg)
-		s.writeMutex.Unlock()
 		if err != nil {
 			log.Println("WS write error: ", err)
 			break
 		}
+		s.writeMutex.Unlock()
+
 		time.Sleep(s.bufferInterval)
 	}
 }

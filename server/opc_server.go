@@ -8,24 +8,22 @@ import (
 	"redshift/strip"
 )
 
-type OpcMessage struct {
-	Channel, Command uint8
-
-	Length uint16
-	Data []byte
-}
-
-func (m *OpcMessage) WritePixels(buffer [][]uint8) {
-	for i, val := range m.Data {
-		if len(buffer) == i / 3 {
-			break
-		}
-		buffer[i / 3][i % 3] = val
-	}
-}
-
 type OpcServer struct {
 	Messages chan *OpcMessage
+}
+
+func RunOpcServer(addr string, strip *strip.LEDStrip) error {
+	s := &OpcServer{Messages: make(chan *OpcMessage)}
+
+	go func() {
+		for {
+			if msg := <-s.Messages; msg.Command == 0 {
+				msg.WritePixels(strip.Buffer)
+			}
+		}
+	}()
+
+	return s.ListenAndServe("tcp", addr)
 }
 
 func (s *OpcServer) ListenAndServe(protocol string, port string) error {
@@ -90,17 +88,19 @@ func (s *OpcServer) readMessage(conn net.Conn) (error, *OpcMessage) {
 	}
 }
 
-func RunOpcServer(addr string, strip *strip.LEDStrip) error {
-	s := &OpcServer{Messages: make(chan *OpcMessage)}
+type OpcMessage struct {
+	Channel, Command uint8
 
-	go func() {
-		for {
-			msg := <-s.Messages
-			if msg.Command == 0 {
-				msg.WritePixels(strip.Buffer)
-			}
-		}
-	}()
-
-	return s.ListenAndServe("tcp", addr)
+	Length uint16
+	Data []byte
 }
+
+func (m *OpcMessage) WritePixels(buffer [][]uint8) {
+	for i, val := range m.Data {
+		if len(buffer) == i / 3 {
+			break
+		}
+		buffer[i / 3][i % 3] = val
+	}
+}
+
