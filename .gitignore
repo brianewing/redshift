@@ -2,3 +2,9 @@
 /dev
 todo.txt
 notes.txt
+
+# builds
+/redshift*
+
+# effect config 
+/effects*.json
