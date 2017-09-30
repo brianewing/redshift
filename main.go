@@ -12,7 +12,6 @@ import (
 )
 
 var animationInterval = flag.Duration("animationInterval", 16 * time.Millisecond, "interval between animation frames")
-var wssStreamInterval = flag.Duration("wssBufferInterval", 16 * time.Millisecond, "interval between buffer updates to web socket clients")
 
 var wsInterval = flag.Duration("wsInterval", 16 * time.Millisecond, "ws2811/2812(b) refresh interval")
 var wsPin = flag.Int("wsPin", 0, "ws2811/2812(b) gpio pin")
@@ -44,7 +43,7 @@ func main() {
 		),
 	}
 
-	go server.RunWebSocketServer(*httpAddr, ledStrip, animator.Effects, *wssStreamInterval)
+	go server.RunWebSocketServer(*httpAddr, ledStrip, animator.Effects)
 	go server.RunOpcServer(*opcAddr, opcStrip)
 
 	animator.Run(*animationInterval)

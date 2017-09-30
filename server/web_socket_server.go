@@ -4,110 +4,113 @@ import (
 	"log"
 	"time"
 	"net/http"
-	"encoding/json"
-
 	"github.com/gorilla/websocket"
 	"redshift/strip"
 	"redshift/effects"
-	"sync"
 )
 
 type webSocketServer struct {
-	server *http.Server
 	strip *strip.LEDStrip
 	effects []effects.Effect
-	bufferInterval time.Duration
 
-	writeMutex sync.Mutex
-
+	server *http.Server
 	upgrader *websocket.Upgrader
 	http.Handler
 }
 
-func RunWebSocketServer(addr string, strip *strip.LEDStrip, effects []effects.Effect, bufferInterval time.Duration) error {
+func RunWebSocketServer(addr string, strip *strip.LEDStrip, effects []effects.Effect) error {
 	wss := &webSocketServer{
 		strip: strip,
 		effects: effects,
-		bufferInterval: bufferInterval,
 		upgrader: &websocket.Upgrader{
 			CheckOrigin: func (r *http.Request) bool { return true }, // ALLOW CROSS-ORIGIN REQUESTS
 		},
 	}
-
 	wss.server = &http.Server{Addr: addr, Handler: wss}
 	return wss.server.ListenAndServe()
 }
 
 func (s *webSocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c, err := s.upgrader.Upgrade(w, r, nil)
+	sc := &streamConnection{Conn: c}
 
 	if err != nil {
-		log.Print("WS upgrade error: ", err)
+		log.Print("WS upgrade error:", err)
 		return
 	} else {
-		log.Print("WS client connected ", c.RemoteAddr().String())
+		log.Print("WS client connected (", r.URL, ") [", c.RemoteAddr().String(), "]")
 	}
 
-	go s.readMessages(c)
-
-	println(r.URL.Path)
-
 	switch r.URL.Path {
-		case "/strip": go s.streamStripBuffer(c)
-		case "/effects": go s.streamEffectsJson(c)
+		case "/s/strip":
+			go s.streamStripBuffer(sc)
+			go sc.readFps()
+		case "/s/effects":
+			go s.streamEffectsJson(sc)
+			go sc.readFps()
+		case "/strip":
+			//go s.receiveBuffer(c)
+		case "/effects":
+			//go s.receiveEffects(c)
 	}
 }
 
-func (s *webSocketServer) readMessages(c *websocket.Conn) {
+type streamConnection struct {
+	requestedFps uint8 // 0-255
+	fpsChanged chan bool
+	*websocket.Conn
+}
+
+func (sc *streamConnection) NextFrame() bool {
+	for sc.requestedFps == 0 {
+		<-sc.fpsChanged // block til it's set
+		return true
+	}
+
+	time.Sleep(time.Second / time.Duration(sc.requestedFps))
+	return true
+}
+
+func (sc *streamConnection) readFps() {
+	sc.fpsChanged = make(chan bool)
+	sc.SetReadLimit(1) // 1 byte at a time
+
 	for {
-		_, message, err := c.ReadMessage()
-		if err != nil {
-			log.Println("WS read error: ", err)
-			break
+		if _, msg, err := sc.ReadMessage(); err == nil {
+			oldFps := sc.requestedFps
+			sc.requestedFps = uint8(msg[0])
+			if oldFps == 0 {
+				sc.fpsChanged <- true
+			}
 		} else {
-			log.Println("WS got message: ", message)
+			log.Println("WS read fps error:", err)
+			break
 		}
 	}
 }
 
-func (s *webSocketServer) streamStripBuffer(c *websocket.Conn) {
-	for {
+func (s *webSocketServer) streamStripBuffer(sc *streamConnection) {
+	for sc.NextFrame() {
 		s.strip.Lock()
 		msg := serializeStripBytes(s.strip)
 		s.strip.Unlock()
 
-		s.writeMutex.Lock()
-		err := c.WriteMessage(websocket.BinaryMessage, msg)
-		if err != nil {
-			log.Println("WS write error: ", err)
+		if err := sc.WriteMessage(websocket.BinaryMessage, msg); err != nil {
+			log.Println("WS write error:", err)
 			break
 		}
-		s.writeMutex.Unlock()
-
-		time.Sleep(s.bufferInterval)
 	}
 }
 
-func (s *webSocketServer) streamEffectsJson(c *websocket.Conn) {
-	for {
+func (s *webSocketServer) streamEffectsJson(sc *streamConnection) {
+	for sc.NextFrame() {
 		effectsJson, _ := effects.MarshalJson(s.effects)
-		s.writeMutex.Lock()
-		err := c.WriteMessage(websocket.TextMessage, effectsJson)
-		s.writeMutex.Unlock()
-		if err != nil {
-			log.Println("WS", "effects", "write error", err)
+
+		if err := sc.WriteMessage(websocket.TextMessage, effectsJson); err != nil {
+			log.Println("WS effects write error:", err)
 			break
 		}
-		time.Sleep(s.bufferInterval)
 	}
-}
-
-type jsonFormat struct {
-	Buffer [][]uint8 `json:"buffer"`
-}
-
-func serializeStripJson(strip *strip.LEDStrip) ([]byte, error) {
-	return json.Marshal(&jsonFormat{strip.Buffer})
 }
 
 func serializeStripBytes(strip *strip.LEDStrip) []byte {
@@ -120,4 +123,3 @@ func serializeStripBytes(strip *strip.LEDStrip) []byte {
 	}
 	return bytes
 }
-
