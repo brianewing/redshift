@@ -43,7 +43,7 @@ func main() {
 		),
 	}
 
-	go server.RunWebSocketServer(*httpAddr, ledStrip, animator.Effects)
+	go server.RunWebSocketServer(*httpAddr, ledStrip, &animator.Effects)
 	go server.RunOpcServer(*opcAddr, opcStrip)
 
 	animator.Run(*animationInterval)

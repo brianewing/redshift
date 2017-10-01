@@ -11,14 +11,14 @@ import (
 
 type webSocketServer struct {
 	strip *strip.LEDStrip
-	effects []effects.Effect
+	effects *[]effects.Effect
 
 	server *http.Server
 	upgrader *websocket.Upgrader
 	http.Handler
 }
 
-func RunWebSocketServer(addr string, strip *strip.LEDStrip, effects []effects.Effect) error {
+func RunWebSocketServer(addr string, strip *strip.LEDStrip, effects *[]effects.Effect) error {
 	wss := &webSocketServer{
 		strip: strip,
 		effects: effects,
@@ -51,7 +51,20 @@ func (s *webSocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		case "/strip":
 			//go s.receiveBuffer(c)
 		case "/effects":
-			//go s.receiveEffects(c)
+			go s.receiveEffects(c)
+	}
+}
+
+func (s *webSocketServer) receiveEffects(c *websocket.Conn) {
+	for {
+		if _, msg, err := c.ReadMessage(); err != nil {
+			log.Println("WS effects read error:", err)
+			return
+		} else if effects, err := effects.UnmarshalJson(msg); err == nil {
+			*s.effects = effects
+		} else {
+			log.Println("WS effects parse error:", err)
+		}
 	}
 }
 
@@ -104,7 +117,7 @@ func (s *webSocketServer) streamStripBuffer(sc *streamConnection) {
 
 func (s *webSocketServer) streamEffectsJson(sc *streamConnection) {
 	for sc.NextFrame() {
-		effectsJson, _ := effects.MarshalJson(s.effects)
+		effectsJson, _ := effects.MarshalJson(*s.effects)
 
 		if err := sc.WriteMessage(websocket.TextMessage, effectsJson); err != nil {
 			log.Println("WS effects write error:", err)
