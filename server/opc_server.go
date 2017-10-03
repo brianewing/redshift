@@ -5,20 +5,19 @@ import (
 	"log"
 	"errors"
 	"encoding/binary"
-	"redshift/strip"
 )
 
 type OpcServer struct {
 	Messages chan *OpcMessage
 }
 
-func RunOpcServer(addr string, strip *strip.LEDStrip) error {
+func RunOpcServer(addr string, buffer [][]uint8) error {
 	s := &OpcServer{Messages: make(chan *OpcMessage)}
 
 	go func() {
 		for {
 			if msg := <-s.Messages; msg.Command == 0 {
-				msg.WritePixels(strip.Buffer)
+				msg.WritePixels(buffer)
 			}
 		}
 	}()
@@ -103,4 +102,3 @@ func (m *OpcMessage) WritePixels(buffer [][]uint8) {
 		buffer[i / 3][i % 3] = val
 	}
 }
-

@@ -29,22 +29,24 @@ func main() {
 	writeEffectsJson("effects.default.json", defaultEffects())
 
 	ledStrip := strip.New(*numLeds)
-	opcStrip := strip.New(ledStrip.Size)
 
-	if *wsPin != 0 {
-		go ledStrip.RunWs2811(*wsPin, *wsInterval, *wsBrightness)
-	}
+	opcBuffer := strip.NewBuffer(ledStrip.Size)
+	wssBuffer := strip.NewBuffer(ledStrip.Size)
 
 	animator := &animator.Animator{
 		Strip: ledStrip,
 		Effects: append(
 			getEffects(),
-			&effects.Buffer{Buffer: opcStrip.Buffer},
+			&effects.Buffer{Buffer: opcBuffer},
+			&effects.Buffer{Buffer: wssBuffer},
 		),
 	}
 
-	go server.RunWebSocketServer(*httpAddr, ledStrip, &animator.Effects)
-	go server.RunOpcServer(*opcAddr, opcStrip)
+	if *wsPin != 0 {
+		go ledStrip.RunWs2811(*wsPin, *wsInterval, *wsBrightness)
+	}
+	go server.RunWebSocketServer(*httpAddr, ledStrip, wssBuffer, &animator.Effects)
+	go server.RunOpcServer(*opcAddr, opcBuffer)
 
 	animator.Run(*animationInterval)
 }

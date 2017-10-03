@@ -11,6 +11,7 @@ import (
 
 type webSocketServer struct {
 	strip *strip.LEDStrip
+	buffer [][]uint8
 	effects *[]effects.Effect
 
 	server *http.Server
@@ -18,9 +19,10 @@ type webSocketServer struct {
 	http.Handler
 }
 
-func RunWebSocketServer(addr string, strip *strip.LEDStrip, effects *[]effects.Effect) error {
+func RunWebSocketServer(addr string, strip *strip.LEDStrip, buffer [][]uint8, effects *[]effects.Effect) error {
 	wss := &webSocketServer{
 		strip: strip,
+		buffer: buffer,
 		effects: effects,
 		upgrader: &websocket.Upgrader{
 			CheckOrigin: func (r *http.Request) bool { return true }, // ALLOW CROSS-ORIGIN REQUESTS
@@ -49,9 +51,20 @@ func (s *webSocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			go s.streamEffectsJson(sc)
 			go sc.readFps()
 		case "/strip":
-			//go s.receiveBuffer(c)
+			go s.receiveBuffer(c)
 		case "/effects":
 			go s.receiveEffects(c)
+	}
+}
+
+func (s *webSocketServer) receiveBuffer(c *websocket.Conn) {
+	for {
+		if _, msg, err := c.ReadMessage(); err != nil {
+			log.Println("WS buffer read error", err)
+			return
+		} else {
+			strip.UnserializeBufferBytes(s.buffer, msg)
+		}
 	}
 }
 
@@ -61,6 +74,7 @@ func (s *webSocketServer) receiveEffects(c *websocket.Conn) {
 			log.Println("WS effects read error:", err)
 			return
 		} else if effects, err := effects.UnmarshalJson(msg); err == nil {
+			log.Println("WS effects received:", string(msg))
 			*s.effects = effects
 		} else {
 			log.Println("WS effects parse error:", err)
@@ -105,7 +119,7 @@ func (sc *streamConnection) readFps() {
 func (s *webSocketServer) streamStripBuffer(sc *streamConnection) {
 	for sc.NextFrame() {
 		s.strip.Lock()
-		msg := serializeStripBytes(s.strip)
+		msg := s.strip.SerializeBytes()
 		s.strip.Unlock()
 
 		if err := sc.WriteMessage(websocket.BinaryMessage, msg); err != nil {
@@ -124,15 +138,4 @@ func (s *webSocketServer) streamEffectsJson(sc *streamConnection) {
 			break
 		}
 	}
-}
-
-func serializeStripBytes(strip *strip.LEDStrip) []byte {
-	bytes := make([]byte, len(strip.Buffer) * 3)
-	for i, led := range strip.Buffer {
-		y := i * 3
-		bytes[y] = led[0]
-		bytes[y+1] = led[1]
-		bytes[y+2] = led[2]
-	}
-	return bytes
 }

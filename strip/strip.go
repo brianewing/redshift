@@ -13,16 +13,23 @@ type LEDStrip struct {
 }
 
 func New(size int) *LEDStrip {
+	return &LEDStrip{Size: size, Buffer: NewBuffer(size)}
+}
+
+func NewBuffer(size int) [][]uint8 {
 	buffer := make([][]uint8, size)
-	newStrip := &LEDStrip{Size: size, Buffer: buffer}
-	newStrip.Clear()
-	return newStrip
+	clearBuffer(buffer)
+	return buffer
+}
+
+func clearBuffer(buffer [][]uint8) {
+	for i := range buffer {
+		buffer[i] = []uint8{0, 0, 0}
+	}
 }
 
 func (s *LEDStrip) Clear() {
-	for i := range s.Buffer {
-		s.Buffer[i] = []uint8{0, 0, 0}
-	}
+	clearBuffer(s.Buffer)
 }
 
 func (s *LEDStrip) SetPixel(i int, color []uint8) {
