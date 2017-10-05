@@ -9,6 +9,7 @@ import (
 type Animator struct {
 	Strip *strip.LEDStrip
 	Effects []effects.Effect
+	PostEffects []effects.Effect
 
 	Running bool
 }
@@ -29,5 +30,8 @@ func (a *Animator) Run(interval time.Duration) {
 func (a *Animator) Render() {
 	for _, effect := range a.Effects {
 		effect.Render(a.Strip)
+	}
+	for _, postEffect := range a.PostEffects {
+		postEffect.Render(a.Strip)
 	}
 }

@@ -35,11 +35,11 @@ func main() {
 
 	animator := &animator.Animator{
 		Strip: ledStrip,
-		Effects: append(
-			getEffects(),
+		Effects: getEffects(),
+		PostEffects: []effects.Effect{
 			&effects.Buffer{Buffer: opcBuffer},
 			&effects.Buffer{Buffer: wssBuffer},
-		),
+		},
 	}
 
 	if *wsPin != 0 {
