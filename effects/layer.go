@@ -4,13 +4,13 @@ import (
 	"redshift/strip"
 )
 
-type Combine struct {
+type Layer struct {
 	Effects []Effect
 
 	virtualStrip *strip.LEDStrip
 }
 
-func (e *Combine) Render(s *strip.LEDStrip) {
+func (e *Layer) Render(s *strip.LEDStrip) {
 	if e.virtualStrip == nil {
 		e.virtualStrip = strip.New(s.Size)
 	}

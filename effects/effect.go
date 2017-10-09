@@ -14,7 +14,7 @@ func newEffectByName(name string) Effect {
 		case "Brightness": return &Brightness{}
 		case "Buffer": return &Buffer{}
 		case "Clear": return &Clear{}
-		case "Combine": return &Combine{}
+		case "Layer": return &Layer{}
 		case "LarsonEffect": return &LarsonEffect{}
 		case "RaceTestEffect": return &RaceTestEffect{}
 		case "RainbowEffect": return &RainbowEffect{}

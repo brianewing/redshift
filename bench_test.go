@@ -19,7 +19,7 @@ func BenchmarkExampleAnimation(b *testing.B) {
 			&effects.Clear{},
 			&effects.Buffer{Buffer: randomStrip.Buffer},
 			&effects.RainbowEffect{Size: 150, Speed: 1, Dynamic: true},
-			&effects.Combine{
+			&effects.Layer{
 				Effects: []effects.Effect{
 					&effects.Clear{},
 					&effects.RainbowEffect{Size: 100, Speed: 1, Dynamic: false},
