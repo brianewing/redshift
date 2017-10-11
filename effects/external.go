@@ -10,6 +10,11 @@ import (
 
 const PIPE_SIZE = 65536
 
+// todo: write tests / benchmarks
+// todo: use inotify to reload scripts when changed
+// todo: .. then just save the files through the web server
+// todo: define script server as a plain HTTP server, PUT/GET resources
+
 type External struct {
 	Program string
 	Args []string
