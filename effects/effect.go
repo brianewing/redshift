@@ -24,3 +24,6 @@ func newEffectByName(name string) Effect {
 		default: return nil
 	}
 }
+
+type Null struct {}
+func (e *Null) Render(strip *strip.LEDStrip) {}
