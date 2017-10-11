@@ -13,6 +13,7 @@ const PIPE_SIZE = 65536
 type External struct {
 	Program string
 	Args []string
+	Shellhack bool
 
 	cmd *exec.Cmd
 	halted bool
@@ -52,10 +53,15 @@ func (e *External) startProcess() {
 }
 
 func (e *External) sendFrame(buffer [][]uint8) {
-	if e.cmd != nil {
-		frame := strip.SerializeBufferBytes(buffer)
-		e.stdin.Write(frame)
+	frame := strip.SerializeBufferBytes(buffer)
+	if e.Shellhack {
+		for i, byte := range frame {
+			if byte == 0 {
+				frame[i] = 1
+			}
+		}
 	}
+	e.stdin.Write(frame)
 }
 
 func (e *External) readFrame(buffer [][]uint8) {
