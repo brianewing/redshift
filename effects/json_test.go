@@ -21,8 +21,8 @@ func BenchmarkMarshalJSON(b *testing.B) {
 			MarshalJson(effects)
 		}
 	})
-	b.Run("Combine{Example}", func(b *testing.B) {
-		effects := []Effect{&Combine{Effects: animationSet()}}
+	b.Run("Layer{Example}", func(b *testing.B) {
+		effects := []Effect{&Layer{Effects: animationSet()}}
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			MarshalJson(effects)
@@ -38,8 +38,8 @@ func BenchmarkUnmarshalJSON(b *testing.B) {
 			UnmarshalJson(effectsJson)
 		}
 	})
-	b.Run("Combine{Example}", func(b *testing.B) {
-		effectsJson, _ := MarshalJson([]Effect{&Combine{Effects: animationSet()}})
+	b.Run("Layer{Example}", func(b *testing.B) {
+		effectsJson, _ := MarshalJson([]Effect{&Layer{Effects: animationSet()}})
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			UnmarshalJson(effectsJson)
