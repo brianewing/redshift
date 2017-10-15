@@ -19,8 +19,10 @@ var wsBrightness = flag.Int("wsBrightness", 50, "ws2811/2812(b) brightness")
 
 var httpAddr = flag.String("httpAddr", "0.0.0.0:9191", "http service address")
 var opcAddr = flag.String("opcAddr", "0.0.0.0:7890", "opc service address")
+var davAddr = flag.String("davAddr", "0.0.0.0:9292", "webdav (scripts) service address")
 
 var numLeds = flag.Int("leds", 60, "number of leds")
+var scriptsDir = flag.String("scriptsDir", "scripts", "scripts directory relative to cwd")
 var pathToEffectsJson = flag.String("effectsJson", "", "path to effects json")
 
 func main() {
@@ -46,6 +48,7 @@ func main() {
 		go ledStrip.RunWs2811(*wsPin, *wsInterval, *wsBrightness)
 	}
 	go server.RunWebSocketServer(*httpAddr, ledStrip, wssBuffer, &animator.Effects)
+	go server.RunWebDavServer(*davAddr, *scriptsDir)
 	go server.RunOpcServer(*opcAddr, opcBuffer)
 
 	animator.Run(*animationInterval)
@@ -81,15 +84,6 @@ func writeEffectsJson(path string, effects_ []effects.Effect) error {
 	return ioutil.WriteFile(path, bytes, 0644)
 }
 
-type TestEffect struct {}
-func (e *TestEffect) Render(s *strip.LEDStrip) {
-	for _, led := range(s.Buffer) {
-		r := int(led[2]) - int(led[0])
-		if r < 0 { r = 0 }
-		led[0] = uint8(r)
-	}
-}
-
 func defaultEffects() []effects.Effect {
 	return []effects.Effect{
 		&effects.Clear{},
@@ -97,7 +91,6 @@ func defaultEffects() []effects.Effect {
 		//&effects.RandomEffect{},
 		&effects.RainbowEffect{Size: 150, Speed: 1, Dynamic: true},
 		&effects.External{Program: "dev/scripts/test.js"},
-		//&TestEffect{},
 		//&effects.BlueEffect{},
 		//&effects.LarsonEffect{Color: []uint8{0,0,0}},
 	}
