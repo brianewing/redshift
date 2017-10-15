@@ -18,12 +18,12 @@ func (a *Animator) Run(interval time.Duration) {
 	a.Running = true
 	mutex := a.Strip
 
+	ticker := time.NewTicker(interval)
 	for a.Running {
 		mutex.Lock()
 		a.Render()
 		mutex.Unlock()
-
-		time.Sleep(interval)
+		<-ticker.C
 	}
 }
 
