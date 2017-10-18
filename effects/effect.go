@@ -22,7 +22,7 @@ func newEffectByName(name string) Effect {
 		case "RandomEffect": return &RandomEffect{}
 		case "RotateBuffer": return &RotateBuffer{}
 		case "Stripe": return &Stripe{}
-		default: return nil
+		default: return &Null{}
 	}
 }
 
