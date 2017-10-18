@@ -9,6 +9,7 @@ import (
 	"flag"
 	"log"
 	"io/ioutil"
+	"math/rand"
 )
 
 var animationInterval = flag.Duration("animationInterval", 16 * time.Millisecond, "interval between animation frames")
@@ -27,6 +28,8 @@ var pathToEffectsJson = flag.String("effectsJson", "", "path to effects json")
 
 func main() {
 	flag.Parse()
+
+	rand.Seed(time.Now().UnixNano())
 
 	writeEffectsJson("effects.default.json", defaultEffects())
 

@@ -15,8 +15,10 @@ func newEffectByName(name string) Effect {
 		case "Buffer": return &Buffer{}
 		case "Clear": return &Clear{}
 		case "External": return &External{}
+		case "Fill": return &Fill{}
 		case "Layer": return &Layer{}
 		case "LarsonEffect": return &LarsonEffect{}
+		case "MoodEffect": return &MoodEffect{}
 		case "RaceTestEffect": return &RaceTestEffect{}
 		case "RainbowEffect": return &RainbowEffect{}
 		case "RandomEffect": return &RandomEffect{}
