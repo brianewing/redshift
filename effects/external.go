@@ -3,6 +3,7 @@ package effects
 import (
 	"os/exec"
 	"redshift/strip"
+	"github.com/fsnotify/fsnotify"
 	"log"
 	"bufio"
 	"io"
@@ -11,9 +12,6 @@ import (
 const PIPE_SIZE = 65536
 
 // todo: write tests / benchmarks
-// todo: use inotify to reload scripts when changed
-// todo: .. then just save the files through the web server
-// todo: define script server as a plain HTTP server, PUT/GET resources
 
 type External struct {
 	Program string
@@ -24,15 +22,20 @@ type External struct {
 	halted bool
 	stdin io.Writer
 	stdout io.Reader
+	watcher *fsnotify.Watcher
 }
 
 func (e *External) Render(s *strip.LEDStrip) {
-	if e.cmd == nil {
+	if e.cmd == nil && !e.halted {
 		e.startProcess()
+	}
+	if e.watcher == nil {
+		go e.watchForChanges()
 	}
 	if e.halted {
 		return
 	}
+
 	// write the buffer to the program's stdin, i.e. request a frame
 	e.sendFrame(s.Buffer)
 	// wait until the program replies, then copy its response into the strip buffer
@@ -50,11 +53,33 @@ func (e *External) startProcess() {
 		log.Println(e.logPrefix(), "exec error", err)
 		e.halted = true
 	} else {
+		e.halted = false
 		e.cmd = cmd
 		e.stdin = stdin
 		e.stdout = stdout
 		go e.readAndLogStderr(stderr)
 	}
+}
+
+func (e *External) watchForChanges() {
+	if watcher, err := fsnotify.NewWatcher(); err != nil {
+		log.Println(e.logPrefix(), "error watching for changes", err)
+	} else {
+		e.watcher = watcher
+		watcher.Add(e.Program)
+		for range watcher.Events {
+			e.reload()
+		}
+	}
+}
+
+func (e *External) reload() {
+	log.Println(e.logPrefix(), "reloading")
+	if e.cmd != nil {
+		e.cmd.Process.Kill()
+		e.cmd = nil
+	}
+	e.halted = false
 }
 
 func (e *External) sendFrame(buffer [][]uint8) {
