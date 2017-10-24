@@ -50,6 +50,7 @@ func main() {
 	if *wsPin != 0 {
 		go ledStrip.RunWs2811(*wsPin, *wsInterval, *wsBrightness)
 	}
+
 	go server.RunWebSocketServer(*httpAddr, ledStrip, wssBuffer, &animator.Effects)
 	go server.RunWebDavServer(*davAddr, *scriptsDir)
 	go server.RunOpcServer(*opcAddr, opcBuffer)

@@ -27,12 +27,14 @@ func RunOpcServer(addr string, buffer [][]uint8) error {
 
 func (s *OpcServer) ListenAndServe(protocol string, port string) error {
 	listener, err := net.Listen(protocol, port)
+
 	if err != nil {
 		return err
 	}
 
 	for {
 		conn, err := listener.Accept()
+
 		if err != nil {
 			log.Println("OPC accept error", err)
 			return err
@@ -47,6 +49,7 @@ func (s *OpcServer) ListenAndServe(protocol string, port string) error {
 func (s *OpcServer) readMessages(conn net.Conn) {
 	for {
 		err, msg := s.readMessage(conn)
+
 		if err != nil {
 			log.Println("OPC client read error", conn.RemoteAddr(), err)
 			break
@@ -58,8 +61,9 @@ func (s *OpcServer) readMessages(conn net.Conn) {
 	conn.Close()
 }
 
-// Format: [channel, command, length high byte, length low byte, data...]
 func (s *OpcServer) readMessage(conn net.Conn) (error, *OpcMessage) {
+	// message format : [channel, command, length high byte, length low byte, data...]
+
 	header := make([]byte, 4)
 	bytesRead, err := conn.Read(header)
 
