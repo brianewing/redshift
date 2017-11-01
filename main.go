@@ -12,6 +12,10 @@ import (
 	"math/rand"
 )
 
+var numLeds = flag.Int("leds", 30, "number of leds")
+var scriptsDir = flag.String("scriptsDir", "scripts", "scripts directory relative to cwd")
+var pathToEffectsJson = flag.String("effectsJson", "", "path to effects json")
+
 var animationInterval = flag.Duration("animationInterval", 16 * time.Millisecond, "interval between animation frames")
 
 var wsInterval = flag.Duration("wsInterval", 16 * time.Millisecond, "ws2811/2812(b) refresh interval")
@@ -21,10 +25,6 @@ var wsBrightness = flag.Int("wsBrightness", 50, "ws2811/2812(b) brightness")
 var httpAddr = flag.String("httpAddr", "0.0.0.0:9191", "http service address")
 var opcAddr = flag.String("opcAddr", "0.0.0.0:7890", "opc service address")
 var davAddr = flag.String("davAddr", "0.0.0.0:9292", "webdav (scripts) service address")
-
-var numLeds = flag.Int("leds", 60, "number of leds")
-var scriptsDir = flag.String("scriptsDir", "scripts", "scripts directory relative to cwd")
-var pathToEffectsJson = flag.String("effectsJson", "", "path to effects json")
 
 func main() {
 	flag.Parse()

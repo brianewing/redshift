@@ -27,9 +27,11 @@ type External struct {
 
 func (e *External) Render(s *strip.LEDStrip) {
 	if e.cmd == nil && !e.halted {
+		//log.Println(e.logPrefix(), "Starting process")
 		e.startProcess()
 	}
 	if e.watcher == nil {
+		log.Println(e.logPrefix(), "Watching for changes")
 		go e.watchForChanges()
 	}
 	if e.halted {
@@ -48,7 +50,6 @@ func (e *External) startProcess() {
 	stdout, _ := cmd.StdoutPipe()
 	stderr, _ := cmd.StderrPipe()
 
-	//log.Println(e.logPrefix(), "Starting process")
 	if err := cmd.Start(); err != nil {
 		log.Println(e.logPrefix(), "exec error", err)
 		e.halted = true
