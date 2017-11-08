@@ -2,7 +2,6 @@ package effects
 
 import (
 	json "redshift/customjson"
-	//"encoding/json"
 	"reflect"
 )
 
@@ -37,7 +36,7 @@ func UnmarshalJson(s []byte) ([]Effect, error) {
 
 	effects := make([]Effect, len(envelopes))
 	for i, envelope := range envelopes {
-		effects[i] = newEffectByName(envelope.Type)
+		effects[i] = NewByName(envelope.Type)
 		json.Unmarshal(envelope.Params, &effects[i])
 	}
 

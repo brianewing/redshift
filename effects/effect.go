@@ -8,7 +8,10 @@ type Effect interface {
 	Render(strip *strip.LEDStrip)
 }
 
-func newEffectByName(name string) Effect {
+type Null struct {}
+func (e *Null) Render(strip *strip.LEDStrip) {}
+
+func NewByName(name string) Effect {
 	switch name {
 		case "BlueEffect": return &BlueEffect{}
 		case "Brightness": return &Brightness{}
@@ -28,5 +31,21 @@ func newEffectByName(name string) Effect {
 	}
 }
 
-type Null struct {}
-func (e *Null) Render(strip *strip.LEDStrip) {}
+func Names() []string {
+	return []string{
+		"BlueEffect",
+		"Brightness",
+		"Buffer",
+		"Clear",
+		"External",
+		"Fill",
+		"Layer",
+		"LarsonEffect",
+		"MoodEffect",
+		"Null",
+		"RainbowEffect",
+		"RandomEffect",
+		"RotateBuffer",
+		"Stripe",
+	}
+}
