@@ -1,10 +1,10 @@
 package effects
 
 import (
-	"redshift/strip"
+	"github.com/brianewing/redshift/strip"
 )
 
-type RandomEffect struct {}
+type RandomEffect struct{}
 
 func (e *RandomEffect) Render(s *strip.LEDStrip) {
 	s.Randomize()

@@ -1,7 +1,7 @@
 package effects
 
 import (
-	"redshift/strip"
+	"github.com/brianewing/redshift/strip"
 )
 
 type Layer struct {

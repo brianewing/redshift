@@ -1,13 +1,13 @@
 package effects
 
 import (
-	"redshift/strip"
+	"github.com/brianewing/redshift/strip"
 	"github.com/lucasb-eyer/go-colorful"
 )
 
 type Brightness struct {
 	Brightness uint8
-	backwards bool
+	backwards  bool
 }
 
 // Acts as a periodic fade when Brightness is 0 or 255

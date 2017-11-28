@@ -1,14 +1,14 @@
 package animator
 
 import (
+	"github.com/brianewing/redshift/effects"
+	"github.com/brianewing/redshift/strip"
 	"time"
-	"redshift/strip"
-	"redshift/effects"
 )
 
 type Animator struct {
-	Strip *strip.LEDStrip
-	Effects []effects.Effect
+	Strip       *strip.LEDStrip
+	Effects     []effects.Effect
 	PostEffects []effects.Effect
 
 	Running bool

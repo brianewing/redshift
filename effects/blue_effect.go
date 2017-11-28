@@ -1,16 +1,16 @@
 package effects
 
-import "redshift/strip"
+import "github.com/brianewing/redshift/strip"
 
 type BlueEffect struct {
-	value uint8
+	value     uint8
 	backwards bool
 }
 
 func (e *BlueEffect) Render(s *strip.LEDStrip) {
 	if e.value == 255 {
 		e.backwards = true
-	} else if e.value < 1  {
+	} else if e.value < 1 {
 		e.backwards = false
 	}
 

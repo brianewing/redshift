@@ -1,10 +1,10 @@
 package effects
 
 import (
-	"redshift/strip"
+	"github.com/brianewing/redshift/strip"
 )
 
-type RaceTestEffect struct {}
+type RaceTestEffect struct{}
 
 // Continuously wipes and sets every pixel to red...
 // A race condition exists if a client ever receives black

@@ -1,12 +1,12 @@
 package effects
 
 import (
+	"github.com/brianewing/redshift/strip"
 	"math/rand"
-	"redshift/strip"
 )
 
 type LarsonEffect struct {
-	Color []uint8
+	Color    []uint8
 	Position int
 	velocity int
 }
@@ -14,7 +14,7 @@ type LarsonEffect struct {
 func (e *LarsonEffect) Render(s *strip.LEDStrip) {
 	if e.Position <= 1 || e.velocity == 0 {
 		e.velocity = 1
-	} else if e.Position >= s.Size - 1 {
+	} else if e.Position >= s.Size-1 {
 		e.velocity = -1
 	}
 

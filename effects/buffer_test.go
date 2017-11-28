@@ -1,8 +1,8 @@
 package effects
 
 import (
+	"github.com/brianewing/redshift/strip"
 	"testing"
-	"redshift/strip"
 )
 
 func BenchmarkBlending(b *testing.B) {

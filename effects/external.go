@@ -1,12 +1,12 @@
 package effects
 
 import (
-	"os/exec"
-	"redshift/strip"
-	"github.com/fsnotify/fsnotify"
-	"log"
 	"bufio"
+	"github.com/brianewing/redshift/strip"
+	"github.com/fsnotify/fsnotify"
 	"io"
+	"log"
+	"os/exec"
 )
 
 const PIPE_SIZE = 65536
@@ -14,14 +14,14 @@ const PIPE_SIZE = 65536
 // todo: write tests / benchmarks
 
 type External struct {
-	Program string
-	Args []string
+	Program   string
+	Args      []string
 	Shellhack bool
 
-	cmd *exec.Cmd
-	halted bool
-	stdin io.Writer
-	stdout io.Reader
+	cmd     *exec.Cmd
+	halted  bool
+	stdin   io.Writer
+	stdout  io.Reader
 	watcher *fsnotify.Watcher
 }
 

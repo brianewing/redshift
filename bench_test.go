@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/brianewing/redshift/animator"
+	"github.com/brianewing/redshift/effects"
+	"github.com/brianewing/redshift/strip"
 	"testing"
-	"redshift/animator"
-	"redshift/effects"
-	"redshift/strip"
 )
 
 func BenchmarkExampleAnimation(b *testing.B) {
@@ -27,7 +27,7 @@ func BenchmarkExampleAnimation(b *testing.B) {
 				},
 			},
 			&effects.BlueEffect{},
-			&effects.LarsonEffect{Color: []uint8{0,0,0}},
+			&effects.LarsonEffect{Color: []uint8{0, 0, 0}},
 		},
 	}
 

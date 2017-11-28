@@ -1,14 +1,14 @@
 package effects
 
 import (
-	"redshift/strip"
+	"github.com/brianewing/redshift/strip"
 	"math/rand"
 )
 
 type MoodEffect struct {
-	fillEffect *Fill
+	fillEffect       *Fill
 	brightnessEffect *Brightness
-	layer *Layer
+	layer            *Layer
 }
 
 func (e *MoodEffect) Render(s *strip.LEDStrip) {

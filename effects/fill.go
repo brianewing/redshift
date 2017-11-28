@@ -1,6 +1,6 @@
 package effects
 
-import "redshift/strip"
+import "github.com/brianewing/redshift/strip"
 
 type Fill struct {
 	Color []uint8

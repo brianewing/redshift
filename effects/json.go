@@ -1,14 +1,14 @@
 package effects
 
 import (
-	json "redshift/customjson"
+	json "github.com/brianewing/redshift/customjson"
 	"reflect"
 )
 
 // todo: document how this works!
 
 type jsonEnvelope struct {
-	Type string
+	Type   string
 	Params interface{}
 }
 
@@ -22,7 +22,7 @@ func MarshalJson(effects []Effect) ([]byte, error) {
 
 	for i, effect := range effects {
 		envelopes[i] = jsonEnvelope{
-			Type: reflect.TypeOf(effect).Elem().Name(),
+			Type:   reflect.TypeOf(effect).Elem().Name(),
 			Params: effect,
 		}
 	}

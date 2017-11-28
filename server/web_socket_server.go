@@ -1,31 +1,31 @@
 package server
 
 import (
-	"log"
-	"time"
-	"net/http"
+	"github.com/brianewing/redshift/effects"
+	"github.com/brianewing/redshift/strip"
 	"github.com/gorilla/websocket"
-	"redshift/strip"
-	"redshift/effects"
+	"log"
+	"net/http"
+	"time"
 )
 
 type webSocketServer struct {
-	strip *strip.LEDStrip
-	buffer [][]uint8
+	strip   *strip.LEDStrip
+	buffer  [][]uint8
 	effects *[]effects.Effect
 
-	server *http.Server
+	server   *http.Server
 	upgrader *websocket.Upgrader
 	http.Handler
 }
 
 func RunWebSocketServer(addr string, strip *strip.LEDStrip, buffer [][]uint8, effects *[]effects.Effect) error {
 	wss := &webSocketServer{
-		strip: strip,
-		buffer: buffer,
+		strip:   strip,
+		buffer:  buffer,
 		effects: effects,
 		upgrader: &websocket.Upgrader{
-			CheckOrigin: func (r *http.Request) bool { return true }, // ALLOW CROSS-ORIGIN REQUESTS
+			CheckOrigin: func(r *http.Request) bool { return true }, // ALLOW CROSS-ORIGIN REQUESTS
 		},
 	}
 	wss.server = &http.Server{Addr: addr, Handler: wss}
@@ -44,16 +44,16 @@ func (s *webSocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch r.URL.Path {
-		case "/s/strip":
-			go s.streamStripBuffer(sc)
-			go sc.readFps()
-		case "/s/effects":
-			go s.streamEffectsJson(sc)
-			go sc.readFps()
-		case "/strip":
-			go s.receiveBuffer(c)
-		case "/effects":
-			go s.receiveEffects(c)
+	case "/s/strip":
+		go s.streamStripBuffer(sc)
+		go sc.readFps()
+	case "/s/effects":
+		go s.streamEffectsJson(sc)
+		go sc.readFps()
+	case "/strip":
+		go s.receiveBuffer(c)
+	case "/effects":
+		go s.receiveEffects(c)
 	}
 }
 
@@ -84,7 +84,7 @@ func (s *webSocketServer) receiveEffects(c *websocket.Conn) {
 
 type streamConnection struct {
 	requestedFps uint8 // 0-255
-	fpsChanged chan bool
+	fpsChanged   chan bool
 	*websocket.Conn
 }
 

@@ -1,10 +1,10 @@
 package effects
 
-import "redshift/strip"
+import "github.com/brianewing/redshift/strip"
 
 type RotateBuffer struct {
-	Buffer *[][]uint8
-	Count int
+	Buffer  *[][]uint8
+	Count   int
 	Reverse bool
 }
 

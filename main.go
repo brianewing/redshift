@@ -1,24 +1,24 @@
 package main
 
 import (
-	"time"
-	"redshift/server"
-	"redshift/strip"
-	"redshift/effects"
-	"redshift/animator"
 	"flag"
-	"log"
+	"github.com/brianewing/redshift/animator"
+	"github.com/brianewing/redshift/effects"
+	"github.com/brianewing/redshift/server"
+	"github.com/brianewing/redshift/strip"
 	"io/ioutil"
+	"log"
 	"math/rand"
+	"time"
 )
 
 var numLeds = flag.Int("leds", 30, "number of leds")
 var scriptsDir = flag.String("scriptsDir", "scripts", "scripts directory relative to cwd")
 var pathToEffectsJson = flag.String("effectsJson", "", "path to effects json")
 
-var animationInterval = flag.Duration("animationInterval", 16 * time.Millisecond, "interval between animation frames")
+var animationInterval = flag.Duration("animationInterval", 16*time.Millisecond, "interval between animation frames")
 
-var wsInterval = flag.Duration("wsInterval", 16 * time.Millisecond, "ws2811/2812(b) refresh interval")
+var wsInterval = flag.Duration("wsInterval", 16*time.Millisecond, "ws2811/2812(b) refresh interval")
 var wsPin = flag.Int("wsPin", 0, "ws2811/2812(b) gpio pin")
 var wsBrightness = flag.Int("wsBrightness", 50, "ws2811/2812(b) brightness")
 
@@ -39,7 +39,7 @@ func main() {
 	wssBuffer := strip.NewBuffer(ledStrip.Size)
 
 	animator := &animator.Animator{
-		Strip: ledStrip,
+		Strip:   ledStrip,
 		Effects: getEffects(),
 		PostEffects: []effects.Effect{
 			&effects.Buffer{Buffer: opcBuffer},

@@ -1,7 +1,7 @@
 package effects
 
 import (
-	"redshift/strip"
+	"github.com/brianewing/redshift/strip"
 	"github.com/lucasb-eyer/go-colorful"
 )
 
@@ -41,4 +41,3 @@ func colorfulRgb(c []uint8) colorful.Color {
 	r, g, b := float64(c[0]), float64(c[1]), float64(c[2])
 	return colorful.Color{R: r / 255.0, G: g / 255.0, B: b / 255.0}
 }
-

@@ -1,8 +1,8 @@
 package effects
 
-import "redshift/strip"
+import "github.com/brianewing/redshift/strip"
 
-type Clear struct {}
+type Clear struct{}
 
 func (e *Clear) Render(strip *strip.LEDStrip) {
 	strip.Clear()

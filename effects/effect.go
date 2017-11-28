@@ -1,33 +1,49 @@
 package effects
 
 import (
-	"redshift/strip"
+	"github.com/brianewing/redshift/strip"
 )
 
 type Effect interface {
 	Render(strip *strip.LEDStrip)
 }
 
-type Null struct {}
+type Null struct{}
+
 func (e *Null) Render(strip *strip.LEDStrip) {}
 
 func NewByName(name string) Effect {
 	switch name {
-		case "BlueEffect": return &BlueEffect{}
-		case "Brightness": return &Brightness{}
-		case "Buffer": return &Buffer{}
-		case "Clear": return &Clear{}
-		case "External": return &External{}
-		case "Fill": return &Fill{}
-		case "Layer": return &Layer{}
-		case "LarsonEffect": return &LarsonEffect{}
-		case "MoodEffect": return &MoodEffect{}
-		case "RaceTestEffect": return &RaceTestEffect{}
-		case "RainbowEffect": return &RainbowEffect{}
-		case "RandomEffect": return &RandomEffect{}
-		case "RotateBuffer": return &RotateBuffer{}
-		case "Stripe": return &Stripe{}
-		default: return &Null{}
+	case "BlueEffect":
+		return &BlueEffect{}
+	case "Brightness":
+		return &Brightness{}
+	case "Buffer":
+		return &Buffer{}
+	case "Clear":
+		return &Clear{}
+	case "External":
+		return &External{}
+	case "Fill":
+		return &Fill{}
+	case "Layer":
+		return &Layer{}
+	case "LarsonEffect":
+		return &LarsonEffect{}
+	case "MoodEffect":
+		return &MoodEffect{}
+	case "RaceTestEffect":
+		return &RaceTestEffect{}
+	case "RainbowEffect":
+		return &RainbowEffect{}
+	case "RandomEffect":
+		return &RandomEffect{}
+	case "RotateBuffer":
+		return &RotateBuffer{}
+	case "Stripe":
+		return &Stripe{}
+	default:
+		return &Null{}
 	}
 }
 

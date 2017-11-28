@@ -1,9 +1,9 @@
 package effects
 
 import (
-	"math/rand"
+	"github.com/brianewing/redshift/strip"
 	"github.com/lucasb-eyer/go-colorful"
-	"redshift/strip"
+	"math/rand"
 )
 
 // todo: imagine wheel was huge, say 1000-5000 steps..
@@ -13,11 +13,11 @@ import (
 
 type RainbowEffect struct {
 	Reverse bool
-	Size uint
-	Speed int
+	Size    uint
+	Speed   int
 	Dynamic bool
 
-	wheel [][]uint8
+	wheel   [][]uint8
 	halting bool
 }
 
