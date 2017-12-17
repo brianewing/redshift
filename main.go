@@ -9,6 +9,8 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
+	"os"
+	"path"
 	"time"
 )
 
@@ -32,6 +34,10 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	writeEffectsJson("effects.default.json", defaultEffects())
+
+	if _, err := os.Stat(*scriptsDir); os.IsNotExist(err) {
+		writePackedScripts(*scriptsDir)
+	}
 
 	ledStrip := strip.New(*numLeds)
 
@@ -79,13 +85,13 @@ func loadEffectsJson(path string) ([]effects.Effect, error) {
 	}
 }
 
-func writeEffectsJson(path string, effects_ []effects.Effect) error {
+func writeEffectsJson(dest string, effects_ []effects.Effect) error {
 	bytes, err := effects.MarshalJson(effects_)
 	if err != nil {
 		log.Fatalln("Could not write effects json", "(marshall error)", err)
 		return err
 	}
-	return ioutil.WriteFile(path, bytes, 0644)
+	return ioutil.WriteFile(dest, bytes, 0644)
 }
 
 func defaultEffects() []effects.Effect {
@@ -94,8 +100,23 @@ func defaultEffects() []effects.Effect {
 		//&effects.RaceTestEffect{},
 		//&effects.RandomEffect{},
 		&effects.RainbowEffect{Size: 150, Speed: 1, Dynamic: true},
-		&effects.External{Program: "dev/scripts/test.js"},
+		&effects.External{Program: "scripts/example.py"},
 		//&effects.BlueEffect{},
 		//&effects.LarsonEffect{Color: []uint8{0,0,0}},
 	}
+}
+
+//go:generate go-bindata --prefix skel/ skel/...
+func writePackedScripts(dest string) error {
+	if err := os.MkdirAll(dest, 0755); err != nil {
+		return err
+	}
+	scripts, _ := AssetDir("scripts")
+	for _, name := range scripts {
+		data, _ := Asset(path.Join("scripts", name))
+		if err := ioutil.WriteFile(path.Join(dest, name), data, 0744); err != nil {
+			return err
+		}
+	}
+	return nil
 }

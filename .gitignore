@@ -8,3 +8,6 @@ notes.txt
 
 # effect config 
 /effects*.json
+
+# user scripts dir
+/scripts
