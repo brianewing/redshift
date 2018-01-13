@@ -1,10 +1,6 @@
-const fs = require('fs');
-
-const MAX_BUFFER_SIZE = 65536;
-
 /*
  * Redshift JS helper library for external scripts
- * (c) 2017 Brian J Ewing
+ * (c) 2018 Brian J Ewing
  * @license AGPL 3.0
  *
  * Usage:
@@ -15,6 +11,10 @@ const MAX_BUFFER_SIZE = 65536;
  *     // ( buffer is an array of leds like [[r,g,b], ...] )
  *   });
  */
+
+const fs = require('fs');
+
+const MAX_BUFFER_SIZE = 65536;
 
 module.exports = function run(fn) {
 	const fd = fs.openSync('/dev/stdin', 'r');
