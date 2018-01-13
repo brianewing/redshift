@@ -28,11 +28,11 @@ func (e *Brightness) Render(s *strip.LEDStrip) {
 		applyHsv(color, e.Brightness)
 	}
 
-	if e.backwards {
-		e.Brightness -= 2
-	} else {
-		e.Brightness += 2
-	}
+	//if e.backwards {
+	//	e.Brightness -= 2
+	//} else {
+	//	e.Brightness += 2
+	//}
 }
 
 func applyHsv(color []uint8, brightness uint8) {
