@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-// todo: document how this works!
+// effects are json encoded into envelopes
 
 type jsonEnvelope struct {
 	Type   string
@@ -17,7 +17,7 @@ type unmarshalFormat struct {
 	Params json.RawMessage
 }
 
-func MarshalJson(effects []Effect) ([]byte, error) {
+func MarshalJSON(effects []Effect) ([]byte, error) {
 	envelopes := make([]jsonEnvelope, len(effects))
 
 	for i, effect := range effects {
@@ -30,7 +30,7 @@ func MarshalJson(effects []Effect) ([]byte, error) {
 	return json.Marshal(envelopes)
 }
 
-func UnmarshalJson(s []byte) ([]Effect, error) {
+func UnmarshalJSON(s []byte) ([]Effect, error) {
 	var envelopes []unmarshalFormat
 	json.Unmarshal(s, &envelopes)
 
@@ -52,14 +52,14 @@ type jsonFormatLayer struct {
 }
 
 func (e *Layer) MarshalJSON() ([]byte, error) {
-	effectsJson, _ := MarshalJson(e.Effects)
+	effectsJson, _ := MarshalJSON(e.Effects)
 	return json.Marshal(&jsonFormatLayer{Effects: effectsJson})
 }
 
 func (e *Layer) UnmarshalJSON(b []byte) error {
 	tmp := jsonFormatLayer{}
 	if err := json.Unmarshal(b, &tmp); err == nil {
-		if effects, err := UnmarshalJson(tmp.Effects); err == nil {
+		if effects, err := UnmarshalJSON(tmp.Effects); err == nil {
 			e.Effects = effects
 			return nil
 		} else {

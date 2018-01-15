@@ -7,7 +7,6 @@ import (
 	"github.com/brianewing/redshift/server"
 	"github.com/brianewing/redshift/strip"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"os"
 	"path"
@@ -16,9 +15,10 @@ import (
 
 var numLeds = flag.Int("leds", 30, "number of leds")
 var scriptsDir = flag.String("scriptsDir", "scripts", "scripts directory relative to cwd")
-var pathToEffectsJson = flag.String("effectsJson", "", "path to effects json")
-
 var animationInterval = flag.Duration("animationInterval", 16*time.Millisecond, "interval between animation frames")
+
+var pathToEffectsJson = flag.String("effectsJson", "", "path to effects json file")
+var pathToEffectsYaml = flag.String("effectsYaml", "", "path to effects yaml file")
 
 var wsInterval = flag.Duration("wsInterval", 16*time.Millisecond, "ws2811/2812(b) refresh interval")
 var wsPin = flag.Int("wsPin", 0, "ws2811/2812(b) gpio pin")
@@ -32,8 +32,6 @@ func main() {
 	flag.Parse()
 
 	rand.Seed(time.Now().UnixNano())
-
-	writeEffectsJson("effects.default.json", defaultEffects())
 
 	if _, err := os.Stat(*scriptsDir); os.IsNotExist(err) {
 		writePackedScripts(*scriptsDir)
@@ -62,48 +60,6 @@ func main() {
 	go server.RunOpcServer(*opcAddr, opcBuffer)
 
 	animator.Run(*animationInterval)
-}
-
-func getEffects() []effects.Effect {
-	if path := *pathToEffectsJson; path != "" {
-		if effects, err := loadEffectsJson(path); err == nil {
-			return effects
-		} else {
-			log.Fatalln("Could not load effects json", err)
-			return nil
-		}
-	} else {
-		return defaultEffects()
-	}
-}
-
-func loadEffectsJson(path string) ([]effects.Effect, error) {
-	if bytes, err := ioutil.ReadFile(path); err == nil {
-		return effects.UnmarshalJson(bytes)
-	} else {
-		return nil, err
-	}
-}
-
-func writeEffectsJson(dest string, effects_ []effects.Effect) error {
-	bytes, err := effects.MarshalJson(effects_)
-	if err != nil {
-		log.Fatalln("Could not write effects json", "(marshall error)", err)
-		return err
-	}
-	return ioutil.WriteFile(dest, bytes, 0644)
-}
-
-func defaultEffects() []effects.Effect {
-	return []effects.Effect{
-		&effects.Clear{},
-		//&effects.RaceTestEffect{},
-		//&effects.RandomEffect{},
-		&effects.RainbowEffect{Size: 150, Speed: 1, Dynamic: true},
-		&effects.External{Program: "scripts/example.py"},
-		//&effects.BlueEffect{},
-		//&effects.LarsonEffect{Color: []uint8{0,0,0}},
-	}
 }
 
 //go:generate go-bindata --prefix skel/ skel/...
