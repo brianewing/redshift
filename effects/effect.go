@@ -8,10 +8,6 @@ type Effect interface {
 	Render(strip *strip.LEDStrip)
 }
 
-type Null struct{}
-
-func (e *Null) Render(strip *strip.LEDStrip) {}
-
 func NewByName(name string) Effect {
 	switch name {
 	case "BlueEffect":
