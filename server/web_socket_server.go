@@ -19,7 +19,7 @@ type webSocketServer struct {
 	http.Handler
 }
 
-func RunWebSocketServer(addr string, strip *strip.LEDStrip, buffer [][]uint8, effects *[]effects.Effect) error {
+func RunWebSocketServer(addr string, strip *strip.LEDStrip, buffer [][]uint8, effects *[]effects.Effect) {
 	wss := &webSocketServer{
 		strip:   strip,
 		buffer:  buffer,
@@ -29,7 +29,7 @@ func RunWebSocketServer(addr string, strip *strip.LEDStrip, buffer [][]uint8, ef
 		},
 	}
 	wss.server = &http.Server{Addr: addr, Handler: wss}
-	return wss.server.ListenAndServe()
+	log.Fatalln("WS", wss.server.ListenAndServe())
 }
 
 func (s *webSocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {

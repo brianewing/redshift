@@ -11,7 +11,7 @@ type OpcServer struct {
 	Messages chan *OpcMessage
 }
 
-func RunOpcServer(addr string, buffer [][]uint8) error {
+func RunOpcServer(addr string, buffer [][]uint8) {
 	s := &OpcServer{Messages: make(chan *OpcMessage)}
 
 	go func() {
@@ -22,7 +22,7 @@ func RunOpcServer(addr string, buffer [][]uint8) error {
 		}
 	}()
 
-	return s.ListenAndServe("tcp", addr)
+	log.Fatalln("OPC", s.ListenAndServe("tcp", addr))
 }
 
 func (s *OpcServer) ListenAndServe(protocol string, port string) error {

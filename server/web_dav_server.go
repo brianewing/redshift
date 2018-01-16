@@ -11,7 +11,7 @@ import (
 // todo: implement a custom VERSIONS method (or extend PROPFIND) to list old versions
 // todo: maybe use a header on a GET to request old version?
 
-func RunWebDavServer(addr string, directory string) error {
+func RunWebDavServer(addr string, directory string) {
 	webDavHandler := &webdav.Handler{
 		FileSystem: webdav.Dir(directory),
 		LockSystem: webdav.NewMemLS(),
@@ -20,7 +20,7 @@ func RunWebDavServer(addr string, directory string) error {
 		},
 	}
 	server := &http.Server{Addr: addr, Handler: corsWrapper(noCacheWrapper(webDavHandler))}
-	return server.ListenAndServe()
+	log.Fatalln("WD", server.ListenAndServe())
 }
 
 func slowWrapper(h http.Handler) http.Handler {
