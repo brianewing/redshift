@@ -14,7 +14,7 @@ import (
 type RainbowEffect struct {
 	Reverse bool
 	Size    uint
-	Speed   int
+	Speed   float64
 	Dynamic bool
 
 	wheel   [][]uint8
@@ -29,8 +29,8 @@ func (e *RainbowEffect) Render(s *strip.LEDStrip) {
 		e.adjustParameters()
 	}
 
-	e.wheel = rotateBuffer(e.wheel, e.Speed, e.Reverse)
-	(&Buffer{Buffer: e.wheel}).Render(s)
+	phase := int(CycleBetween(0, float64(len(e.wheel)), e.Speed))
+	(&Buffer{Buffer: rotateBuffer(e.wheel, phase, e.Reverse)}).Render(s)
 }
 
 func (e *RainbowEffect) adjustParameters() {
