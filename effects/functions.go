@@ -13,12 +13,27 @@ func OscillateBetween(min, max, hertz float64) float64 {
 	return triangleWave(d*hertz*2)*(max-min) + min
 }
 
-//   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^   ^
-//  / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
-// v   v   v   v   v   v   v   v   v   v   v   v   v   v
-// returns values between 0..1, period=2 with respect to x
+// cycle between min and max values, restarting at min
+// once max has been reached e.g 1-2-3-4-1-2-3-4-1-2-3
+func CycleBetween(min, max, hertz float64) float64 {
+	d := time.Since(timeBegan).Seconds()
+	return sawtoothWave(d*hertz)*(max-min) + min
+}
+
+//   ^   ^   ^   ^   ^   ^   ^   ^   ^
+//  / \ / \ / \ / \ / \ / \ / \ / \ / \
+// v   v   v   v   v   v   v   v   v   v
+// returns values between 0..1, period=2
 func triangleWave(x float64) float64 {
 	return math.Abs(math.Mod(x, 2) - 1)
+}
+
+//   /|  /|  /|  /|  /|  /|  /|  /|  /|
+//  / | / | / | / | / | / | / | / | / |
+// /  |/  |/  |/  |/  |/  |/  |/  |/  |/
+// returns values between 0..1, period=1
+func sawtoothWave(x float64) float64 {
+	return math.Mod(x, 1)
 }
 
 // simple rounding function
