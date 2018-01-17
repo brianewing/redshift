@@ -29,7 +29,8 @@ func (e *RainbowEffect) Render(s *strip.LEDStrip) {
 		e.adjustParameters()
 	}
 
-	(&RotateBuffer{Buffer: &e.wheel, Count: e.Speed, Reverse: e.Reverse}).Render(s)
+	e.wheel = rotateBuffer(e.wheel, e.Speed, e.Reverse)
+	(&Buffer{Buffer: e.wheel}).Render(s)
 }
 
 func (e *RainbowEffect) adjustParameters() {
