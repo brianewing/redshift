@@ -3,24 +3,12 @@ package effects
 import "github.com/brianewing/redshift/strip"
 
 type BlueEffect struct {
-	value     uint8
-	backwards bool
+	Speed float64
 }
 
 func (e *BlueEffect) Render(s *strip.LEDStrip) {
-	if e.value == 255 {
-		e.backwards = true
-	} else if e.value < 1 {
-		e.backwards = false
-	}
-
-	if e.backwards {
-		e.value -= 1
-	} else {
-		e.value += 1
-	}
-
+	value := uint8(OscillateBetween(0, 255, e.Speed))
 	for _, led := range s.Buffer {
-		led[2] = e.value
+		led[2] = value
 	}
 }
