@@ -13,7 +13,7 @@ type LarsonEffect struct {
 
 func (e *LarsonEffect) Render(s *strip.LEDStrip) {
 	if e.Speed != 0 {
-		e.Position = round(OscillateBetween(0, float64(s.Size-1), e.Speed))
+		e.Position = round(OscillateBetween(0, float64(s.Size-2), e.Speed))
 	}
 
 	color := e.getColor()
