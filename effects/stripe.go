@@ -9,7 +9,7 @@ type Stripe struct {
 
 func (e *Stripe) Render(s *strip.LEDStrip) {
 	if e.N == 0 {
-		e.N = 1
+		e.N = 2
 	}
 
 	if len(e.Color) == 0 {
