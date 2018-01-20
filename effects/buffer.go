@@ -42,6 +42,7 @@ func colorfulRgb(c []uint8) colorful.Color {
 	return colorful.Color{R: r / 255.0, G: g / 255.0, B: b / 255.0}
 }
 
+// returns a new slice containing the data in buffer rotated by n
 func rotateBuffer(buffer [][]uint8, n int, reverse bool) [][]uint8 {
 	if reverse {
 		head, tail := buffer[0:n], buffer[n:]
@@ -50,4 +51,14 @@ func rotateBuffer(buffer [][]uint8, n int, reverse bool) [][]uint8 {
 		head, tail := buffer[:len(buffer)-n], buffer[len(buffer)-n:]
 		return append(tail, head...)
 	}
+}
+
+// returns a subset of buffer (n evenly-spaced elements)
+func sampleBuffer(buffer [][]uint8, n int) [][]uint8 {
+	subset := make([][]uint8, n)
+	step := len(buffer) / n
+	for i := 0; i < n; i++ {
+		subset[i] = buffer[i*step]
+	}
+	return subset
 }
