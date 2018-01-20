@@ -37,6 +37,14 @@ func sawtoothWave(x float64) float64 {
 	return math.Mod(x, 1)
 }
 
+//      ooo         ooo        ooo
+//    o     o     o     o    o     o
+//   o        ooo         ooo        ooo
+// returns values between 0..1, period=1
+func sinusoidWave(x float64) float64 {
+	return math.Sin(2*math.Pi*x)/2 + 0.5
+}
+
 // simple rounding function
 // still not present in stdlib (Go 1.9)
 func round(x float64) int {
