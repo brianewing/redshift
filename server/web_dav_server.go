@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"log"
 	"time"
+	"path/filepath"
+	"github.com/phayes/permbits"
 )
 
 // todo: implement a custom webdav.FileSystem to store changes in git!
@@ -19,7 +21,14 @@ func RunWebDavServer(addr string, directory string) {
 			log.Println("WD", r.Method, r.RequestURI, "[" + r.RemoteAddr + "]", "|", err)
 		},
 	}
-	server := &http.Server{Addr: addr, Handler: corsWrapper(noCacheWrapper(webDavHandler))}
+
+	wrappedHandler := corsWrapper(
+		noCacheWrapper(
+			makeNewFilesExecutableWrapper(directory, webDavHandler),
+		),
+	)
+
+	server := &http.Server{Addr: addr, Handler: wrappedHandler}
 	log.Fatalln("WD", server.ListenAndServe())
 }
 
@@ -43,5 +52,23 @@ func noCacheWrapper(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Pragma", "no-cache")
 		h.ServeHTTP(w, r)
+	})
+}
+
+func makeNewFilesExecutableWrapper(baseDir string, h http.Handler) http.Handler {
+	if baseDir == "" {
+		baseDir = "."
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h.ServeHTTP(w, r)
+
+		if r.Method == "PUT" {
+			path := filepath.Join(baseDir, r.RequestURI)
+			if perms, err := permbits.Stat(path); err == nil {
+				perms.SetUserExecute(true)
+				permbits.Chmod(path, perms)
+			}
+		}
 	})
 }
