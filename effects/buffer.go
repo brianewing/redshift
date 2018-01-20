@@ -7,16 +7,18 @@ import (
 
 type Buffer struct {
 	Buffer [][]uint8
+	Offset int
 }
 
 func (e *Buffer) Render(strip *strip.LEDStrip) {
-	for i, led := range strip.Buffer {
-		if i == len(e.Buffer) {
-			break
-		} else if isOff(led) {
-			copy(strip.Buffer[i], e.Buffer[i])
-		} else if !isOff(e.Buffer[i]) {
-			copy(strip.Buffer[i], blendRgb(strip.Buffer[i], e.Buffer[i]))
+	for i := e.Offset; i < len(e.Buffer) + e.Offset && i < strip.Size; i++ {
+		source := e.Buffer[i - e.Offset]
+		dest := strip.Buffer[i]
+
+		if isOff(dest) {
+			copy(dest, source)
+		} else if !isOff(source) {
+			copy(dest, blendRgb(dest, source))
 		}
 	}
 }

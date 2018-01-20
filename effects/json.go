@@ -49,11 +49,16 @@ func UnmarshalJSON(s []byte) ([]Effect, error) {
 
 type jsonFormatLayer struct {
 	Effects json.RawMessage // encoded with MarshalJson()
+	Size, Offset int
 }
 
 func (e *Layer) MarshalJSON() ([]byte, error) {
 	effectsJson, _ := MarshalJSON(e.Effects)
-	return json.Marshal(&jsonFormatLayer{Effects: effectsJson})
+	return json.Marshal(&jsonFormatLayer{
+		Effects: effectsJson,
+		Size: e.Size,
+		Offset: e.Offset,
+	})
 }
 
 func (e *Layer) UnmarshalJSON(b []byte) error {
@@ -61,6 +66,8 @@ func (e *Layer) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &tmp); err == nil {
 		if effects, err := UnmarshalJSON(tmp.Effects); err == nil {
 			e.Effects = effects
+			e.Size = tmp.Size
+			e.Offset = tmp.Offset
 			return nil
 		} else {
 			return err

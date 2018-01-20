@@ -5,6 +5,8 @@ import (
 )
 
 type Layer struct {
+	Size    int
+	Offset  int
 	Effects []Effect
 
 	virtualStrip *strip.LEDStrip
@@ -12,12 +14,15 @@ type Layer struct {
 
 func (e *Layer) Render(s *strip.LEDStrip) {
 	if e.virtualStrip == nil {
-		e.virtualStrip = strip.New(s.Size)
+		if e.Size == 0 {
+			e.Size = s.Size
+		}
+		e.virtualStrip = strip.New(e.Size)
 	}
 
 	for _, effect := range e.Effects {
 		effect.Render(e.virtualStrip)
 	}
 
-	(&Buffer{Buffer: e.virtualStrip.Buffer}).Render(s)
+	(&Buffer{Buffer: e.virtualStrip.Buffer, Offset: e.Offset}).Render(s)
 }
