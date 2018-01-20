@@ -22,9 +22,10 @@ func CycleBetween(min, max, hertz float64) float64 {
 
 //   ^   ^   ^   ^   ^   ^   ^   ^   ^
 //  / \ / \ / \ / \ / \ / \ / \ / \ / \
-// v   v   v   v   v   v   v   v   v   v
+// /   v   v   v   v   v   v   v   v   v
 // returns values between 0..1, period=2
 func triangleWave(x float64) float64 {
+	x = math.Abs(x - 1) // correct the phase (start at 0)
 	return math.Abs(math.Mod(x, 2) - 1)
 }
 
