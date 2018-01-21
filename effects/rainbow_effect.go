@@ -13,10 +13,12 @@ type RainbowEffect struct {
 	wheel   [][]uint8
 }
 
+var multiple uint = 60 // generate n times more colours for better transitions
+
 func (e *RainbowEffect) Render(s *strip.LEDStrip) {
-	if e.wheel == nil {
-		var granularity uint = 60 // generate n times more colours for in-between frames
-		e.wheel = generateWheel(e.getSize() * granularity)
+	size := e.getSize() * multiple
+	if e.wheel == nil || len(e.wheel) != int(size) {
+		e.wheel = generateWheel(size)
 	}
 
 	phase := round(CycleBetween(0, float64(len(e.wheel)), e.Speed))
