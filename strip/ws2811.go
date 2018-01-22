@@ -1,3 +1,5 @@
+// +build ws2811
+
 package strip
 
 import (
