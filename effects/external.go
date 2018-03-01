@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os/exec"
+	"sync"
 )
 
 const PIPE_SIZE = 65536
@@ -18,14 +19,16 @@ type External struct {
 	Args      []string
 	Shellhack bool
 
-	cmd     *exec.Cmd
-	halted  bool
-	stdin   io.Writer
-	stdout  io.Reader
-	watcher *fsnotify.Watcher
+	cmd         *exec.Cmd
+	halted      bool
+	stdin       io.Writer
+	stdout      io.Reader
+	watcher     *fsnotify.Watcher
+	reloadMutex sync.Mutex
 }
 
 func (e *External) Render(s *strip.LEDStrip) {
+	e.reloadMutex.Lock()
 	if e.cmd == nil && !e.halted {
 		//log.Println(e.logPrefix(), "Starting process")
 		e.startProcess()
@@ -35,6 +38,7 @@ func (e *External) Render(s *strip.LEDStrip) {
 		go e.watchForChanges()
 	}
 	if e.halted {
+		e.reloadMutex.Unlock()
 		return
 	}
 
@@ -42,6 +46,18 @@ func (e *External) Render(s *strip.LEDStrip) {
 	e.sendFrame(s.Buffer)
 	// wait until the program replies, then copy its response into the strip buffer
 	e.readFrame(s.Buffer)
+	e.reloadMutex.Unlock()
+}
+
+func (e *External) Destroy() {
+	if e.cmd != nil {
+		log.Println(e.logPrefix(), "Killing process")
+		e.cmd.Process.Kill()
+	}
+	if e.watcher != nil {
+		log.Println(e.logPrefix(), "Stopping watcher")
+		e.watcher.Close()
+	}
 }
 
 func (e *External) startProcess() {
@@ -75,12 +91,14 @@ func (e *External) watchForChanges() {
 }
 
 func (e *External) reload() {
+	e.reloadMutex.Lock()
 	log.Println(e.logPrefix(), "reloading")
 	if e.cmd != nil {
 		e.cmd.Process.Kill()
 		e.cmd = nil
 	}
 	e.halted = false
+	e.reloadMutex.Unlock()
 }
 
 func (e *External) sendFrame(buffer [][]uint8) {
