@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/brianewing/redshift/animator"
 	"github.com/brianewing/redshift/effects"
 	"github.com/brianewing/redshift/strip"
 	"github.com/gorilla/websocket"
@@ -10,20 +11,18 @@ import (
 )
 
 type webSocketServer struct {
-	strip   *strip.LEDStrip
-	buffer  [][]uint8
-	effects *[]effects.Effect
+	animator *animator.Animator
+	buffer   [][]uint8
 
 	server   *http.Server
 	upgrader *websocket.Upgrader
 	http.Handler
 }
 
-func RunWebSocketServer(addr string, strip *strip.LEDStrip, buffer [][]uint8, effects *[]effects.Effect) {
+func RunWebSocketServer(addr string, animator *animator.Animator, buffer [][]uint8) {
 	wss := &webSocketServer{
-		strip:   strip,
-		buffer:  buffer,
-		effects: effects,
+		animator: animator,
+		buffer:   buffer,
 		upgrader: &websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool { return true }, // ALLOW CROSS-ORIGIN REQUESTS
 		},
@@ -75,7 +74,7 @@ func (s *webSocketServer) receiveEffects(c *websocket.Conn) {
 			return
 		} else if effects, err := effects.UnmarshalJSON(msg); err == nil {
 			log.Println("WS effects received:", string(msg))
-			*s.effects = effects
+			s.animator.SetEffects(effects)
 		} else {
 			log.Println("WS effects parse error:", err)
 		}
@@ -118,9 +117,9 @@ func (sc *streamConnection) readFps() {
 
 func (s *webSocketServer) streamStripBuffer(sc *streamConnection) {
 	for sc.NextFrame() {
-		s.strip.Lock()
-		msg := s.strip.SerializeBytes()
-		s.strip.Unlock()
+		s.animator.Strip.Lock()
+		msg := s.animator.Strip.SerializeBytes()
+		s.animator.Strip.Unlock()
 
 		if err := sc.WriteMessage(websocket.BinaryMessage, msg); err != nil {
 			log.Println("WS write error:", err)
@@ -131,7 +130,7 @@ func (s *webSocketServer) streamStripBuffer(sc *streamConnection) {
 
 func (s *webSocketServer) streamEffectsJson(sc *streamConnection) {
 	for sc.NextFrame() {
-		effectsJson, _ := effects.MarshalJSON(*s.effects)
+		effectsJson, _ := effects.MarshalJSON(s.animator.Effects)
 
 		if err := sc.WriteMessage(websocket.TextMessage, effectsJson); err != nil {
 			log.Println("WS effects write error:", err)

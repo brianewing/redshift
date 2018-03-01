@@ -8,6 +8,9 @@ type Effect interface {
 	Render(strip *strip.LEDStrip)
 }
 
+type Initable interface { Init() }
+type Destroyable interface { Destroy() }
+
 func NewByName(name string) Effect {
 	switch name {
 	case "BlueEffect":
