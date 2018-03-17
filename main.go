@@ -26,6 +26,7 @@ var wsInterval = flag.Duration("wsInterval", 16*time.Millisecond, "ws2811/2812(b
 var wsPin = flag.Int("wsPin", 0, "ws2811/2812(b) gpio pin")
 var wsBrightness = flag.Int("wsBrightness", 50, "ws2811/2812(b) brightness")
 
+var midiListDevices = flag.Bool("midiListDevices", false, "prints a list of available midi devices")
 var midiDeviceId = flag.Int("midiDeviceId", 0, "midi device id")
 
 var httpAddr = flag.String("httpAddr", "0.0.0.0:9191", "http service address")
@@ -69,8 +70,12 @@ func main() {
 
 	devices := midi.Devices()
 
-	for i, device := range devices {
-		log.Println("MIDI Device", i, device)
+	if *midiListDevices == true {
+		println("** MIDI Devices Available **")
+		for i, device := range devices {
+			println("  ", i, "-", device.Name)
+		}
+		println("")
 	}
 
 	if *midiDeviceId != 0 {
@@ -88,7 +93,7 @@ func main() {
 	}
 
 	animator := &animator.Animator{
-		Strip:   ledStrip,
+		Strip: ledStrip,
 		Effects: []effects.Effect{
 			&effects.Clear{},
 			rainbowEffect,
