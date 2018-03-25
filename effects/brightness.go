@@ -25,7 +25,7 @@ func (e *Brightness) Render(s *strip.LEDStrip) {
 
 	for _, color := range s.Buffer {
 		//applyBasic(color, uint8(e.Brightness))
-		applyHsv(color, e.Brightness)
+		applyHsl(color, e.Brightness)
 	}
 
 	//if e.backwards {
@@ -35,7 +35,7 @@ func (e *Brightness) Render(s *strip.LEDStrip) {
 	//}
 }
 
-func applyHsv(color []uint8, brightness uint8) {
+func applyHsl(color []uint8, brightness uint8) {
 	r, g, b := float64(color[0]), float64(color[1]), float64(color[2])
 	c := colorful.Color{R: r / 255.0, G: g / 255.0, B: b / 255.0}
 

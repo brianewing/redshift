@@ -11,18 +11,19 @@ type MoodEffect struct {
 	layer            *Layer
 }
 
-func (e *MoodEffect) Render(s *strip.LEDStrip) {
-	if e.layer == nil {
-		e.fillEffect = &Fill{}
-		e.brightnessEffect = &Brightness{}
-		e.layer = &Layer{
-			Effects: []Effect{
-				e.fillEffect,
-				e.brightnessEffect,
-			},
-		}
-	}
+func (e *MoodEffect) Init() {
+	e.fillEffect = &Fill{}
+	e.brightnessEffect = &Brightness{}
 
+	e.layer = &Layer{
+		Effects: []Effect{
+			e.fillEffect,
+			e.brightnessEffect,
+		},
+	}
+}
+
+func (e *MoodEffect) Render(s *strip.LEDStrip) {
 	if e.brightnessEffect.Brightness <= 1 {
 		e.fillEffect.Color = e.newColor()
 	}

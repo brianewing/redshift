@@ -29,6 +29,7 @@ type External struct {
 
 func (e *External) Render(s *strip.LEDStrip) {
 	e.reloadMutex.Lock()
+
 	if e.cmd == nil && !e.halted {
 		//log.Println(e.logPrefix(), "Starting process")
 		e.startProcess()
@@ -46,6 +47,7 @@ func (e *External) Render(s *strip.LEDStrip) {
 	e.sendFrame(s.Buffer)
 	// wait until the program replies, then copy its response into the strip buffer
 	e.readFrame(s.Buffer)
+
 	e.reloadMutex.Unlock()
 }
 

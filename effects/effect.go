@@ -28,17 +28,17 @@ func NewByName(name string) Effect {
 	case "Layer":
 		return &Layer{}
 	case "LarsonEffect":
-		return &LarsonEffect{}
+		return NewLarsonEffect()
 	case "MoodEffect":
 		return &MoodEffect{}
 	case "RaceTestEffect":
 		return &RaceTestEffect{}
 	case "RainbowEffect":
-		return &RainbowEffect{}
+		return NewRainbowEffect()
 	case "RandomEffect":
 		return &RandomEffect{}
 	case "Stripe":
-		return &Stripe{}
+		return NewStripe()
 	default:
 		return &Null{}
 	}
