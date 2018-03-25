@@ -9,30 +9,31 @@ type RainbowEffect struct {
 	Size    uint
 	Speed   float64
 	Reverse bool
+	Blend
 
-	wheel   [][]uint8
+	wheel [][]uint8
 }
 
-var multiple uint = 60 // generate n times more colours for better transitions
+func NewRainbowEffect() *RainbowEffect {
+	return &RainbowEffect{
+		Size: 100,
+	}
+}
+
+var granularity uint = 60 // generate n times more colours for better transitions
 
 func (e *RainbowEffect) Render(s *strip.LEDStrip) {
-	size := e.getSize() * multiple
-	if e.wheel == nil || len(e.wheel) != int(size) {
-		e.wheel = generateWheel(size)
+	steps := e.Size * granularity
+	if e.wheel == nil || len(e.wheel) != int(steps) {
+		e.wheel = generateWheel(steps)
 	}
 
 	phase := round(CycleBetween(0, float64(len(e.wheel)), e.Speed))
 	rotatedWheel := rotateBuffer(e.wheel, phase, e.Reverse)
-	sampledWheel := sampleBuffer(rotatedWheel, int(e.getSize()))
+	sampledWheel := sampleBuffer(rotatedWheel, int(e.Size))
 
-	(&Buffer{Buffer: sampledWheel}).Render(s)
-}
-
-func (e *RainbowEffect) getSize() uint {
-	if e.Size == 0 {
-		e.Size = 150
-	}
-	return e.Size
+	e.Blend.Buffer = sampledWheel
+	e.Blend.Render(s)
 }
 
 func generateWheel(size uint) [][]uint8 {
@@ -44,4 +45,3 @@ func generateWheel(size uint) [][]uint8 {
 	}
 	return wheel
 }
-

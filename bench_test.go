@@ -17,7 +17,7 @@ func BenchmarkExampleAnimation(b *testing.B) {
 		Strip: ledStrip,
 		Effects: []effects.Effect{
 			&effects.Clear{},
-			&effects.Buffer{Buffer: randomStrip.Buffer},
+			&effects.Blend{Buffer: randomStrip.Buffer},
 			&effects.RainbowEffect{Size: 150, Speed: 1},
 			&effects.Layer{
 				Effects: []effects.Effect{

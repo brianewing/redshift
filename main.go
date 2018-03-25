@@ -102,8 +102,8 @@ func main() {
 			//&effects.External{Program: "scripts/example.py"},
 		},
 		PostEffects: []effects.Effect{
-			&effects.Buffer{Buffer: opcBuffer},
-			&effects.Buffer{Buffer: wssBuffer},
+			&effects.Blend{Buffer: opcBuffer},
+			&effects.Blend{Buffer: wssBuffer},
 		},
 	}
 

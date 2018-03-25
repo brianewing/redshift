@@ -5,15 +5,20 @@ import (
 	"github.com/lucasb-eyer/go-colorful"
 )
 
-type Buffer struct {
-	Buffer [][]uint8
-	Offset int
+type Blend struct {
+	Buffer  [][]uint8 `json:"-"`
+	Offset  int
+	Reverse bool
 }
 
-func (e *Buffer) Render(strip *strip.LEDStrip) {
-	for i := e.Offset; i < len(e.Buffer) + e.Offset && i < strip.Size; i++ {
-		source := e.Buffer[i - e.Offset]
+func (e *Blend) Render(strip *strip.LEDStrip) {
+	for i := e.Offset; i < len(e.Buffer)+e.Offset && i < strip.Size; i++ {
+		source := e.Buffer[i-e.Offset]
 		dest := strip.Buffer[i]
+
+		if e.Reverse {
+			dest = strip.Buffer[len(e.Buffer)-i-1]
+		}
 
 		if isOff(dest) {
 			copy(dest, source)
@@ -58,9 +63,11 @@ func rotateBuffer(buffer [][]uint8, n int, reverse bool) [][]uint8 {
 // returns a subset of buffer (n evenly-spaced elements)
 func sampleBuffer(buffer [][]uint8, n int) [][]uint8 {
 	subset := make([][]uint8, n)
-	step := len(buffer) / n
-	for i := 0; i < n; i++ {
-		subset[i] = buffer[i*step]
+	if n > 0 {
+		step := len(buffer) / n
+		for i := 0; i < n; i++ {
+			subset[i] = buffer[i*step]
+		}
 	}
 	return subset
 }

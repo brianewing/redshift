@@ -10,6 +10,8 @@ type Layer struct {
 	Effects []Effect
 
 	virtualStrip *strip.LEDStrip
+
+	Blend Blend
 }
 
 func (e *Layer) Render(s *strip.LEDStrip) {
@@ -17,12 +19,14 @@ func (e *Layer) Render(s *strip.LEDStrip) {
 		if e.Size == 0 {
 			e.Size = s.Size
 		}
+
 		e.virtualStrip = strip.New(e.Size)
+		e.Blend.Buffer = e.virtualStrip.Buffer
 	}
 
 	for _, effect := range e.Effects {
 		effect.Render(e.virtualStrip)
 	}
 
-	(&Buffer{Buffer: e.virtualStrip.Buffer, Offset: e.Offset}).Render(s)
+	e.Blend.Render(s)
 }

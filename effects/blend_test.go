@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func BenchmarkBlending(b *testing.B) {
+func BenchmarkBlendFuncs(b *testing.B) {
 	s1 := strip.New(60)
 	s1.Randomize()
 	s2 := strip.New(s1.Size)
