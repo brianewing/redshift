@@ -5,10 +5,8 @@ import (
 )
 
 type Layer struct {
-	Size    int
-	Offset  int
-	Effects []Effect
-
+	Size         int
+	Effects      EffectSet
 	virtualStrip *strip.LEDStrip
 
 	Blend Blend

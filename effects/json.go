@@ -44,34 +44,19 @@ func UnmarshalJSON(s []byte) ([]Effect, error) {
 }
 
 /*
- * Layer Effect
+ * Effect Sets (e.g. layer.Effects, mirror.Effects)
  */
 
-type jsonFormatLayer struct {
-	Effects json.RawMessage // encoded with MarshalJson()
-	Size, Offset int
+func (set *EffectSet) MarshalJSON() ([]byte, error) {
+	return MarshalJSON(*set)
 }
 
-func (e *Layer) MarshalJSON() ([]byte, error) {
-	effectsJson, _ := MarshalJSON(e.Effects)
-	return json.Marshal(&jsonFormatLayer{
-		Effects: effectsJson,
-		Size: e.Size,
-		Offset: e.Offset,
-	})
-}
-
-func (e *Layer) UnmarshalJSON(b []byte) error {
-	tmp := jsonFormatLayer{}
-	if err := json.Unmarshal(b, &tmp); err == nil {
-		if effects, err := UnmarshalJSON(tmp.Effects); err == nil {
-			e.Effects = effects
-			e.Size = tmp.Size
-			e.Offset = tmp.Offset
-			return nil
-		} else {
-			return err
+func (set *EffectSet) UnmarshalJSON(b []byte) error {
+	if effects, err := UnmarshalJSON(b); err == nil {
+		for _, effect := range effects {
+			*set = append(*set, effect)
 		}
+		return nil
 	} else {
 		return err
 	}

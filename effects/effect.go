@@ -8,6 +8,8 @@ type Effect interface {
 	Render(strip *strip.LEDStrip)
 }
 
+type EffectSet []Effect
+
 type Initable interface { Init() }
 type Destroyable interface { Destroy() }
 
@@ -29,6 +31,8 @@ func NewByName(name string) Effect {
 		return &Layer{}
 	case "LarsonEffect":
 		return NewLarsonEffect()
+	case "Mirror":
+		return &Mirror{}
 	case "MoodEffect":
 		return &MoodEffect{}
 	case "RaceTestEffect":
@@ -39,6 +43,8 @@ func NewByName(name string) Effect {
 		return &RandomEffect{}
 	case "Stripe":
 		return NewStripe()
+	case "Switch":
+		return &Switch{}
 	default:
 		return &Null{}
 	}
@@ -54,10 +60,12 @@ func Names() []string {
 		"Fill",
 		"Layer",
 		"LarsonEffect",
+		"Mirror",
 		"MoodEffect",
 		"Null",
 		"RainbowEffect",
 		"RandomEffect",
 		"Stripe",
+		"Switch",
 	}
 }
