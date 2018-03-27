@@ -31,14 +31,14 @@ func (a *Animator) Run(interval time.Duration) {
 }
 
 func (a *Animator) Render() {
-	a.init.Do(a.Effects.InitAll)
+	a.init.Do(a.Effects.Init)
 
 	a.Effects.Render(a.Strip)
 	a.PostEffects.Render(a.Strip)
 }
 
 func (a *Animator) SetEffects(newEffects effects.EffectSet) {
-	a.Effects.DestroyAll()
+	a.Effects.Destroy()
 	a.Effects = newEffects
 	a.init = sync.Once{}
 }
