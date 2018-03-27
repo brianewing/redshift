@@ -6,12 +6,12 @@ import (
 	"log"
 )
 
-func getEffects() []effects.Effect {
+func getEffects() effects.EffectSet {
 	effects, _ := loadEffects()
 	return effects
 }
 
-func loadEffects() ([]effects.Effect, error) {
+func loadEffects() (effects.EffectSet, error) {
 	if *pathToEffectsJson != "" {
 		return loadEffectsJson(*pathToEffectsJson)
 	} else if *pathToEffectsYaml != "" {
@@ -21,7 +21,7 @@ func loadEffects() ([]effects.Effect, error) {
 	}
 }
 
-func loadEffectsJson(path string) ([]effects.Effect, error) {
+func loadEffectsJson(path string) (effects.EffectSet, error) {
 	if bytes, err := ioutil.ReadFile(path); err == nil {
 		return effects.UnmarshalJSON(bytes)
 	} else {
@@ -30,7 +30,7 @@ func loadEffectsJson(path string) ([]effects.Effect, error) {
 	}
 }
 
-func loadEffectsYaml(path string) ([]effects.Effect, error) {
+func loadEffectsYaml(path string) (effects.EffectSet, error) {
 	if bytes, err := ioutil.ReadFile(path); err == nil {
 		return effects.UnmarshalYAML(bytes)
 	} else {
@@ -39,7 +39,7 @@ func loadEffectsYaml(path string) ([]effects.Effect, error) {
 	}
 }
 
-func writeEffectsJson(dest string, effects_ []effects.Effect) error {
+func writeEffectsJson(dest string, effects_ effects.EffectSet) error {
 	bytes, err := effects.MarshalJSON(effects_)
 	if err != nil {
 		log.Fatalln("Could not write effects json", "(marshall error)", err)
@@ -48,7 +48,7 @@ func writeEffectsJson(dest string, effects_ []effects.Effect) error {
 	return ioutil.WriteFile(dest, bytes, 0644)
 }
 
-func writeEffectsYaml(dest string, effects_ []effects.Effect) error {
+func writeEffectsYaml(dest string, effects_ effects.EffectSet) error {
 	bytes, err := effects.MarshalYAML(effects_)
 	if err != nil {
 		log.Fatalln("Could not write effects yaml", "(marshall error)", err)

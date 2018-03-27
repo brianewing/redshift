@@ -16,9 +16,9 @@ func (e *MoodEffect) Init() {
 	e.brightnessEffect = &Brightness{}
 
 	e.layer = &Layer{
-		Effects: []Effect{
-			e.fillEffect,
-			e.brightnessEffect,
+		Effects: EffectSet{
+			EffectEnvelope{Effect: e.fillEffect},
+			EffectEnvelope{Effect: e.brightnessEffect},
 		},
 	}
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/brianewing/redshift/server"
 	"github.com/brianewing/redshift/strip"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"os"
 	"path"
@@ -47,63 +46,22 @@ func main() {
 	opcBuffer := strip.NewBuffer(ledStrip.Size)
 	wssBuffer := strip.NewBuffer(ledStrip.Size)
 
-	rainbowEffect := &effects.RainbowEffect{Size: 100, Speed: 1}
-	larsonEffect := &effects.LarsonEffect{Color: []uint8{255, 255, 255}}
-	brightnessEffect := &effects.Brightness{Brightness: 255}
-
-	adjustParametersFromMidiEvent := func(event midi.MidiMessage) {
-		switch event.Status {
-		case 176:
-			switch event.Data1 {
-			case 1:
-				rainbowEffect.Size = uint(event.Data2)
-			case 2:
-				rainbowEffect.Speed = float64(event.Data2 / 6)
-			case 4:
-				larsonEffect.Position = int(int(event.Data2) / ledStrip.Size)
-			case 95:
-				log.Println("Set brightness")
-				brightnessEffect.Brightness = uint8(event.Data2 * 2)
-			}
-		}
-	}
-
-	devices := midi.Devices()
-
 	if *midiListDevices == true {
+		devices := midi.Devices()
 		println("** MIDI Devices Available **")
 		for i, device := range devices {
 			println("  ", i, "-", device.Name)
 		}
 		println("")
-	}
-
-	if *midiDeviceId != 0 {
-		device := devices[*midiDeviceId]
-		midiEventsChan := midi.StreamMessages(device)
-
-		go func() {
-			log.Println("MIDI start reading")
-			for midiEvent := range midiEventsChan {
-				log.Println("MIDI Event", midiEvent)
-				adjustParametersFromMidiEvent(midiEvent)
-			}
-			log.Println("MIDI finished reading")
-		}()
+		return
 	}
 
 	animator := &animator.Animator{
-		Strip: ledStrip,
-		Effects: []effects.Effect{
-			&effects.Clear{},
-			rainbowEffect,
-			larsonEffect,
-			brightnessEffect,
-			//&effects.External{Program: "scripts/example.py"},
-		},
-		PostEffects: []effects.Effect{
-			&effects.Blend{Buffer: opcBuffer},
-			&effects.Blend{Buffer: wssBuffer},
+		Strip:   ledStrip,
+		Effects: getEffects(),
+		PostEffects: effects.EffectSet{
+			effects.EffectEnvelope{Effect: &effects.Blend{Buffer: opcBuffer}},
+			effects.EffectEnvelope{Effect: &effects.Blend{Buffer: wssBuffer}},
 		},
 	}
 

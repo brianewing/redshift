@@ -41,22 +41,14 @@ func (e *EffectEnvelope) UnmarshalJSON(b []byte) error {
 	}
 }
 
-func MarshalJSON(effects []Effect) ([]byte, error) {
-	envelopes := make([]EffectEnvelope, len(effects))
-	for i, effect := range effects {
-		envelopes[i].Effect = effect
-	}
-	return json.Marshal(envelopes)
+func MarshalJSON(effects EffectSet) ([]byte, error) {
+	return json.Marshal(effects)
 }
 
-func UnmarshalJSON(b []byte) ([]Effect, error) {
-	var envelopes []EffectEnvelope
-	if err := json.Unmarshal(b, &envelopes); err == nil {
-		effects := make([]Effect, len(envelopes))
-		for i, envelope := range envelopes {
-			effects[i] = envelope.Effect
-		}
-		return effects, err
+func UnmarshalJSON(b []byte) (EffectSet, error) {
+	var effects EffectSet
+	if err := json.Unmarshal(b, &effects); err == nil {
+		return effects, nil
 	} else {
 		return nil, err
 	}
@@ -78,7 +70,7 @@ func (set *EffectSet) UnmarshalJSON(b []byte) error {
 	var envelopes []EffectEnvelope
 	if err := json.Unmarshal(b, &envelopes); err == nil {
 		for _, envelope := range envelopes {
-			*set = append(*set, envelope.Effect)
+			*set = append(*set, envelope)
 		}
 		return nil
 	} else {

@@ -16,7 +16,7 @@ type EffectEnvelope struct {
 	Controls []struct{}
 }
 
-type EffectSet []Effect
+type EffectSet []EffectEnvelope
 
 func (s EffectSet) Render(strip *strip.LEDStrip) {
 	for _, effect := range s {
@@ -26,8 +26,8 @@ func (s EffectSet) Render(strip *strip.LEDStrip) {
 
 // calls Init() on initable effects
 func (s EffectSet) InitAll() {
-	for _, effect := range s {
-		if initable, ok := effect.(Initable); ok {
+	for _, envelope := range s {
+		if initable, ok := envelope.Effect.(Initable); ok {
 			initable.Init()
 		}
 	}
@@ -35,8 +35,8 @@ func (s EffectSet) InitAll() {
 
 // calls Destroy() on destroyable effects
 func (s EffectSet) DestroyAll() {
-	for _, effect := range s {
-		if destroyable, ok := effect.(Destroyable); ok {
+	for _, envelope := range s {
+		if destroyable, ok := envelope.Effect.(Destroyable); ok {
 			destroyable.Destroy()
 		}
 	}
