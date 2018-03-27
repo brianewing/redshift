@@ -17,6 +17,7 @@ type marshalFormat struct {
 type unmarshalFormat struct {
 	marshalFormat
 	Effect *json.RawMessage // this can only be unpacked once the Type is known
+	Controls *json.RawMessage
 }
 
 func (e *EffectEnvelope) MarshalJSON() ([]byte, error) {
@@ -50,29 +51,5 @@ func UnmarshalJSON(b []byte) (EffectSet, error) {
 		return effects, nil
 	} else {
 		return nil, err
-	}
-}
-
-/*
- * Effect Sets (e.g. layer.Effects, mirror.Effects)
- */
-
-func (set *EffectSet) MarshalJSON() ([]byte, error) {
-	envelopes := make([]EffectEnvelope, len(*set))
-	for i, effect := range *set {
-		envelopes[i] = EffectEnvelope{Effect: effect}
-	}
-	return json.Marshal(envelopes)
-}
-
-func (set *EffectSet) UnmarshalJSON(b []byte) error {
-	var envelopes []EffectEnvelope
-	if err := json.Unmarshal(b, &envelopes); err == nil {
-		for _, envelope := range envelopes {
-			*set = append(*set, envelope)
-		}
-		return nil
-	} else {
-		return err
 	}
 }

@@ -13,19 +13,28 @@ type Destroyable interface { Destroy() }
 
 type EffectEnvelope struct {
 	Effect
-	Controls []struct{}
+	Controls ControlSet
 }
 
-func (e EffectEnvelope) Init() {
+func (e *EffectEnvelope) Init() {
 	if initable, ok := e.Effect.(Initable); ok {
 		initable.Init()
 	}
+	e.Controls.Init()
 }
 
-func (e EffectEnvelope) Destroy() {
+func (e *EffectEnvelope) Destroy() {
 	if destroyable, ok := e.Effect.(Destroyable); ok {
 		destroyable.Destroy()
 	}
+	e.Controls.Destroy()
+}
+
+func (e *EffectEnvelope) Render(strip *strip.LEDStrip) {
+	// apply controls
+	e.Controls.Apply(e.Effect)
+	// render effect
+	e.Effect.Render(strip)
 }
 
 type EffectSet []EffectEnvelope

@@ -7,10 +7,18 @@ import (
 
 var timeBegan = time.Now()
 
-// simple time-based linear oscillator
+type TimingFunction func(min, max, hertz float64) float64
+
+// simple time-based linear oscillator, e.g 1-2-3-4-3-2-1-2-3-4
 func OscillateBetween(min, max, hertz float64) float64 {
 	d := time.Since(timeBegan).Seconds()
 	return triangleWave(d*hertz*2)*(max-min) + min
+}
+
+// time-based sinusoid oscillator, e.g 1-1-2-3-4-4-3-2-1-1
+func SmoothOscillateBetween(min, max, hertz float64) float64 {
+	d := time.Since(timeBegan).Seconds()
+	return sinusoidWave(d*hertz)*(max-min) + min
 }
 
 // cycle between min and max values, restarting at min
@@ -19,6 +27,8 @@ func CycleBetween(min, max, hertz float64) float64 {
 	d := time.Since(timeBegan).Seconds()
 	return sawtoothWave(d*hertz)*(max-min) + min
 }
+
+type WaveFunction func(x float64) float64
 
 //   ^   ^   ^   ^   ^   ^   ^   ^   ^
 //  / \ / \ / \ / \ / \ / \ / \ / \ / \

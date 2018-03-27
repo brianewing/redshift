@@ -6,7 +6,7 @@ import (
 )
 
 type RainbowEffect struct {
-	Size    uint
+	Size    int
 	Speed   float64
 	Reverse bool
 	Blend
@@ -21,7 +21,7 @@ func NewRainbowEffect() *RainbowEffect {
 	}
 }
 
-var granularity uint = 60 // generate n times more colours for better transitions
+var granularity int = 60 // generate n times more colours for better transitions
 
 func (e *RainbowEffect) Render(s *strip.LEDStrip) {
 	steps := e.Size * granularity
@@ -37,7 +37,7 @@ func (e *RainbowEffect) Render(s *strip.LEDStrip) {
 	e.Blend.Render(s)
 }
 
-func generateWheel(size uint) [][]uint8 {
+func generateWheel(size int) [][]uint8 {
 	wheel := make([][]uint8, size)
 	for i := range wheel {
 		hue := float64(i) / float64(size) * 360
