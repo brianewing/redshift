@@ -7,7 +7,10 @@ import (
 )
 
 func getEffects() effects.EffectSet {
-	effects, _ := loadEffects()
+	effects, err := loadEffects()
+	if err != nil {
+		log.Println("error loading effects", err)
+	}
 	return effects
 }
 
