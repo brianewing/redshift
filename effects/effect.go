@@ -67,7 +67,7 @@ func NewByName(name string) Effect {
 	case "LarsonEffect":
 		return NewLarsonEffect()
 	case "Mirror":
-		return &Mirror{}
+		return NewMirror()
 	case "MoodEffect":
 		return &MoodEffect{}
 	case "RaceTestEffect":

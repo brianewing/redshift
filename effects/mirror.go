@@ -22,6 +22,10 @@ func NewMirror() *Mirror {
 	}
 }
 
+func (e *Mirror) Init() {
+	e.Effects.Init()
+}
+
 func (e *Mirror) Render(s *strip.LEDStrip) {
 	if e.virtualStrip == nil {
 		if e.Size == 0 {
