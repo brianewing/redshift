@@ -16,7 +16,7 @@ type Destroyable interface { Destroy() }
 func NewByName(name string) Effect {
 	switch name {
 	case "BlueEffect":
-		return &BlueEffect{}
+		return NewBlueEffect()
 	case "Brightness":
 		return &Brightness{}
 	case "Blend":

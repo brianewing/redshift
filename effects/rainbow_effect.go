@@ -17,6 +17,7 @@ type RainbowEffect struct {
 func NewRainbowEffect() *RainbowEffect {
 	return &RainbowEffect{
 		Size: 100,
+		Speed: 0.5,
 	}
 }
 
