@@ -40,7 +40,13 @@ func blendRgb(c1 []uint8, c2 []uint8) []uint8 {
 
 func blendHcl(c1 []uint8, c2 []uint8) []uint8 {
 	c1_, c2_ := colorfulRgb(c1), colorfulRgb(c2)
-	r, g, b := c1_.BlendHcl(c2_, 0.75).Clamped().RGB255()
+	r, g, b := c1_.BlendHcl(c2_, 0.5).Clamped().RGB255()
+	return []uint8{r, g, b}
+}
+
+func blendLab(c1 []uint8, c2 []uint8) []uint8 {
+	c1_, c2_ := colorfulRgb(c1), colorfulRgb(c2)
+	r, g, b := c1_.BlendLab(c2_, 0.5).Clamped().RGB255()
 	return []uint8{r, g, b}
 }
 

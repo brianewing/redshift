@@ -27,4 +27,11 @@ func BenchmarkBlendFuncs(b *testing.B) {
 			}
 		}
 	})
+	b.Run("Lab", func(b *testing.B) {
+		for n := 0; n < b.N; n++ {
+			for i, c1 := range s1.Buffer {
+				blendLab(c1, s2.Buffer[i])
+			}
+		}
+	})
 }
