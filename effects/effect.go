@@ -43,8 +43,12 @@ func NewByName(name string) Effect {
 		return &RandomEffect{}
 	case "Stripe":
 		return NewStripe()
+	case "Strobe":
+		return NewStrobe()
 	case "Switch":
 		return &Switch{}
+	case "Toggle":
+		return &Toggle{}
 	default:
 		return &Null{}
 	}
@@ -66,6 +70,8 @@ func Names() []string {
 		"RainbowEffect",
 		"RandomEffect",
 		"Stripe",
+		"Strobe",
 		"Switch",
+		"Toggle",
 	}
 }
