@@ -5,42 +5,61 @@ import (
 	"reflect"
 )
 
-// effects are json encoded into envelopes
+// TODO: document this code better!
 
-type jsonEnvelope struct {
-	Type   string
+type myEffectEnvelope EffectEnvelope
+
+type marshalFormat struct {
+	myEffectEnvelope // using a type alias prevents json.Marshal from recursing
+	Type string
 	Params interface{}
 }
 
 type unmarshalFormat struct {
-	jsonEnvelope
-	Params json.RawMessage
+	marshalFormat
+	Params *json.RawMessage // this can only be unpacked once the Type is known
+}
+
+func (e *EffectEnvelope) MarshalJSON() ([]byte, error) {
+	return json.Marshal(marshalFormat{
+		Type: reflect.TypeOf(e.Effect).Elem().Name(),
+		Params: e.Effect,
+	})
+}
+
+func (e *EffectEnvelope) UnmarshalJSON(b []byte) error {
+	var tmp unmarshalFormat
+	if err := json.Unmarshal(b, &tmp); err == nil {
+		e.Effect = NewByName(tmp.Type)
+		if tmp.Params != nil {
+			return json.Unmarshal(*tmp.Params, &e.Effect)
+		} else {
+			return nil
+		}
+	} else {
+		return err
+	}
 }
 
 func MarshalJSON(effects []Effect) ([]byte, error) {
-	envelopes := make([]jsonEnvelope, len(effects))
-
+	envelopes := make([]EffectEnvelope, len(effects))
 	for i, effect := range effects {
-		envelopes[i] = jsonEnvelope{
-			Type:   reflect.TypeOf(effect).Elem().Name(),
-			Params: effect,
-		}
+		envelopes[i].Effect = effect
 	}
-
 	return json.Marshal(envelopes)
 }
 
-func UnmarshalJSON(s []byte) ([]Effect, error) {
-	var envelopes []unmarshalFormat
-	json.Unmarshal(s, &envelopes)
-
-	effects := make([]Effect, len(envelopes))
-	for i, envelope := range envelopes {
-		effects[i] = NewByName(envelope.Type)
-		json.Unmarshal(envelope.Params, &effects[i])
+func UnmarshalJSON(b []byte) ([]Effect, error) {
+	var envelopes []EffectEnvelope
+	if err := json.Unmarshal(b, &envelopes); err == nil {
+		effects := make([]Effect, len(envelopes))
+		for i, envelope := range envelopes {
+			effects[i] = envelope.Effect
+		}
+		return effects, err
+	} else {
+		return nil, err
 	}
-
-	return effects, nil
 }
 
 /*
@@ -48,13 +67,18 @@ func UnmarshalJSON(s []byte) ([]Effect, error) {
  */
 
 func (set *EffectSet) MarshalJSON() ([]byte, error) {
-	return MarshalJSON(*set)
+	envelopes := make([]EffectEnvelope, len(*set))
+	for i, effect := range *set {
+		envelopes[i] = EffectEnvelope{Effect: effect}
+	}
+	return json.Marshal(envelopes)
 }
 
 func (set *EffectSet) UnmarshalJSON(b []byte) error {
-	if effects, err := UnmarshalJSON(b); err == nil {
-		for _, effect := range effects {
-			*set = append(*set, effect)
+	var envelopes []EffectEnvelope
+	if err := json.Unmarshal(b, &envelopes); err == nil {
+		for _, envelope := range envelopes {
+			*set = append(*set, envelope.Effect)
 		}
 		return nil
 	} else {

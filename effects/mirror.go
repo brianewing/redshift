@@ -35,9 +35,7 @@ func (e *Mirror) Render(s *strip.LEDStrip) {
 		e.BlendB.Offset = len(e.virtualStrip.Buffer)
 	}
 
-	for _, effect := range e.Effects {
-		effect.Render(e.virtualStrip)
-	}
+	e.Effects.Render(e.virtualStrip)
 
 	e.BlendA.Render(s)
 	e.BlendB.Render(s)

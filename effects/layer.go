@@ -22,9 +22,7 @@ func (e *Layer) Render(s *strip.LEDStrip) {
 		e.Blend.Buffer = e.virtualStrip.Buffer
 	}
 
-	for _, effect := range e.Effects {
-		effect.Render(e.virtualStrip)
-	}
+	e.Effects.Render(e.virtualStrip)
 
 	e.Blend.Render(s)
 }

@@ -10,9 +10,9 @@ type testEffect struct {
 	didInit, didDestroy bool
 }
 
+func (e *testEffect) Render(s *strip.LEDStrip) {}
 func (e *testEffect) Init()                    { e.didInit = true }
 func (e *testEffect) Destroy()                 { e.didDestroy = true }
-func (e *testEffect) Render(s *strip.LEDStrip) {}
 
 func makeTestAnimation() (*Animator, *testEffect) {
 	e := &testEffect{}
@@ -21,8 +21,9 @@ func makeTestAnimation() (*Animator, *testEffect) {
 
 func TestEffectInit(t *testing.T) {
 	a, e := makeTestAnimation()
+	a.Render()
 
-	if a.Render(); !e.didInit {
+	if !e.didInit {
 		t.Fatal("effect did not init")
 	}
 }

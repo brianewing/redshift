@@ -8,10 +8,39 @@ type Effect interface {
 	Render(strip *strip.LEDStrip)
 }
 
-type EffectSet []Effect
-
 type Initable interface { Init() }
 type Destroyable interface { Destroy() }
+
+type EffectEnvelope struct {
+	Effect
+	Controls []struct{}
+}
+
+type EffectSet []Effect
+
+func (s EffectSet) Render(strip *strip.LEDStrip) {
+	for _, effect := range s {
+		effect.Render(strip)
+	}
+}
+
+// calls Init() on initable effects
+func (s EffectSet) InitAll() {
+	for _, effect := range s {
+		if initable, ok := effect.(Initable); ok {
+			initable.Init()
+		}
+	}
+}
+
+// calls Destroy() on destroyable effects
+func (s EffectSet) DestroyAll() {
+	for _, effect := range s {
+		if destroyable, ok := effect.(Destroyable); ok {
+			destroyable.Destroy()
+		}
+	}
+}
 
 func NewByName(name string) Effect {
 	switch name {
