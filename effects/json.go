@@ -12,18 +12,17 @@ type myEffectEnvelope EffectEnvelope
 type marshalFormat struct {
 	myEffectEnvelope // using a type alias prevents json.Marshal from recursing
 	Type string
-	Params interface{}
 }
 
 type unmarshalFormat struct {
 	marshalFormat
-	Params *json.RawMessage // this can only be unpacked once the Type is known
+	Effect *json.RawMessage // this can only be unpacked once the Type is known
 }
 
 func (e *EffectEnvelope) MarshalJSON() ([]byte, error) {
 	return json.Marshal(marshalFormat{
+		myEffectEnvelope: myEffectEnvelope(*e),
 		Type: reflect.TypeOf(e.Effect).Elem().Name(),
-		Params: e.Effect,
 	})
 }
 
@@ -31,8 +30,8 @@ func (e *EffectEnvelope) UnmarshalJSON(b []byte) error {
 	var tmp unmarshalFormat
 	if err := json.Unmarshal(b, &tmp); err == nil {
 		e.Effect = NewByName(tmp.Type)
-		if tmp.Params != nil {
-			return json.Unmarshal(*tmp.Params, &e.Effect)
+		if tmp.Effect != nil {
+			return json.Unmarshal(*tmp.Effect, &e.Effect)
 		} else {
 			return nil
 		}
