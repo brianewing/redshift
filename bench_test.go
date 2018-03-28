@@ -15,19 +15,19 @@ func BenchmarkExampleAnimation(b *testing.B) {
 
 	animator := &animator.Animator{
 		Strip: ledStrip,
-		Effects: []effects.Effect{
-			&effects.Clear{},
-			&effects.Blend{Buffer: randomStrip.Buffer},
-			&effects.RainbowEffect{Size: 150, Speed: 1},
-			&effects.Layer{
-				Effects: []effects.Effect{
-					&effects.Clear{},
-					&effects.RainbowEffect{Size: 100, Speed: 1},
-					&effects.Brightness{Brightness: 200},
+		Effects: effects.EffectSet{
+			effects.EffectEnvelope{Effect: &effects.Clear{}},
+			effects.EffectEnvelope{Effect: &effects.Blend{Buffer: randomStrip.Buffer}},
+			effects.EffectEnvelope{Effect: &effects.RainbowEffect{Size: 150, Speed: 1}},
+			effects.EffectEnvelope{Effect: &effects.Layer{
+				Effects: effects.EffectSet{
+					effects.EffectEnvelope{Effect: &effects.Clear{}},
+					effects.EffectEnvelope{Effect: &effects.RainbowEffect{Size: 100, Speed: 1}},
+					effects.EffectEnvelope{Effect: &effects.Brightness{Brightness: 200}},
 				},
-			},
-			&effects.BlueEffect{},
-			&effects.LarsonEffect{Color: []uint8{0, 0, 0}},
+			}},
+			effects.EffectEnvelope{Effect: &effects.BlueEffect{}},
+			effects.EffectEnvelope{Effect: &effects.LarsonEffect{Color: []uint8{0, 0, 0}}},
 		},
 	}
 
