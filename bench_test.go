@@ -23,7 +23,7 @@ func BenchmarkExampleAnimation(b *testing.B) {
 				Effects: effects.EffectSet{
 					effects.EffectEnvelope{Effect: &effects.Clear{}},
 					effects.EffectEnvelope{Effect: &effects.RainbowEffect{Size: 100, Speed: 1}},
-					effects.EffectEnvelope{Effect: &effects.Brightness{Brightness: 200}},
+					effects.EffectEnvelope{Effect: &effects.Brightness{Level: 200}},
 				},
 			}},
 			effects.EffectEnvelope{Effect: &effects.BlueEffect{}},

@@ -6,33 +6,14 @@ import (
 )
 
 type Brightness struct {
-	Brightness uint8
-	backwards  bool
+	Level int // 0-255, todo: return to uint8
 }
 
-// Acts as a periodic fade when Brightness is 0 or 255
-// Eventually this will be controlled externally..
-// e.g. by an animation function, gui or midi controller
-
 func (e *Brightness) Render(s *strip.LEDStrip) {
-	if e.Brightness > 253 {
-		e.Brightness = 253
-		e.backwards = true
-	} else if e.Brightness < 2 {
-		e.Brightness = 2
-		e.backwards = false
-	}
-
 	for _, color := range s.Buffer {
 		//applyBasic(color, uint8(e.Brightness))
-		applyHsl(color, e.Brightness)
+		applyHsl(color, uint8(e.Level))
 	}
-
-	//if e.backwards {
-	//	e.Brightness -= 2
-	//} else {
-	//	e.Brightness += 2
-	//}
 }
 
 func applyHsl(color []uint8, brightness uint8) {
