@@ -9,6 +9,14 @@ type Blend struct {
 	Buffer  [][]uint8 `json:"-"`
 	Offset  int
 	Reverse bool
+
+	Func string // e.g. rgb, hcl, lab
+}
+
+func NewBlend() *Blend {
+	return &Blend{
+		Func: "rgb",
+	}
 }
 
 func (e *Blend) Render(strip *strip.LEDStrip) {
@@ -23,14 +31,25 @@ func (e *Blend) Render(strip *strip.LEDStrip) {
 		if isOff(dest) {
 			copy(dest, source)
 		} else if !isOff(source) {
-			copy(dest, blendRgb(dest, source))
+			blendFn := e.getFunction()
+			copy(dest, blendFn(dest, source))
 		}
 	}
 }
 
-func isOff(led []uint8) bool {
-	return led[0] == 0 && led[1] == 0 && led[2] == 0
+func (e *Blend) getFunction() blendFunction {
+	switch e.Func {
+	case "hcl":
+		return blendHcl
+	case "lab":
+		return blendLab
+	case "rgb":
+		return blendRgb
+	}
+	return noBlend
 }
+
+type blendFunction func(c1, c2 []uint8) (c3 []uint8)
 
 func blendRgb(c1 []uint8, c2 []uint8) []uint8 {
 	c1_, c2_ := colorfulRgb(c1), colorfulRgb(c2)
@@ -50,9 +69,17 @@ func blendLab(c1 []uint8, c2 []uint8) []uint8 {
 	return []uint8{r, g, b}
 }
 
+func noBlend(_ []uint8, c2 []uint8) []uint8 {
+	return c2
+}
+
 func colorfulRgb(c []uint8) colorful.Color {
 	r, g, b := float64(c[0]), float64(c[1]), float64(c[2])
 	return colorful.Color{R: r / 255.0, G: g / 255.0, B: b / 255.0}
+}
+
+func isOff(led []uint8) bool {
+	return led[0] == 0 && led[1] == 0 && led[2] == 0
 }
 
 // returns a new slice containing the data in buffer rotated by n

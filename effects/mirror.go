@@ -15,11 +15,10 @@ type Mirror struct {
 }
 
 func NewMirror() *Mirror {
-	return &Mirror{
-		BlendA: Blend{
-			Reverse: true,
-		},
-	}
+	blendA := NewBlend()
+	blendA.Reverse = true
+
+	return &Mirror{BlendA: *blendA, BlendB: *NewBlend()}
 }
 
 func (e *Mirror) Init() {

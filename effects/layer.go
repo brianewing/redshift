@@ -12,6 +12,12 @@ type Layer struct {
 	Blend Blend
 }
 
+func NewLayer() *Layer {
+	return &Layer{
+		Blend: *NewBlend(),
+	}
+}
+
 func (e *Layer) Render(s *strip.LEDStrip) {
 	if e.virtualStrip == nil {
 		if e.Size == 0 {

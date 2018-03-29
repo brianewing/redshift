@@ -72,7 +72,7 @@ func NewByName(name string) Effect {
 	case "Fill":
 		return &Fill{}
 	case "Layer":
-		return &Layer{}
+		return NewLayer()
 	case "LarsonEffect":
 		return NewLarsonEffect()
 	case "Mirror":
