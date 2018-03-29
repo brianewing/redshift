@@ -11,7 +11,7 @@ type Control interface {
 	Apply(effect interface{})
 }
 
-type ControlSet []Control
+type ControlSet []ControlEnvelope
 
 func (set ControlSet) Apply(effect interface{}) {
 	for _, control := range set {
@@ -20,19 +20,43 @@ func (set ControlSet) Apply(effect interface{}) {
 }
 
 func (set ControlSet) Init() {
-	for _, control := range set {
-		if initable, ok := control.(Initable); ok {
+	for _, envelope := range set {
+		if initable, ok := envelope.Control.(Initable); ok {
 			initable.Init()
 		}
 	}
 }
 
 func (set ControlSet) Destroy() {
-	for _, control := range set {
-		if destroyable, ok := control.(Destroyable); ok {
+	for _, envelope := range set {
+		if destroyable, ok := envelope.Control.(Destroyable); ok {
 			destroyable.Destroy()
 		}
 	}
+}
+
+type ControlEnvelope struct {
+	Control
+	Controls ControlSet // recursive controls :)
+}
+
+func (e *ControlEnvelope) Init() {
+	if initable, ok := e.Control.(Initable); ok {
+		initable.Init()
+	}
+	e.Controls.Init()
+}
+
+func (e *ControlEnvelope) Destroy() {
+	if destroyable, ok := e.Control.(Destroyable); ok {
+		destroyable.Destroy()
+	}
+	e.Controls.Destroy()
+}
+
+func (e *ControlEnvelope) Apply(effect interface{}) {
+	e.Controls.Apply(e.Control) // meta controls
+	e.Control.Apply(effect)
 }
 
 /*
@@ -156,7 +180,7 @@ func setValue(field reflect.Value, newVal interface{}) error {
 		}
 		return nil
 	} else {
-		log.Println(field.Type(), reflect.TypeOf(newVal))
+		log.Println("set err", field.Type(), reflect.TypeOf(newVal))
 		return errors.New("type mismatch")
 	}
 }
