@@ -9,7 +9,7 @@ type RainbowEffect struct {
 	Size    int
 	Speed   float64
 	Reverse bool
-	Blend
+	Blend   Blend
 
 	wheel [][]uint8
 }
