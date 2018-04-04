@@ -3,8 +3,8 @@ package effects
 import "github.com/ghodss/yaml"
 
 func UnmarshalYAML(s []byte) (EffectSet, error) {
-	if json, err := yaml.YAMLToJSON(s); err == nil {
-		return UnmarshalJSON(json)
+	if bytes, err := yaml.YAMLToJSON(s); err == nil {
+		return UnmarshalJSON(bytes)
 	} else {
 		return nil, err
 	}

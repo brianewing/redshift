@@ -39,12 +39,6 @@ func (e *EffectEnvelope) Render(strip *strip.LEDStrip) {
 
 type EffectSet []EffectEnvelope
 
-func (s EffectSet) Render(strip *strip.LEDStrip) {
-	for _, effect := range s {
-		effect.Render(strip)
-	}
-}
-
 func (s EffectSet) Init() {
 	for _, envelope := range s {
 		envelope.Init()
@@ -56,6 +50,16 @@ func (s EffectSet) Destroy() {
 		envelope.Destroy()
 	}
 }
+
+func (s EffectSet) Render(strip *strip.LEDStrip) {
+	for _, effect := range s {
+		effect.Render(strip)
+	}
+}
+
+/*
+ * Construction
+ */
 
 func NewByName(name string) Effect {
 	switch name {

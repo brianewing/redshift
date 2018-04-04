@@ -11,30 +11,6 @@ type Control interface {
 	Apply(effect interface{})
 }
 
-type ControlSet []ControlEnvelope
-
-func (set ControlSet) Apply(effect interface{}) {
-	for _, control := range set {
-		control.Apply(effect)
-	}
-}
-
-func (set ControlSet) Init() {
-	for _, envelope := range set {
-		if initable, ok := envelope.Control.(Initable); ok {
-			initable.Init()
-		}
-	}
-}
-
-func (set ControlSet) Destroy() {
-	for _, envelope := range set {
-		if destroyable, ok := envelope.Control.(Destroyable); ok {
-			destroyable.Destroy()
-		}
-	}
-}
-
 type ControlEnvelope struct {
 	Control
 	Controls ControlSet // recursive controls :)
@@ -57,6 +33,30 @@ func (e *ControlEnvelope) Destroy() {
 func (e *ControlEnvelope) Apply(effect interface{}) {
 	e.Controls.Apply(e.Control) // meta controls
 	e.Control.Apply(effect)
+}
+
+type ControlSet []ControlEnvelope
+
+func (set ControlSet) Apply(effect interface{}) {
+	for _, control := range set {
+		control.Apply(effect)
+	}
+}
+
+func (set ControlSet) Init() {
+	for _, envelope := range set {
+		if initable, ok := envelope.Control.(Initable); ok {
+			initable.Init()
+		}
+	}
+}
+
+func (set ControlSet) Destroy() {
+	for _, envelope := range set {
+		if destroyable, ok := envelope.Control.(Destroyable); ok {
+			destroyable.Destroy()
+		}
+	}
 }
 
 /*
@@ -151,6 +151,30 @@ func (c *MidiControl) readValues() {
 func (c *MidiControl) scaleValue(val int64) float64 {
 	v := float64(val)
 	return (v/127.0)*(c.Max-c.Min) + c.Min
+}
+
+/*
+ * Null Control
+ */
+
+type NullControl struct{}
+
+func (c NullControl) Apply(interface{}) {}
+
+/*
+ * Construction
+ */
+
+func ControlByName(name string) Control {
+	switch name {
+	case "FixedValueControl":
+		return &FixedValueControl{}
+	case "TweenControl":
+		return &TweenControl{}
+	case "MidiControl":
+		return &MidiControl{}
+	}
+	return NullControl{}
 }
 
 /*
