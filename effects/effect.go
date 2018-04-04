@@ -83,8 +83,6 @@ func NewByName(name string) Effect {
 		return NewMirror()
 	case "MoodEffect":
 		return &MoodEffect{}
-	case "RaceTestEffect":
-		return &RaceTestEffect{}
 	case "RainbowEffect":
 		return NewRainbowEffect()
 	case "RandomEffect":
