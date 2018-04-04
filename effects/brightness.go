@@ -7,14 +7,26 @@ import (
 
 type Brightness struct {
 	Level int // 0-255, todo: return to uint8
+	Func string // e.g. hsl, basic
 }
+
+type brightnessFunction func(color []uint8, brightness uint8)
 
 func (e *Brightness) Render(s *strip.LEDStrip) {
 	for _, color := range s.Buffer {
-		//applyBasic(color, uint8(e.Brightness))
-		applyHsl(color, uint8(e.Level))
+		e.getFunction()(color, uint8(e.Level))
 	}
 }
+
+func (e *Brightness) getFunction() brightnessFunction {
+	switch e.Func {
+	case "basic":
+		return applyBasic
+	}
+	return applyHsl
+}
+
+// Brightness functions
 
 func applyHsl(color []uint8, brightness uint8) {
 	r, g, b := float64(color[0]), float64(color[1]), float64(color[2])
