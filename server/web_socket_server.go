@@ -104,7 +104,12 @@ func (sc *streamConnection) readFps() {
 	for {
 		if _, msg, err := sc.ReadMessage(); err == nil {
 			oldFps := sc.requestedFps
-			sc.requestedFps = uint8(msg[0])
+			if len(msg) > 0 {
+				sc.requestedFps = uint8(msg[0])
+			} else {
+				sc.requestedFps = 0
+			}
+
 			if oldFps == 0 {
 				sc.fpsChanged <- true
 			}
