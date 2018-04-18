@@ -18,6 +18,10 @@ func NewLayer() *Layer {
 	}
 }
 
+func (e *Layer) Init() {
+	e.Effects.Init()
+}
+
 func (e *Layer) Render(s *strip.LEDStrip) {
 	if e.virtualStrip == nil {
 		if e.Size == 0 {
