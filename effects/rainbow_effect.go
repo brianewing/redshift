@@ -25,6 +25,9 @@ func NewRainbowEffect() *RainbowEffect {
 }
 
 func (e *RainbowEffect) Render(s *strip.LEDStrip) {
+	if e.Depth == 0 {
+		e.Depth = 1
+	}
 	steps := e.Size * e.Depth
 
 	if e.wheel == nil || len(e.wheel) != int(steps) {
@@ -32,6 +35,7 @@ func (e *RainbowEffect) Render(s *strip.LEDStrip) {
 	}
 
 	phase := round(CycleBetween(0, float64(len(e.wheel)), e.Speed))
+
 	rotatedWheel := rotateBuffer(e.wheel, phase, e.Reverse)
 	sampledWheel := sampleBuffer(rotatedWheel, int(e.Size))
 
@@ -47,6 +51,6 @@ func generateWheel(size int) [][]uint8 {
 		r, g, b := colorful.Hsv(hue, 1, 1).RGB255()
 		wheel[i] = []uint8{r, g, b}
 	}
-	
+
 	return wheel
 }
