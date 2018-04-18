@@ -14,6 +14,8 @@ type Blend struct {
 	Func string // e.g. rgb, hcl, lab
 }
 
+type blendFunction func(a, b []uint8) (c []uint8)
+
 func NewBlend() *Blend {
 	return &Blend{
 		Func: "rgb",
@@ -47,32 +49,34 @@ func (e *Blend) getFunction() blendFunction {
 	case "rgb":
 		return blendRgb
 	}
-	return noBlend
+	return blendNone
 }
 
-type blendFunction func(c1, c2 []uint8) (c3 []uint8)
+// Blend functions
 
-func blendRgb(c1 []uint8, c2 []uint8) []uint8 {
-	c1_, c2_ := colorfulRgb(c1), colorfulRgb(c2)
-	r, g, b := c1_.BlendRgb(c2_, 0.5).Clamped().RGB255()
-	return []uint8{r, g, b}
+func blendRgb(a []uint8, b []uint8) (c []uint8) {
+	cA, cB := colorfulRgb(a), colorfulRgb(b)
+	r, g, b_ := cA.BlendRgb(cB, 0.5).Clamped().RGB255()
+	return []uint8{r, g, b_}
 }
 
-func blendHcl(c1 []uint8, c2 []uint8) []uint8 {
-	c1_, c2_ := colorfulRgb(c1), colorfulRgb(c2)
-	r, g, b := c1_.BlendHcl(c2_, 0.5).Clamped().RGB255()
-	return []uint8{r, g, b}
+func blendHcl(a []uint8, b []uint8) (c []uint8) {
+	cA, cB := colorfulRgb(a), colorfulRgb(b)
+	r, g, b_ := cA.BlendHcl(cB, 0.5).Clamped().RGB255()
+	return []uint8{r, g, b_}
 }
 
-func blendLab(c1 []uint8, c2 []uint8) []uint8 {
-	c1_, c2_ := colorfulRgb(c1), colorfulRgb(c2)
-	r, g, b := c1_.BlendLab(c2_, 0.5).Clamped().RGB255()
-	return []uint8{r, g, b}
+func blendLab(a []uint8, b []uint8) (c []uint8) {
+	cA, cB := colorfulRgb(a), colorfulRgb(b)
+	r, g, b_ := cA.BlendLab(cB, 0.5).Clamped().RGB255()
+	return []uint8{r, g, b_}
 }
 
-func noBlend(_ []uint8, c2 []uint8) []uint8 {
-	return c2
+func blendNone(_ []uint8, b []uint8) []uint8 {
+	return b
 }
+
+// Misc buffer functions
 
 func colorfulRgb(c []uint8) colorful.Color {
 	r, g, b := float64(c[0]), float64(c[1]), float64(c[2])
