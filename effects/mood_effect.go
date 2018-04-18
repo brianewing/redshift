@@ -6,26 +6,48 @@ import (
 )
 
 type MoodEffect struct {
-	fillEffect       *Fill
-	brightnessEffect *Brightness
-	layer            *Layer
+	fill       *Fill
+	brightness *Brightness
+	layer      *Layer
+
+	Speed float64
 }
 
-func (e *MoodEffect) Init() {
-	e.fillEffect = &Fill{}
-	e.brightnessEffect = &Brightness{}
-
-	e.layer = &Layer{
-		Effects: EffectSet{
-			EffectEnvelope{Effect: e.fillEffect},
-			EffectEnvelope{Effect: e.brightnessEffect},
-		},
+func NewMoodEffect() *MoodEffect {
+	return &MoodEffect{
+		Speed: 0.1,
 	}
 }
 
+func (e *MoodEffect) Init() {
+	e.fill = &Fill{}
+	e.brightness = &Brightness{}
+	e.layer = NewLayer()
+
+	e.layer.Effects = EffectSet{
+		EffectEnvelope{Effect: e.fill},
+		EffectEnvelope{
+			Effect: e.brightness,
+			Controls: ControlSet{
+				ControlEnvelope{
+					Control: &TweenControl{
+						Field: "Level",
+						Function: "triangle",
+						Min:   0,
+						Max:   255,
+						Speed: e.Speed,
+					},
+				},
+			},
+		},
+	}
+
+	e.layer.Init()
+}
+
 func (e *MoodEffect) Render(s *strip.LEDStrip) {
-	if e.brightnessEffect.Brightness <= 1 {
-		e.fillEffect.Color = e.newColor()
+	if e.brightness.Level <= 1 {
+		e.fill.Color = e.newColor()
 	}
 
 	e.layer.Render(s)
