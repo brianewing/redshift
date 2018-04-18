@@ -16,7 +16,7 @@ func NewStripe() *Stripe {
 
 func (e *Stripe) Render(s *strip.LEDStrip) {
 	for i, led := range s.Buffer {
-		if i%e.N == 0 {
+		if e.N == 0 || i%e.N == 0 {
 			copy(led, e.Color)
 		}
 	}
