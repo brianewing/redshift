@@ -2,7 +2,7 @@ package midi
 
 import (
 	"github.com/rakyll/portmidi"
-	"log"
+	"sync"
 )
 
 func init() {
@@ -36,24 +36,46 @@ func Devices() []Device {
 }
 
 func StreamMessages(device Device) chan MidiMessage {
-	in, err := portmidi.NewInputStream(device.id, 1024)
-	if err != nil {
-		log.Fatal(err)
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	if streams[device.id] == nil {
+		streams[device.id] = []chan MidiMessage{}
+		openStream(device)
 	}
 
-	inChan := in.Listen()
 	outChan := make(chan MidiMessage)
+	streams[device.id] = append(streams[device.id], outChan)
+
+	return outChan
+}
+
+var streams = map[portmidi.DeviceID][]chan MidiMessage{}
+var mutex sync.Mutex
+
+func openStream(device Device) error {
+	in, err := portmidi.NewInputStream(device.id, 1024)
+	if err != nil {
+		return err
+	}
+	inChan := in.Listen()
 
 	go func() {
 		for event := range inChan {
-			outChan <- MidiMessage{
-				Timestamp: int64(event.Timestamp),
-				Status:    event.Status,
-				Data1:     event.Data1,
-				Data2:     event.Data2,
+			mutex.Lock()
+
+			for _, outChan := range streams[device.id] {
+				outChan <- MidiMessage{
+					Timestamp: int64(event.Timestamp),
+					Status:    event.Status,
+					Data1:     event.Data1,
+					Data2:     event.Data2,
+				}
 			}
+
+			mutex.Unlock()
 		}
 	}()
 
-	return outChan
+	return nil
 }
