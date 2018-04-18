@@ -13,7 +13,7 @@ type Control interface {
 
 type ControlEnvelope struct {
 	Control
-	Controls ControlSet // recursive controls :)
+	Controls ControlSet // recursively controllable
 }
 
 func (e *ControlEnvelope) Init() {
@@ -45,17 +45,13 @@ func (set ControlSet) Apply(effect interface{}) {
 
 func (set ControlSet) Init() {
 	for _, envelope := range set {
-		if initable, ok := envelope.Control.(Initable); ok {
-			initable.Init()
-		}
+		envelope.Init()
 	}
 }
 
 func (set ControlSet) Destroy() {
 	for _, envelope := range set {
-		if destroyable, ok := envelope.Control.(Destroyable); ok {
-			destroyable.Destroy()
-		}
+		envelope.Destroy()
 	}
 }
 
