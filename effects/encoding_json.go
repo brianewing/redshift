@@ -54,7 +54,6 @@ type controlMarshalFormat struct {
 type controlUnmarshalFormat struct {
 	controlMarshalFormat
 	Control *json.RawMessage // this can only be unpacked once the Type is known
-	Controls *json.RawMessage
 }
 
 func (e *ControlEnvelope) MarshalJSON() ([]byte, error) {
@@ -68,6 +67,7 @@ func (e *ControlEnvelope) UnmarshalJSON(b []byte) error {
 	var tmp controlUnmarshalFormat
 	if err := json.Unmarshal(b, &tmp); err == nil {
 		e.Control = ControlByName(tmp.Type)
+		e.Controls = tmp.Controls
 		if tmp.Control != nil {
 			return json.Unmarshal(*tmp.Control, &e.Control)
 		} else {
