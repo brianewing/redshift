@@ -29,8 +29,9 @@ var midiListDevices = flag.Bool("midiListDevices", false, "prints a list of avai
 var midiDeviceId = flag.Int("midiDeviceId", 0, "midi device id")
 
 var httpAddr = flag.String("httpAddr", "0.0.0.0:9191", "http service address")
-var opcAddr = flag.String("opcAddr", "0.0.0.0:7890", "opc service address")
 var davAddr = flag.String("davAddr", "0.0.0.0:9292", "webdav (scripts) service address")
+var opcAddr = flag.String("opcAddr", "0.0.0.0:9393", "opc service address")
+var oscAddr = flag.String("oscAddr", "0.0.0.0:9494", "osc service address")
 
 func main() {
 	flag.Parse()
@@ -72,6 +73,7 @@ func main() {
 	go server.RunWebSocketServer(*httpAddr, animator, wssBuffer)
 	go server.RunWebDavServer(*davAddr, *scriptsDir)
 	go server.RunOpcServer(*opcAddr, opcBuffer)
+	go server.RunOscServer(*oscAddr)
 
 	animator.Run(*animationInterval)
 }

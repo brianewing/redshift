@@ -3,6 +3,7 @@ package effects
 import (
 	"errors"
 	"github.com/brianewing/redshift/midi"
+	"github.com/brianewing/redshift/osc"
 	"log"
 	"reflect"
 )
@@ -65,6 +66,9 @@ type FixedValueControl struct {
 }
 
 func (c *FixedValueControl) Apply(effect interface{}) {
+	if c.Value == nil {
+		return
+	}
 	if field, err := getField(effect, c.Field); err == nil {
 		if err := setValue(field, c.Value); err != nil {
 			log.Println("FixedValueControl", err)
@@ -150,6 +154,29 @@ func (c *MidiControl) scaleValue(val int64) float64 {
 }
 
 /*
+ * Osc Control
+ */
+
+type OscControl struct{
+	Address string
+	stream chan osc.OscMessage
+
+	FixedValueControl
+}
+
+func (c *OscControl) Init() {
+	c.stream = osc.StreamMessages()
+	go func() {
+		for msg := range c.stream {
+			if msg.Address == c.Address && len(msg.Arguments) >= 2 {
+				c.Value = int(msg.Arguments[1].(int32) * 2)
+				log.Println("Woot msg: ", c.Value)
+			}
+		}
+	}()
+}
+
+/*
  * Null Control
  */
 
@@ -169,6 +196,8 @@ func ControlByName(name string) Control {
 		return &TweenControl{}
 	case "MidiControl":
 		return &MidiControl{}
+	case "OscControl":
+		return &OscControl{}
 	}
 	return NullControl{}
 }
