@@ -9,6 +9,7 @@ type Blend struct {
 	Buffer  [][]uint8 `json:"-"`
 	Offset  int
 	Reverse bool
+	Force   bool
 
 	Func string // e.g. rgb, hcl, lab
 }
@@ -28,9 +29,9 @@ func (e *Blend) Render(strip *strip.LEDStrip) {
 			dest = strip.Buffer[len(e.Buffer)-i-1]
 		}
 
-		if isOff(dest) {
+		if isOff(dest) && !e.Force {
 			copy(dest, source)
-		} else if !isOff(source) {
+		} else if !isOff(source) || e.Force {
 			blendFn := e.getFunction()
 			copy(dest, blendFn(dest, source))
 		}
