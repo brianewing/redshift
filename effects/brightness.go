@@ -13,6 +13,10 @@ type Brightness struct {
 type brightnessFunction func(color []uint8, brightness uint8)
 
 func (e *Brightness) Render(s *strip.LEDStrip) {
+	if e.Level > 255 {
+		e.Level = 255
+	}
+
 	for _, color := range s.Buffer {
 		e.getFunction()(color, uint8(e.Level))
 	}
