@@ -11,14 +11,16 @@ type Blend struct {
 	Reverse bool
 	Force   bool
 
-	Func string // e.g. rgb, hcl, lab
+	Func   string // e.g. rgb, hcl, lab
+	Factor float64
 }
 
-type blendFunction func(a, b []uint8) (c []uint8)
+type blendFunction func(a, b []uint8, factor float64) (c []uint8)
 
 func NewBlend() *Blend {
 	return &Blend{
-		Func: "rgb",
+		Func:   "rgb",
+		Factor: 0.5,
 	}
 }
 
@@ -35,7 +37,7 @@ func (e *Blend) Render(strip *strip.LEDStrip) {
 			copy(dest, source)
 		} else if !isOff(source) || e.Force {
 			blendFn := e.getFunction()
-			copy(dest, blendFn(dest, source))
+			copy(dest, blendFn(dest, source, e.Factor))
 		}
 	}
 }
@@ -54,25 +56,25 @@ func (e *Blend) getFunction() blendFunction {
 
 // Blend functions
 
-func blendRgb(a []uint8, b []uint8) (c []uint8) {
+func blendRgb(a []uint8, b []uint8, factor float64) (c []uint8) {
 	cA, cB := colorfulRgb(a), colorfulRgb(b)
-	r, g, b_ := cA.BlendRgb(cB, 0.5).Clamped().RGB255()
+	r, g, b_ := cA.BlendRgb(cB, factor).Clamped().RGB255()
 	return []uint8{r, g, b_}
 }
 
-func blendHcl(a []uint8, b []uint8) (c []uint8) {
+func blendHcl(a []uint8, b []uint8, factor float64) (c []uint8) {
 	cA, cB := colorfulRgb(a), colorfulRgb(b)
-	r, g, b_ := cA.BlendHcl(cB, 0.5).Clamped().RGB255()
+	r, g, b_ := cA.BlendHcl(cB, factor).Clamped().RGB255()
 	return []uint8{r, g, b_}
 }
 
-func blendLab(a []uint8, b []uint8) (c []uint8) {
+func blendLab(a []uint8, b []uint8, factor float64) (c []uint8) {
 	cA, cB := colorfulRgb(a), colorfulRgb(b)
-	r, g, b_ := cA.BlendLab(cB, 0.5).Clamped().RGB255()
+	r, g, b_ := cA.BlendLab(cB, factor).Clamped().RGB255()
 	return []uint8{r, g, b_}
 }
 
-func blendNone(_ []uint8, b []uint8) []uint8 {
+func blendNone(_ []uint8, b []uint8, factor float64) []uint8 {
 	return b
 }
 
