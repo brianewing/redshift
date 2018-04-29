@@ -25,12 +25,12 @@ func NewBlend() *Blend {
 }
 
 func (e *Blend) Render(strip *strip.LEDStrip) {
-	for i := e.Offset; i < len(e.Buffer)+e.Offset && i < strip.Size; i++ {
-		source := e.Buffer[i-e.Offset]
-		dest := strip.Buffer[i]
+	for i := 0; i < len(e.Buffer) && i+e.Offset < strip.Size; i++ {
+		source := e.Buffer[i]
+		dest := strip.Buffer[i+e.Offset]
 
 		if e.Reverse {
-			dest = strip.Buffer[len(e.Buffer)-i-1]
+			dest = strip.Buffer[len(e.Buffer)+e.Offset-i-1]
 		}
 
 		if isOff(dest) && !e.Force {
