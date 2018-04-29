@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Control interface {
@@ -245,6 +246,38 @@ func (c *OscControl) Destroy() {
 }
 
 /*
+ * Time Control
+ */
+
+type TimeControl struct {
+	BaseControl
+
+	Format string // e.g. day (0-6), hour (0-23), minute (0-59), second (0-59), unix
+}
+
+func (c *TimeControl) Apply(effect interface{}) {
+	c.BaseControl.value = c.getValue()
+	c.BaseControl.Apply(effect)
+}
+
+func (c *TimeControl) getValue() interface{} {
+	t := time.Now()
+
+	switch c.Format {
+	case "day", "days":
+		return int(t.Weekday())
+	case "hour", "hours":
+		return int(t.Hour())
+	case "minute", "minutes":
+		return int(t.Minute())
+	case "second", "seconds":
+		return int(t.Second())
+	case "unix":
+	}
+	return float64(t.UnixNano())
+}
+
+/*
  * Null Control
  */
 
@@ -264,6 +297,8 @@ func ControlByName(name string) Control {
 		return &TweenControl{}
 	case "MidiControl":
 		return &MidiControl{}
+	case "TimeControl":
+		return &TimeControl{}
 	case "OscControl":
 		return &OscControl{}
 	case "BaseControl":
