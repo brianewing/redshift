@@ -66,7 +66,7 @@ func NewByName(name string) Effect {
 	case "BlueEffect":
 		return NewBlueEffect()
 	case "Brightness":
-		return &Brightness{}
+		return NewBrightness()
 	case "Blend":
 		return &Blend{}
 	case "Clear":
