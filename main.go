@@ -75,6 +75,8 @@ func main() {
 	go server.RunOpcServer(*opcAddr, opcBuffer)
 	go server.RunOscServer(*oscAddr)
 
+	go repl(animator)
+
 	animator.Run(*animationInterval)
 }
 
