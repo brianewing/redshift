@@ -31,10 +31,10 @@ func (e *MoodEffect) Init() {
 			Controls: ControlSet{
 				ControlEnvelope{
 					Control: &TweenControl{
-						Field: "Level",
-						Function: "triangle",
+						BaseControl: BaseControl{Field: "Level"},
 						Min:   0,
 						Max:   255,
+						Function: "triangle",
 						Speed: e.Speed,
 					},
 				},

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/brianewing/redshift/midi"
 	"github.com/brianewing/redshift/osc"
+	"github.com/robertkrimen/otto"
 	"log"
 	"reflect"
 	"strconv"
@@ -59,23 +60,77 @@ func (set ControlSet) Destroy() {
 }
 
 /*
+ * Base Control
+ */
+
+type BaseControl struct {
+	Field     string
+	LastError string
+
+	Initial interface{}
+	value   interface{}
+
+	Transform string
+	vm        *otto.Otto
+}
+
+func (c *BaseControl) Init() {
+	c.value = c.Initial
+}
+
+func (c *BaseControl) Apply(effect interface{}) {
+	if c.value == nil {
+		return
+	}
+	if field, err := getField(effect, c.Field); err == nil {
+		val := c.transformValue()
+		if err := setValue(field, val); err != nil {
+			c.setError(err)
+		}
+	} else {
+		c.setError(err)
+	}
+}
+
+func (c *BaseControl) setError(err error) {
+	if newErr := err.Error(); c.LastError != newErr {
+		log.Println("Control err:", newErr)
+		c.LastError = newErr
+	}
+}
+
+func (c *BaseControl) transformValue() interface{} {
+	if c.Transform != "" {
+		if c.vm == nil {
+			c.vm = otto.New()
+		}
+
+		c.vm.Set("v", c.value)
+		result, err := c.vm.Run(c.Transform)
+		newVal, _ := result.Export()
+
+		if err != nil {
+			c.setError(err)
+		}
+
+		return newVal
+	} else {
+		return c.value
+	}
+}
+
+/*
  * Fixed Value Control
  */
 
 type FixedValueControl struct {
-	Field string
+	BaseControl
 	Value interface{}
 }
 
 func (c *FixedValueControl) Apply(effect interface{}) {
-	if c.Value == nil {
-		return
-	}
-	if field, err := getField(effect, c.Field); err == nil {
-		if err := setValue(field, c.Value); err != nil {
-			log.Println("FixedValueControl", err)
-		}
-	}
+	c.BaseControl.value = c.Value
+	c.BaseControl.Apply(effect)
 }
 
 /*
@@ -83,8 +138,16 @@ func (c *FixedValueControl) Apply(effect interface{}) {
  */
 
 type TweenControl struct {
-	Field, Function string
-	Min, Max, Speed float64
+	BaseControl
+
+	Function string
+	Min, Max int
+	Speed    float64
+}
+
+func (c *TweenControl) Apply(effect interface{}) {
+	c.BaseControl.value = round(c.getFunction()(float64(c.Min), float64(c.Max), c.Speed))
+	c.BaseControl.Apply(effect)
 }
 
 func (c *TweenControl) getFunction() TimingFunction {
@@ -98,33 +161,24 @@ func (c *TweenControl) getFunction() TimingFunction {
 	return SmoothOscillateBetween
 }
 
-func (c *TweenControl) Apply(effect interface{}) {
-	if field, err := getField(effect, c.Field); err == nil {
-		fn := c.getFunction()
-		val := round(fn(c.Min, c.Max, c.Speed))
-
-		setValue(field, val)
-	}
-}
-
 /*
  * Midi Control
  */
 
 type MidiControl struct {
-	Field string
+	BaseControl
 
 	Device        int
 	Status, Data1 int64
 
 	Min, Max float64
 
-	value float64 // latched from most recent midi msg
-
 	midiMsgs chan midi.MidiMessage
 }
 
 func (c *MidiControl) Init() {
+	c.BaseControl.Init()
+
 	if devices := midi.Devices(); len(devices) > c.Device {
 		device := devices[c.Device]
 		c.midiMsgs = midi.StreamMessages(device)
@@ -139,7 +193,7 @@ func (c *MidiControl) Destroy() {
 }
 
 func (c *MidiControl) Apply(effect interface{}) {
-	(&FixedValueControl{Field: c.Field, Value: c.value}).Apply(effect)
+	c.BaseControl.Apply(effect)
 }
 
 func (c *MidiControl) readValues() {
@@ -159,20 +213,26 @@ func (c *MidiControl) scaleValue(val int64) float64 {
  * Osc Control
  */
 
-type OscControl struct{
-	Address string
-	stream chan osc.OscMessage
+type OscControl struct {
+	BaseControl
 
-	FixedValueControl
+	Address  string
+	Argument int
+
+	Debug interface{}
 }
 
 func (c *OscControl) Init() {
-	c.stream = osc.StreamMessages()
+	c.BaseControl.Init()
+
+	var stream chan osc.OscMessage
+	stream = osc.StreamMessages()
+
 	go func() {
-		for msg := range c.stream {
-			if msg.Address == c.Address && len(msg.Arguments) >= 2 {
-				c.Value = int(msg.Arguments[1].(int32) * 2)
-				log.Println("Woot msg: ", c.Value)
+		for msg := range stream {
+			if msg.Address == c.Address && len(msg.Arguments) > c.Argument {
+				c.BaseControl.value = msg.Arguments[c.Argument]
+				c.Debug = c.value
 			}
 		}
 	}()
@@ -200,6 +260,8 @@ func ControlByName(name string) Control {
 		return &MidiControl{}
 	case "OscControl":
 		return &OscControl{}
+	case "BaseControl":
+		return &BaseControl{}
 	}
 	return NullControl{}
 }
