@@ -216,20 +216,28 @@ func getField(effect interface{}, name string) (reflect.Value, error) {
 }
 
 func setValue(field reflect.Value, newVal interface{}) error {
-	if field.Type() == reflect.TypeOf(newVal) {
+	if err, v := convertValue(newVal, field.Type()); err == nil {
 		switch field.Interface().(type) {
 		case int:
-			field.SetInt(int64(newVal.(int)))
-		case uint:
-			field.SetUint(uint64(newVal.(int)))
+			field.SetInt(int64(v.(int)))
+		case uint8:
+			field.SetUint(uint64(v.(uint8)))
 		case float64:
-			field.SetFloat(float64(newVal.(float64)))
+			field.SetFloat(float64(v.(float64)))
+		case bool:
+			field.SetBool(bool(v.(bool)))
 		default:
-			return errors.New("can't set field (unknown type)")
+			return errors.New("can't set field (unknown type: " + field.Type().String())
 		}
 		return nil
 	} else {
-		log.Println("set err", field.Type(), reflect.TypeOf(newVal))
-		return errors.New("type mismatch")
+		return err
 	}
+}
+
+func convertValue(val interface{}, t reflect.Type) (error, interface{}) {
+	if reflect.TypeOf(val).ConvertibleTo(t) {
+		return nil, reflect.ValueOf(val).Convert(t).Interface()
+	}
+	return errors.New("can't convert " + reflect.TypeOf(val).String() + "->" + t.String()), nil
 }
