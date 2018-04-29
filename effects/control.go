@@ -153,9 +153,9 @@ func (c *TweenControl) Apply(effect interface{}) {
 
 func (c *TweenControl) getFunction() TimingFunction {
 	switch c.Function {
-	case "triangle":
+	case "tri", "triangle", "linear":
 		return OscillateBetween
-	case "sawtooth":
+	case "saw", "sawtooth":
 		return CycleBetween
 	case "sin":
 	}
