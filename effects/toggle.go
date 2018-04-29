@@ -13,6 +13,10 @@ func NewToggle() *Toggle {
 	}
 }
 
+func (e *Toggle) Init() {
+	e.Effects.Init()
+}
+
 func (e *Toggle) Render(s *strip.LEDStrip) {
 	if e.Enabled {
 		e.Effects.Render(s)
