@@ -172,32 +172,33 @@ type MidiControl struct {
 	Status, Data1 int64
 
 	Min, Max float64
-
-	midiMsgs chan midi.MidiMessage
+	stop     chan struct{}
 }
 
 func (c *MidiControl) Init() {
 	c.BaseControl.Init()
 
 	if devices := midi.Devices(); len(devices) > c.Device {
-		device := devices[c.Device]
-		c.midiMsgs = midi.StreamMessages(device)
-		go c.readValues()
+		midiMsgs, stop := midi.StreamMessages(devices[c.Device])
+		c.stop = stop
+		go c.readValues(midiMsgs)
 	} else {
 		log.Println("MidiControl", "device not found", "| id:", c.Device)
 	}
 }
 
 func (c *MidiControl) Destroy() {
-	close(c.midiMsgs)
+	if c.stop != nil {
+		c.stop <- struct{}{}
+	}
 }
 
 func (c *MidiControl) Apply(effect interface{}) {
 	c.BaseControl.Apply(effect)
 }
 
-func (c *MidiControl) readValues() {
-	for msg := range c.midiMsgs {
+func (c *MidiControl) readValues(msgs chan midi.MidiMessage) {
+	for msg := range msgs {
 		if msg.Status == c.Status && msg.Data1 == c.Data1 {
 			c.value = c.scaleValue(msg.Data2)
 		}
@@ -220,13 +221,14 @@ type OscControl struct {
 	Argument int
 
 	Debug interface{}
+	stop  chan struct{}
 }
 
 func (c *OscControl) Init() {
 	c.BaseControl.Init()
 
 	var stream chan osc.OscMessage
-	stream = osc.StreamMessages()
+	stream, c.stop = osc.StreamMessages()
 
 	go func() {
 		for msg := range stream {
@@ -236,6 +238,10 @@ func (c *OscControl) Init() {
 			}
 		}
 	}()
+}
+
+func (c *OscControl) Destroy() {
+	c.stop <- struct{}{} // signals osc stream to quit
 }
 
 /*

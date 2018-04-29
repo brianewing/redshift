@@ -22,20 +22,20 @@ type MidiMessage struct {
 }
 
 func Devices() []Device {
-	var devices []Device
 	count := portmidi.CountDevices()
+	devices := make([]Device, count)
 	for i := 0; i < count; i++ {
 		id := portmidi.DeviceID(i)
 		info := portmidi.Info(id)
-		devices = append(devices, Device{
+		devices[i] = Device{
 			Name: info.Name,
 			id:   id,
-		})
+		}
 	}
 	return devices
 }
 
-func StreamMessages(device Device) chan MidiMessage {
+func StreamMessages(device Device) (msgs chan MidiMessage, done chan struct{}) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -44,10 +44,25 @@ func StreamMessages(device Device) chan MidiMessage {
 		openStream(device)
 	}
 
-	outChan := make(chan MidiMessage)
-	streams[device.id] = append(streams[device.id], outChan)
+	msgs = make(chan MidiMessage)
+	streams[device.id] = append(streams[device.id], msgs)
 
-	return outChan
+	done = make(chan struct{})
+	go waitForDone(msgs, done, device)
+
+	return
+}
+
+func waitForDone(msgs chan MidiMessage, done chan struct{}, device Device) {
+	<-done
+	mutex.Lock()
+	for i, c := range streams[device.id] {
+		if c == msgs {
+			streams[device.id] = append(streams[device.id][:i], streams[device.id][i+1:]...)
+			close(c)
+		}
+	}
+	mutex.Unlock()
 }
 
 var streams = map[portmidi.DeviceID][]chan MidiMessage{}

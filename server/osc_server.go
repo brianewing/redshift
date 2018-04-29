@@ -8,12 +8,11 @@ func RunOscServer(addr string) {
 	server := &osc.Server{Addr: addr}
 
 	server.Handle("*", func(msg *osc.Message) {
-		redshiftOsc.PushToListeners(redshiftOsc.OscMessage{
+		redshiftOsc.ReceiveMessage(redshiftOsc.OscMessage{
 			Address: msg.Address,
 			Arguments: msg.Arguments,
 		})
 	})
 
-	log.Println("Starting osc")
 	log.Fatalln(server.ListenAndServe())
 }
