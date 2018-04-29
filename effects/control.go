@@ -6,6 +6,8 @@ import (
 	"github.com/brianewing/redshift/osc"
 	"log"
 	"reflect"
+	"strconv"
+	"strings"
 )
 
 type Control interface {
@@ -206,13 +208,44 @@ func ControlByName(name string) Control {
  * Reflection functions
  */
 
-func getField(effect interface{}, name string) (reflect.Value, error) {
-	field := reflect.ValueOf(effect).Elem().FieldByName(name)
-	if field.IsValid() {
-		return field, nil
-	} else {
-		return field, errors.New("field not found")
+func getField(effect interface{}, path string) (reflect.Value, error) {
+	parts := strings.Split(path, ".")
+	field := getFieldPart(reflect.ValueOf(effect).Elem(), parts[0])
+
+	for i := 1; i < len(parts); i++ {
+		if field.Kind() == reflect.Struct {
+			field = getFieldPart(field, parts[i])
+		} else {
+			return field, errors.New("field not found: " + path)
+		}
 	}
+
+	if !field.IsValid() {
+		return field, errors.New("field not found: " + path)
+	}
+
+	return field, nil
+}
+
+func getFieldPart(field reflect.Value, part string) reflect.Value {
+	tmp := strings.Split(part, "[")
+	name, indexes := tmp[0], tmp[1:]
+
+	field = field.FieldByName(name)
+
+	for j := 0; j < len(indexes); j++ {
+		index := strings.Split(indexes[j], "]")[0] // discard trailing ]
+		i, _ := strconv.Atoi(index)
+
+		field = field.Index(i)
+
+		// transparently unwrap effect envelopes
+		if _, ok := field.Interface().(EffectEnvelope); ok {
+			field = reflect.Indirect(field.FieldByName("Effect").Elem())
+		}
+	}
+
+	return field
 }
 
 func setValue(field reflect.Value, newVal interface{}) error {
