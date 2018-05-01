@@ -1,8 +1,10 @@
 package server
 
 import (
+	"encoding/json"
 	"github.com/brianewing/redshift/animator"
 	"github.com/brianewing/redshift/effects"
+	"github.com/brianewing/redshift/osc"
 	"github.com/brianewing/redshift/strip"
 	"github.com/gorilla/websocket"
 	"log"
@@ -49,6 +51,8 @@ func (s *webSocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/s/effects":
 		go s.streamEffectsJson(sc)
 		go sc.readFps()
+	case "/s/osc":
+		go s.streamOscMessages(c)
 	case "/strip":
 		go s.receiveBuffer(c)
 	case "/effects":
@@ -135,11 +139,24 @@ func (s *webSocketServer) streamStripBuffer(sc *streamConnection) {
 
 func (s *webSocketServer) streamEffectsJson(sc *streamConnection) {
 	for sc.NextFrame() {
-		effectsJson, _ := effects.MarshalJSON(s.animator.Effects)
+		effectsJson, _ := json.Marshal(s.animator.Effects)
 
 		if err := sc.WriteMessage(websocket.TextMessage, effectsJson); err != nil {
 			log.Println("WS effects write error:", err)
 			break
 		}
 	}
+}
+
+func (s *webSocketServer) streamOscMessages(c *websocket.Conn) {
+	oscMessages, stop := osc.StreamMessages()
+	for msg := range oscMessages {
+		msgJson, _ := json.Marshal(msg)
+
+		if err := c.WriteMessage(websocket.TextMessage, msgJson); err != nil {
+			log.Println("WS osc write error:", err)
+			break
+		}
+	}
+	stop <- struct{}{}
 }
