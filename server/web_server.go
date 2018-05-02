@@ -71,6 +71,8 @@ func (s *webServer) serveWebSocket(w http.ResponseWriter, r *http.Request) {
 		go s.streamEffectsJson(sc)
 		go sc.readFps()
 	case "/s/osc":
+		// messages are relayed as soon as they are received
+		// so there's no need for client to specify fps via streamConnection (sc)
 		go s.streamOscMessages(c)
 	case "/strip":
 		go s.receiveBuffer(c)
