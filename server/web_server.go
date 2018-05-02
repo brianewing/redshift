@@ -12,36 +12,55 @@ import (
 	"time"
 )
 
-type webSocketServer struct {
+type webServer struct {
 	animator *animator.Animator
 	buffer   [][]uint8
 
 	server   *http.Server
 	upgrader *websocket.Upgrader
+
 	http.Handler
 }
 
-func RunWebSocketServer(addr string, animator *animator.Animator, buffer [][]uint8) {
-	wss := &webSocketServer{
+func RunWebServer(addr string, animator *animator.Animator, buffer [][]uint8) {
+	s := &webServer{
 		animator: animator,
 		buffer:   buffer,
 		upgrader: &websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool { return true }, // ALLOW CROSS-ORIGIN REQUESTS
 		},
 	}
-	wss.server = &http.Server{Addr: addr, Handler: wss}
-	log.Fatalln("WS", wss.server.ListenAndServe())
+	s.server = &http.Server{Addr: addr, Handler: s}
+	log.Fatalln("WS", s.server.ListenAndServe())
 }
 
-func (s *webSocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *webServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/" {
+		s.serveWelcome(w, r)
+	} else {
+		s.serveWebSocket(w, r)
+	}
+}
+
+func (s *webServer) serveWelcome(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	welcomeInfo := map[string]interface{}{
+		"redshift": "0.1.0",
+	}
+
+	json.NewEncoder(w).Encode(welcomeInfo)
+}
+
+func (s *webServer) serveWebSocket(w http.ResponseWriter, r *http.Request) {
 	c, err := s.upgrader.Upgrade(w, r, nil)
 	sc := &streamConnection{Conn: c}
 
 	if err != nil {
-		log.Print("WS upgrade error:", err)
+		log.Print("WS websocket upgrade error:", err)
 		return
 	} else {
-		log.Print("WS client connected (", r.URL, ") [", c.RemoteAddr().String(), "]")
+		log.Print("WS websocket client connected (", r.URL, ") [", c.RemoteAddr().String(), "]")
 	}
 
 	switch r.URL.Path {
@@ -60,7 +79,7 @@ func (s *webSocketServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *webSocketServer) receiveBuffer(c *websocket.Conn) {
+func (s *webServer) receiveBuffer(c *websocket.Conn) {
 	for {
 		if _, msg, err := c.ReadMessage(); err != nil {
 			log.Println("WS buffer read error", err)
@@ -71,7 +90,7 @@ func (s *webSocketServer) receiveBuffer(c *websocket.Conn) {
 	}
 }
 
-func (s *webSocketServer) receiveEffects(c *websocket.Conn) {
+func (s *webServer) receiveEffects(c *websocket.Conn) {
 	for {
 		if _, msg, err := c.ReadMessage(); err != nil {
 			log.Println("WS effects read error:", err)
@@ -124,7 +143,7 @@ func (sc *streamConnection) readFps() {
 	}
 }
 
-func (s *webSocketServer) streamStripBuffer(sc *streamConnection) {
+func (s *webServer) streamStripBuffer(sc *streamConnection) {
 	for sc.NextFrame() {
 		s.animator.Strip.Lock()
 		msg := s.animator.Strip.SerializeBytes()
@@ -137,7 +156,7 @@ func (s *webSocketServer) streamStripBuffer(sc *streamConnection) {
 	}
 }
 
-func (s *webSocketServer) streamEffectsJson(sc *streamConnection) {
+func (s *webServer) streamEffectsJson(sc *streamConnection) {
 	for sc.NextFrame() {
 		effectsJson, _ := json.Marshal(s.animator.Effects)
 
@@ -148,7 +167,7 @@ func (s *webSocketServer) streamEffectsJson(sc *streamConnection) {
 	}
 }
 
-func (s *webSocketServer) streamOscMessages(c *websocket.Conn) {
+func (s *webServer) streamOscMessages(c *websocket.Conn) {
 	oscMessages, stop := osc.StreamMessages()
 	for msg := range oscMessages {
 		msgJson, _ := json.Marshal(msg)

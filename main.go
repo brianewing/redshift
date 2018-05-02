@@ -70,7 +70,7 @@ func main() {
 		go ledStrip.RunWs2811(*wsPin, *wsInterval, *wsBrightness)
 	}
 
-	go server.RunWebSocketServer(*httpAddr, animator, wssBuffer)
+	go server.RunWebServer(*httpAddr, animator, wssBuffer)
 	go server.RunWebDavServer(*davAddr, *scriptsDir)
 	go server.RunOpcServer(*opcAddr, opcBuffer)
 	go server.RunOscServer(*oscAddr)
