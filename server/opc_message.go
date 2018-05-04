@@ -11,7 +11,7 @@ import (
 
 const OpcSystemId uint16 = 65535
 
-type SystemExclusiveCmd byte
+type SystemExclusiveCmd uint8
 
 const (
 	CmdOpenStream = iota
@@ -27,16 +27,29 @@ type OpcMessage struct {
 	Length uint16
 	Data []byte
 
-	SystemExclusive struct{
-		Command SystemExclusiveCmd
-		Data []byte
-	}
+	SystemExclusive SystemExclusive
+}
+
+type SystemExclusive struct {
+	Command SystemExclusiveCmd
+	Data []byte
+}
+
+func (se SystemExclusive) Bytes() []byte {
+	bytes := append([]byte{byte(se.Command), 0, 0}, se.Data...)
+	binary.BigEndian.PutUint16(bytes[1:3], uint16(len(se.Data)))
+	return bytes
 }
 
 func (m OpcMessage) Bytes() []byte {
-	bytes := append([]byte{m.Channel, m.Command, 0, 0}, m.Data...)
-	binary.BigEndian.PutUint16(bytes[2:4], m.Length)
-	return bytes
+	bytes := []byte{m.Channel, m.Command, 0, 0}
+	if m.Command == 255 {
+		binary.BigEndian.PutUint16(bytes[2:4], OpcSystemId)
+		return append(bytes, m.SystemExclusive.Bytes()...)
+	} else {
+		binary.BigEndian.PutUint16(bytes[2:4], m.Length)
+		return append(bytes, m.Data...)
+	}
 }
 
 func (m OpcMessage) WritePixels(buffer [][]uint8) {
