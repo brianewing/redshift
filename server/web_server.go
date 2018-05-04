@@ -1,11 +1,11 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/brianewing/redshift/animator"
 	"github.com/brianewing/redshift/effects"
 	"github.com/brianewing/redshift/osc"
-	"github.com/brianewing/redshift/strip"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
@@ -35,7 +35,7 @@ func RunWebServer(addr string, animator *animator.Animator, buffer [][]uint8) {
 }
 
 func (s *webServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path == "/" {
+	if r.URL.Path == "/welcome" {
 		s.serveWelcome(w, r)
 	} else {
 		s.serveWebSocket(w, r)
@@ -44,17 +44,17 @@ func (s *webServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (s *webServer) serveWelcome(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(s.welcomeInfo())
+}
 
-	welcomeInfo := map[string]interface{}{
+func (s *webServer) welcomeInfo() map[string]interface{} {
+	return map[string]interface{}{
 		"redshift": "0.1.0",
 	}
-
-	json.NewEncoder(w).Encode(welcomeInfo)
 }
 
 func (s *webServer) serveWebSocket(w http.ResponseWriter, r *http.Request) {
 	c, err := s.upgrader.Upgrade(w, r, nil)
-	sc := &streamConnection{Conn: c}
 
 	if err != nil {
 		log.Print("WS websocket upgrade error:", err)
@@ -63,34 +63,42 @@ func (s *webServer) serveWebSocket(w http.ResponseWriter, r *http.Request) {
 		log.Print("WS websocket client connected (", r.URL, ") [", c.RemoteAddr().String(), "]")
 	}
 
-	switch r.URL.Path {
-	case "/s/strip":
-		go s.streamStripBuffer(sc)
-		go sc.readFps()
-	case "/s/effects":
-		go s.streamEffectsJson(sc)
-		go sc.readFps()
-	case "/s/osc":
-		// messages are relayed as soon as they are received
-		// so there's no need for client to specify fps via streamConnection (sc)
-		go s.streamOscMessages(c)
-	case "/strip":
-		go s.receiveBuffer(c)
-	case "/effects":
-		go s.receiveEffects(c)
-	}
+	s.sendSocketWelcome(c)
+	go s.readOpcMessages(c)
 }
 
-func (s *webServer) receiveBuffer(c *websocket.Conn) {
+func (s *webServer) sendSocketWelcome(c *websocket.Conn) {
+	welcome, _ := json.Marshal(s.welcomeInfo())
+	c.WriteMessage(websocket.TextMessage, welcome)
+}
+
+func (s *webServer) readOpcMessages(c *websocket.Conn) {
+	opcSession := &OpcSession{animator: s.animator, client: websocketOpcWriter{Conn: c}}
+
 	for {
-		if _, msg, err := c.ReadMessage(); err != nil {
-			log.Println("WS buffer read error", err)
-			return
-		} else {
-			strip.UnserializeBufferBytes(s.buffer, msg)
+		if _, data, err := c.ReadMessage(); err != nil {
+			log.Println("WS websocket opc read error:", err)
+			break
+		} else if msg, err := ReadOpcMessage(bytes.NewReader(data)); err != nil {
+			log.Println("WS websocket opc parse error:", err)
+		} else if err := opcSession.Receive(msg); err != nil {
+			log.Println("WS websocket opc handle error:", err)
 		}
 	}
+
+	opcSession.Close()
 }
+
+type websocketOpcWriter struct {
+	*websocket.Conn
+}
+
+func (w websocketOpcWriter) WriteOpc(msg OpcMessage) error {
+	return w.WriteMessage(websocket.BinaryMessage, msg.Bytes())
+}
+
+
+// todo: add these features to OpcSession
 
 func (s *webServer) receiveEffects(c *websocket.Conn) {
 	for {
