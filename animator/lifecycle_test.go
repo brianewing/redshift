@@ -16,7 +16,7 @@ func (e *testEffect) Destroy()                 { e.didDestroy = true }
 
 func makeTestAnimation() (*Animator, *testEffect) {
 	e := &testEffect{}
-	return &Animator{Effects: []effects.Effect{e}}, e
+	return &Animator{Effects: effects.EffectSet{effects.EffectEnvelope{Effect: e}}}, e
 }
 
 func TestEffectInit(t *testing.T) {
@@ -33,7 +33,7 @@ func TestEffectDestroy(t *testing.T) {
 	e2 := &testEffect{}
 
 	a.Render()
-	a.SetEffects([]effects.Effect{e2})
+	a.SetEffects(effects.EffectSet{effects.EffectEnvelope{Effect: e2}})
 
 	if a.Render(); !e.didDestroy {
 		t.Fatal("effect did not destroy")

@@ -17,15 +17,11 @@ type Animator struct {
 }
 
 func (a *Animator) Run(interval time.Duration) {
-	a.Running = true
-	mutex := a.Strip
-
 	ticker := time.NewTicker(interval)
-	for a.Running {
-		mutex.Lock()
+	for a.Running = true; a.Running; <-ticker.C {
+		a.Strip.Lock()
 		a.Render()
-		mutex.Unlock()
-		<-ticker.C
+		a.Strip.Unlock()
 	}
 	ticker.Stop()
 }
@@ -40,7 +36,7 @@ func (a *Animator) Render() {
 func (a *Animator) SetEffects(newEffects effects.EffectSet) {
 	a.Effects.Destroy()
 	a.Effects = newEffects
-	a.init = sync.Once{}
+	a.init = sync.Once{} // init again on next Render
 }
 
 func (a *Animator) GetEffects() effects.EffectSet {
