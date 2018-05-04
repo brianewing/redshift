@@ -17,7 +17,8 @@ const (
 	CmdOpenStream = iota
 	CmdCloseStream
 	CmdSetStreamFps
-	CmdSetStreamEffects
+	CmdSetEffectsJson
+	CmdSetEffectsStreamFps
 )
 
 // Message format

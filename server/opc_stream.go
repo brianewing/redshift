@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"github.com/brianewing/redshift/animator"
 	"time"
 )
@@ -9,46 +10,65 @@ type opcStream struct {
 	channel  uint8
 	animator *animator.Animator
 
-	fps        uint8
-	fpsChanged chan struct{}
+	fpsChange chan uint8
+	effectsFpsChange chan uint8
 
 	virtual bool // if true the animation will be stopped when the stream is closed
 }
 
 func NewOpcStream(channel uint8) *opcStream {
-	return &opcStream{fpsChanged: make(chan struct{})}
+	return &opcStream{
+		channel:          channel,
+		fpsChange:        make(chan uint8),
+		effectsFpsChange: make(chan uint8),
+	}
 }
 
 func (s *opcStream) SetFps(fps uint8) {
-	s.fps = fps
-	s.fpsChanged <- struct{}{}
+	s.fpsChange <- fps
+}
+
+func (s *opcStream) SetEffectsFps(fps uint8) {
+	s.effectsFpsChange <- fps
 }
 
 func (s *opcStream) Run(w OpcWriter) {
-	var ticker *time.Ticker
-	var C <-chan time.Time
+	var pixelTicker *time.Ticker
+	var pixelChan <-chan time.Time
+
+	var effectsTicker *time.Ticker
+	var effectsChan <-chan time.Time
 
 	println("run opcstream")
 
 	for {
 		select {
-		case <-s.fpsChanged:
-			if ticker != nil {
-				ticker.Stop()
+		case <-pixelChan:
+			s.WritePixels(w)
+		case <-effectsChan:
+			println("write effects")
+			s.WriteEffects(w)
+		case newFps := <-s.fpsChange:
+			if pixelTicker != nil {
+				pixelTicker.Stop()
 			}
-			if s.fps > 0 {
-				ticker = time.NewTicker(time.Second / time.Duration(s.fps))
-				C = ticker.C
-			} else {
-				C = nil
+			if newFps > 0 {
+				pixelTicker = time.NewTicker(time.Second / time.Duration(newFps))
+				pixelChan = pixelTicker.C
 			}
-		case <-C:
-			s.WriteFrame(w)
+		case newEffectsFps := <-s.effectsFpsChange:
+			if effectsTicker != nil {
+				effectsTicker.Stop()
+			}
+			if newEffectsFps > 0 {
+				effectsTicker = time.NewTicker(time.Second / time.Duration(newEffectsFps))
+				effectsChan = effectsTicker.C
+			}
 		}
 	}
 }
 
-func (s *opcStream) WriteFrame(w OpcWriter) error {
+func (s *opcStream) WritePixels(w OpcWriter) error {
 	s.animator.Strip.Lock()
 	pixels := s.animator.Strip.SerializeBytes()
 	msg := OpcMessage{
@@ -59,4 +79,20 @@ func (s *opcStream) WriteFrame(w OpcWriter) error {
 	}
 	s.animator.Strip.Unlock()
 	return w.WriteOpc(msg)
+}
+
+func (s *opcStream) WriteEffects(w OpcWriter) error {
+	if effectsJson, err := json.Marshal(s.animator.Effects); err != nil {
+		return err
+	} else {
+		msg := OpcMessage{
+			Channel: s.channel,
+			Command: 255, // system exclusive
+			SystemExclusive: SystemExclusive{
+				Command: CmdSetEffectsJson,
+				Data: []byte(effectsJson),
+			},
+		}
+		return w.WriteOpc(msg)
+	}
 }

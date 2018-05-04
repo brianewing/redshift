@@ -41,6 +41,11 @@ func (s *OpcSession) Receive(msg OpcMessage) error {
 			stream := s.streams[msg.Channel]
 			fps := msg.SystemExclusive.Data[0]
 			stream.SetFps(fps)
+		case CmdSetEffectsStreamFps:
+			print("set effects stream fps")
+			stream := s.streams[msg.Channel]
+			fps := msg.SystemExclusive.Data[0]
+			stream.SetEffectsFps(fps)
 		default:
 			println("dont know how to handle system cmd", strconv.Itoa(int(msg.SystemExclusive.Command)))
 		}
