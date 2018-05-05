@@ -1,10 +1,13 @@
 package server
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/brianewing/redshift/animator"
+	"github.com/brianewing/redshift/effects"
 	"log"
 	"strconv"
+	"strings"
 )
 
 type OpcWriter interface {
@@ -37,15 +40,18 @@ func (s *OpcSession) Receive(msg OpcMessage) error {
 				return err
 			}
 		case CmdSetStreamFps:
-			println("set stream fps")
 			stream := s.streams[msg.Channel]
 			fps := msg.SystemExclusive.Data[0]
 			stream.SetFps(fps)
 		case CmdSetEffectsStreamFps:
-			print("set effects stream fps")
 			stream := s.streams[msg.Channel]
 			fps := msg.SystemExclusive.Data[0]
 			stream.SetEffectsFps(fps)
+		case CmdSetEffectsJson:
+			var newEffects effects.EffectSet
+			json.Unmarshal(msg.SystemExclusive.Data, &newEffects)
+			stream := s.streams[msg.Channel]
+			stream.animator.SetEffects(newEffects)
 		default:
 			println("dont know how to handle system cmd", strconv.Itoa(int(msg.SystemExclusive.Command)))
 		}
@@ -70,6 +76,4 @@ func (s *OpcSession) openStream(channel uint8, description string) (*opcStream, 
 	return stream, nil
 }
 
-func (s *OpcSession) Close() {
-
-}
+func (s *OpcSession) Close() {}

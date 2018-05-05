@@ -46,7 +46,6 @@ func (s *opcStream) Run(w OpcWriter) {
 		case <-pixelChan:
 			s.WritePixels(w)
 		case <-effectsChan:
-			println("write effects")
 			s.WriteEffects(w)
 		case newFps := <-s.fpsChange:
 			if pixelTicker != nil {
@@ -71,13 +70,13 @@ func (s *opcStream) Run(w OpcWriter) {
 func (s *opcStream) WritePixels(w OpcWriter) error {
 	s.animator.Strip.Lock()
 	pixels := s.animator.Strip.SerializeBytes()
+	s.animator.Strip.Unlock()
 	msg := OpcMessage{
 		Channel: s.channel,
 		Command: 0, // write pixels
-		Length: uint16(len(pixels)),
-		Data: pixels,
+		Length:  uint16(len(pixels)),
+		Data:    pixels,
 	}
-	s.animator.Strip.Unlock()
 	return w.WriteOpc(msg)
 }
 
@@ -90,7 +89,7 @@ func (s *opcStream) WriteEffects(w OpcWriter) error {
 			Command: 255, // system exclusive
 			SystemExclusive: SystemExclusive{
 				Command: CmdSetEffectsJson,
-				Data: []byte(effectsJson),
+				Data:    []byte(effectsJson),
 			},
 		}
 		return w.WriteOpc(msg)

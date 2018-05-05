@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
-	"log"
 )
 
 // Redshift System Exclusive Messages
@@ -93,7 +92,6 @@ func ReadOpcMessage(r io.Reader) (OpcMessage, error) {
 			}
 
 			msg.SystemExclusive.Command = SystemExclusiveCmd(sysHeader[0])
-			log.Println("sysex header", sysHeader)
 
 			sysDataLength := binary.BigEndian.Uint16(sysHeader[1:3])
 			msg.SystemExclusive.Data = make([]byte, sysDataLength)
@@ -103,7 +101,6 @@ func ReadOpcMessage(r io.Reader) (OpcMessage, error) {
 			} else if bytesRead != int(sysDataLength) {
 				return msg, errors.New("system exclusive data length mismatch")
 			} else {
-				log.Println("got", bytesRead, "bytes of sys data")
 				return msg, nil
 			}
 		} else {
