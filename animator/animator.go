@@ -3,7 +3,6 @@ package animator
 import (
 	"github.com/brianewing/redshift/effects"
 	"github.com/brianewing/redshift/strip"
-	"sync"
 	"time"
 )
 
@@ -13,7 +12,7 @@ type Animator struct {
 	PostEffects effects.EffectSet
 
 	Running bool
-	init    sync.Once
+	didInit bool
 }
 
 func (a *Animator) Run(interval time.Duration) {
@@ -27,7 +26,11 @@ func (a *Animator) Run(interval time.Duration) {
 }
 
 func (a *Animator) Render() {
-	a.init.Do(a.Effects.Init)
+	if !a.didInit {
+		a.Effects.Init()
+		a.PostEffects.Init()
+		a.didInit = true
+	}
 
 	a.Effects.Render(a.Strip)
 	a.PostEffects.Render(a.Strip)
@@ -36,7 +39,7 @@ func (a *Animator) Render() {
 func (a *Animator) SetEffects(newEffects effects.EffectSet) {
 	a.Effects.Destroy()
 	a.Effects = newEffects
-	a.init = sync.Once{} // init again on next Render
+	a.didInit = false // init again on next Render
 }
 
 func (a *Animator) GetEffects() effects.EffectSet {
