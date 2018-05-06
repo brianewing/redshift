@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/brianewing/redshift/animator"
-	"github.com/brianewing/redshift/effects"
 	"github.com/brianewing/redshift/osc"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
-	"time"
 )
 
 type webServer struct {
@@ -97,91 +95,10 @@ func (w websocketOpcWriter) WriteOpc(msg OpcMessage) error {
 	return w.WriteMessage(websocket.BinaryMessage, msg.Bytes())
 }
 
-
-// todo: add these features to OpcSession
-
-func (s *webServer) receiveEffects(c *websocket.Conn) {
-	for {
-		if _, msg, err := c.ReadMessage(); err != nil {
-			log.Println("WS effects read error:", err)
-			return
-		} else if effects, err := effects.UnmarshalJSON(msg); err == nil {
-			log.Println("WS effects received:", string(msg))
-			s.animator.SetEffects(effects)
-		} else {
-			log.Println("WS effects parse error:", err)
-		}
-	}
-}
-
-type streamConnection struct {
-	requestedFps uint8 // 0-255
-	fpsChanged   chan bool
-	*websocket.Conn
-}
-
-func (sc *streamConnection) NextFrame() bool {
-	for sc.requestedFps == 0 {
-		<-sc.fpsChanged // block til it's set
-		return true
-	}
-
-	time.Sleep(time.Second / time.Duration(sc.requestedFps))
-	return true
-}
-
-func (sc *streamConnection) readFps() {
-	sc.fpsChanged = make(chan bool)
-	sc.SetReadLimit(1) // 1 byte at a time
-
-	for {
-		if _, msg, err := sc.ReadMessage(); err == nil {
-			oldFps := sc.requestedFps
-			if len(msg) > 0 {
-				sc.requestedFps = uint8(msg[0])
-			} else {
-				sc.requestedFps = 0
-			}
-
-			if oldFps == 0 {
-				sc.fpsChanged <- true
-			}
-		} else {
-			log.Println("WS read fps error:", err)
-			break
-		}
-	}
-}
-
-func (s *webServer) streamStripBuffer(sc *streamConnection) {
-	for sc.NextFrame() {
-		s.animator.Strip.Lock()
-		msg := s.animator.Strip.SerializeBytes()
-		s.animator.Strip.Unlock()
-
-		if err := sc.WriteMessage(websocket.BinaryMessage, msg); err != nil {
-			log.Println("WS write error:", err)
-			break
-		}
-	}
-}
-
-func (s *webServer) streamEffectsJson(sc *streamConnection) {
-	for sc.NextFrame() {
-		effectsJson, _ := json.Marshal(s.animator.Effects)
-
-		if err := sc.WriteMessage(websocket.TextMessage, effectsJson); err != nil {
-			log.Println("WS effects write error:", err)
-			break
-		}
-	}
-}
-
 func (s *webServer) streamOscMessages(c *websocket.Conn) {
 	oscMessages, stop := osc.StreamMessages()
 	for msg := range oscMessages {
 		msgJson, _ := json.Marshal(msg)
-
 		if err := c.WriteMessage(websocket.TextMessage, msgJson); err != nil {
 			log.Println("WS osc write error:", err)
 			break
