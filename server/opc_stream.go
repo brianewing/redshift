@@ -14,7 +14,7 @@ type opcStream struct {
 	fpsChange        chan uint8
 	effectsFpsChange chan uint8
 
-	virtual bool // if true the animation will be stopped when the stream is closed
+	virtual bool
 }
 
 func NewOpcStream(channel uint8) *opcStream {
@@ -45,7 +45,9 @@ func (s *opcStream) Run(w OpcWriter) {
 	var effectsTicker *time.Ticker
 	var effectsChan <-chan time.Time
 
-	println("run opcstream")
+	if s.virtual {
+		go s.animator.Run(16 * time.Millisecond) // 60 fps
+	}
 
 	for {
 		select {

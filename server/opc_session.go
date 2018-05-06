@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/brianewing/redshift/animator"
 	"github.com/brianewing/redshift/effects"
+	"github.com/brianewing/redshift/strip"
 	"log"
 	"strconv"
 	"strings"
@@ -63,13 +64,23 @@ func (s *OpcSession) Receive(msg OpcMessage) error {
 
 func (s *OpcSession) openStream(channel uint8, description string) (*opcStream, error) {
 	stream := NewOpcStream(channel)
+	desc := strings.Fields(description)
 
-	switch description {
+	switch desc[0] {
 	case "strip":
 		stream.animator = s.animator
 	case "virtual":
 		stream.virtual = true
-		stream.animator = &animator.Animator{} // todo: run + stop on close
+		stream.animator = &animator.Animator{}
+
+		numLeds := 30
+		if len(desc) >= 2 {
+			if v, _ := strconv.Atoi(desc[1]); v > 0 {
+				numLeds = v
+			}
+		}
+
+		stream.animator.Strip = strip.New(numLeds)
 	}
 
 	go stream.Run(s.client)
