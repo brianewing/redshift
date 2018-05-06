@@ -13,8 +13,9 @@ func (s *LEDStrip) RunWs2811(gpioPin int, refreshInterval time.Duration, maxBrig
 		log.Println("Ws2811", "init error", err)
 		return
 	}
-
+	ticker := time.NewTicker(refreshInterval)
 	for {
+		<-ticker.C
 		s.Lock()
 		for i, color := range s.Buffer {
 			color32 := uint32((uint32(0) << 24) | (uint32(color[0]) << 16) | (uint32(color[1]) << 8) | uint32(color[2]))
@@ -22,6 +23,5 @@ func (s *LEDStrip) RunWs2811(gpioPin int, refreshInterval time.Duration, maxBrig
 		}
 		s.Unlock()
 		ws2811.Render()
-		time.Sleep(refreshInterval)
 	}
 }
