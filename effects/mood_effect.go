@@ -46,7 +46,7 @@ func (e *MoodEffect) Init() {
 }
 
 func (e *MoodEffect) Render(s *strip.LEDStrip) {
-	if e.brightness.Level <= 1 {
+	if e.brightness.Level <= 5 {
 		e.fill.Color = e.newColor()
 	}
 
