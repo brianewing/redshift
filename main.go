@@ -30,7 +30,7 @@ var midiDeviceId = flag.Int("midiDeviceId", 0, "midi device id")
 
 var httpAddr = flag.String("httpAddr", "0.0.0.0:9191", "http service address")
 var davAddr = flag.String("davAddr", "0.0.0.0:9292", "webdav (scripts) service address")
-var opcAddr = flag.String("opcAddr", "0.0.0.0:9393", "opc service address")
+var opcAddr = flag.String("opcAddr", "0.0.0.0:7890", "opc service address")
 var oscAddr = flag.String("oscAddr", "0.0.0.0:9494", "osc service address")
 
 func main() {
