@@ -2,8 +2,10 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"github.com/brianewing/redshift/animator"
 	"github.com/brianewing/redshift/effects"
+	"github.com/robertkrimen/otto"
 	"os"
 	"reflect"
 	"strconv"
@@ -12,10 +14,9 @@ import (
 
 func repl(a *animator.Animator) {
 	scanner := bufio.NewScanner(os.Stdin)
+	jsVm := otto.New()
 
 	for scanner.Scan() {
-		a.Strip.Lock()
-
 		input := scanner.Text()
 		words := strings.Split(input, " ")
 
@@ -25,6 +26,16 @@ func repl(a *animator.Animator) {
 		switch cmd {
 		case "h", "help", "?":
 			println("(e) effects, (e.y) effects.yaml, (e.j) effects.json, (t) types, (a) add, (p) pop, (s) shift, (n) count")
+
+		case ".":
+			jsVm.Set("a", a)
+			jsVm.Set("fx", a.Effects)
+
+			value, _ := jsVm.Run(tail)
+			result, _ := value.Export()
+
+			jsonString, _ := json.Marshal(result)
+			println(string(jsonString))
 
 		case "e", "effects":
 			types := make([]string, len(a.Effects))
@@ -69,7 +80,6 @@ func repl(a *animator.Animator) {
 
 		case "":
 		}
-		a.Strip.Unlock()
 		print("> ")
 	}
 }
