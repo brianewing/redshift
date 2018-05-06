@@ -15,6 +15,8 @@ type LarsonEffect struct {
 func NewLarsonEffect() *LarsonEffect {
 	return &LarsonEffect{
 		Width: 2,
+		Color: []uint8{0, 0, 0},
+		Speed: 0.5,
 	}
 }
 
