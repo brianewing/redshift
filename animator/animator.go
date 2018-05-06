@@ -42,6 +42,7 @@ func (a *Animator) SetEffects(newEffects effects.EffectSet) {
 	a.didInit = false // init again on next Render
 }
 
-func (a *Animator) GetEffects() effects.EffectSet {
-	return a.Effects
+func (a *Animator) Finish() {
+	a.SetEffects(nil)
+	a.Running = false
 }

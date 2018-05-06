@@ -10,7 +10,8 @@ type opcStream struct {
 	channel  uint8
 	animator *animator.Animator
 
-	fpsChange chan uint8
+	stop             chan struct{}
+	fpsChange        chan uint8
 	effectsFpsChange chan uint8
 
 	virtual bool // if true the animation will be stopped when the stream is closed
@@ -19,9 +20,14 @@ type opcStream struct {
 func NewOpcStream(channel uint8) *opcStream {
 	return &opcStream{
 		channel:          channel,
+		stop:             make(chan struct{}),
 		fpsChange:        make(chan uint8),
 		effectsFpsChange: make(chan uint8),
 	}
+}
+
+func (s *opcStream) Close() {
+	s.stop <- struct{}{}
 }
 
 func (s *opcStream) SetFps(fps uint8) {
@@ -45,8 +51,10 @@ func (s *opcStream) Run(w OpcWriter) {
 		select {
 		case <-pixelChan:
 			s.WritePixels(w)
+
 		case <-effectsChan:
 			s.WriteEffects(w)
+
 		case newFps := <-s.fpsChange:
 			if pixelTicker != nil {
 				pixelTicker.Stop()
@@ -55,6 +63,7 @@ func (s *opcStream) Run(w OpcWriter) {
 				pixelTicker = time.NewTicker(time.Second / time.Duration(newFps))
 				pixelChan = pixelTicker.C
 			}
+
 		case newEffectsFps := <-s.effectsFpsChange:
 			if effectsTicker != nil {
 				effectsTicker.Stop()
@@ -63,6 +72,18 @@ func (s *opcStream) Run(w OpcWriter) {
 				effectsTicker = time.NewTicker(time.Second / time.Duration(newEffectsFps))
 				effectsChan = effectsTicker.C
 			}
+
+		case <-s.stop:
+			if pixelTicker != nil {
+				pixelTicker.Stop()
+			}
+			if effectsTicker != nil {
+				effectsTicker.Stop()
+			}
+			if s.virtual {
+				s.animator.Finish()
+			}
+			return
 		}
 	}
 }

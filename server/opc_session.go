@@ -76,4 +76,8 @@ func (s *OpcSession) openStream(channel uint8, description string) (*opcStream, 
 	return stream, nil
 }
 
-func (s *OpcSession) Close() {}
+func (s *OpcSession) Close() {
+	for _, stream := range s.streams {
+		stream.Close()
+	}
+}

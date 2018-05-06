@@ -64,7 +64,11 @@ func (s *webServer) serveWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.sendSocketWelcome(c)
-	go s.readOpcMessages(c)
+
+	opcSession := &OpcSession{animator: s.animator, client: websocketOpcWriter{Conn: c}}
+	s.readOpcMessages(c, opcSession)
+
+	opcSession.Close()
 }
 
 func (s *webServer) sendSocketWelcome(c *websocket.Conn) {
@@ -72,9 +76,7 @@ func (s *webServer) sendSocketWelcome(c *websocket.Conn) {
 	c.WriteMessage(websocket.TextMessage, welcome)
 }
 
-func (s *webServer) readOpcMessages(c *websocket.Conn) {
-	opcSession := &OpcSession{animator: s.animator, client: websocketOpcWriter{Conn: c}}
-
+func (s *webServer) readOpcMessages(c *websocket.Conn, opcSession *OpcSession) {
 	for {
 		if _, data, err := c.ReadMessage(); err != nil {
 			log.Println("WS websocket opc read error:", err)
@@ -85,8 +87,6 @@ func (s *webServer) readOpcMessages(c *websocket.Conn) {
 			log.Println("WS websocket opc handle error:", err)
 		}
 	}
-
-	opcSession.Close()
 }
 
 type websocketOpcWriter struct {
