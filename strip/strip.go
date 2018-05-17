@@ -7,29 +7,12 @@ import (
 
 type LEDStrip struct {
 	Size int
-	Buffer [][]uint8
-
+	Buffer
 	sync.Mutex
 }
 
 func New(size int) *LEDStrip {
 	return &LEDStrip{Size: size, Buffer: NewBuffer(size)}
-}
-
-func NewBuffer(size int) [][]uint8 {
-	buffer := make([][]uint8, size)
-	clearBuffer(buffer)
-	return buffer
-}
-
-func clearBuffer(buffer [][]uint8) {
-	for i := range buffer {
-		buffer[i] = []uint8{0, 0, 0}
-	}
-}
-
-func (s *LEDStrip) Clear() {
-	clearBuffer(s.Buffer)
 }
 
 func (s *LEDStrip) SetPixel(i int, color []uint8) {

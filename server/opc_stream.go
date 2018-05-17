@@ -92,7 +92,7 @@ func (s *opcStream) Run(w OpcWriter) {
 
 func (s *opcStream) WritePixels(w OpcWriter) error {
 	s.animator.Strip.Lock()
-	pixels := s.animator.Strip.SerializeBytes()
+	pixels := s.animator.Strip.MarshalBytes()
 	s.animator.Strip.Unlock()
 	msg := OpcMessage{
 		Channel: s.channel,

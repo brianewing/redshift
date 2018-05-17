@@ -1,7 +1,7 @@
 package effects
 
 import (
-	json "github.com/brianewing/redshift/customjson"
+	"encoding/json"
 	"reflect"
 )
 

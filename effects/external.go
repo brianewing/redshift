@@ -103,8 +103,8 @@ func (e *External) reload() {
 	e.reloadMutex.Unlock()
 }
 
-func (e *External) sendFrame(buffer [][]uint8) {
-	frame := strip.SerializeBufferBytes(buffer)
+func (e *External) sendFrame(buffer strip.Buffer) {
+	frame := buffer.MarshalBytes()
 	if e.Shellhack {
 		for i, byte := range frame {
 			if byte == 0 {
@@ -115,14 +115,14 @@ func (e *External) sendFrame(buffer [][]uint8) {
 	e.stdin.Write(frame)
 }
 
-func (e *External) readFrame(buffer [][]uint8) {
+func (e *External) readFrame(buffer strip.Buffer) {
 	bytes := make([]byte, PIPE_SIZE)
 	if n, err := e.stdout.Read(bytes); err != nil {
 		log.Println(e.logPrefix(), "stdout read error", err)
 		e.halted = true
 	} else {
 		//log.Println(e.logPrefix(), "got", n, "bytes", bytes[:n])
-		strip.UnserializeBufferBytes(buffer, bytes[:n])
+		buffer.UnmarshalBytes(bytes[:n])
 	}
 }
 
