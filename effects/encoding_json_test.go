@@ -4,12 +4,12 @@ import (
 	"testing"
 )
 
-func animationSet() []Effect {
-	return []Effect{
-		&Clear{},
-		&RainbowEffect{Size: 150, Speed: 1},
-		&BlueEffect{},
-		&LarsonEffect{Color: []uint8{0,0,0}},
+func animationSet() EffectSet {
+	return EffectSet{
+		EffectEnvelope{Effect: &Clear{}},
+		EffectEnvelope{Effect: &RainbowEffect{Size: 150, Speed: 1}},
+		EffectEnvelope{Effect: &BlueEffect{}},
+		EffectEnvelope{Effect: &LarsonEffect{Color: []uint8{0,0,0}}},
 	}
 }
 
@@ -22,7 +22,7 @@ func BenchmarkMarshalJSON(b *testing.B) {
 		}
 	})
 	b.Run("Layer{Example}", func(b *testing.B) {
-		effects := []Effect{&Layer{Effects: animationSet()}}
+		effects := EffectSet{EffectEnvelope{Effect: &Layer{Effects: animationSet()}}}
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			MarshalJSON(effects)
@@ -39,7 +39,7 @@ func BenchmarkUnmarshalJSON(b *testing.B) {
 		}
 	})
 	b.Run("Layer{Example}", func(b *testing.B) {
-		effectsJson, _ := MarshalJSON([]Effect{&Layer{Effects: animationSet()}})
+		effectsJson, _ := MarshalJSON(EffectSet{EffectEnvelope{Effect: &Layer{Effects: animationSet()}}})
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			UnmarshalJSON(effectsJson)

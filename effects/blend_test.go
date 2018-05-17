@@ -16,21 +16,21 @@ func BenchmarkBlendFuncs(b *testing.B) {
 	b.Run("RGB", func(b *testing.B) {
 		for n := 0; n < b.N; n++ {
 			for i, c1 := range s1.Buffer {
-				blendRgb(c1, s2.Buffer[i])
+				blendRgb(c1, s2.Buffer[i], 0.5)
 			}
 		}
 	})
 	b.Run("HCL", func(b *testing.B) {
 		for n := 0; n < b.N; n++ {
 			for i, c1 := range s1.Buffer {
-				blendHcl(c1, s2.Buffer[i])
+				blendHcl(c1, s2.Buffer[i], 0.5)
 			}
 		}
 	})
 	b.Run("Lab", func(b *testing.B) {
 		for n := 0; n < b.N; n++ {
 			for i, c1 := range s1.Buffer {
-				blendLab(c1, s2.Buffer[i])
+				blendLab(c1, s2.Buffer[i], 0.5)
 			}
 		}
 	})
