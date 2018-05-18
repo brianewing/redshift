@@ -24,40 +24,41 @@ const (
 
 type OpcMessage struct {
 	Channel, Command uint8
-	Length uint16
-	Data []byte
+	Length           uint16
+	Data             []byte
 
 	SystemExclusive SystemExclusive
 }
 
 type SystemExclusive struct {
-	Command SystemExclusiveCmd
-	Data []byte
+	SystemId uint16
+	Command  SystemExclusiveCmd
+	Data     []byte
 }
 
 func (se SystemExclusive) Bytes() []byte {
-	bytes := append([]byte{byte(se.Command), 0, 0}, se.Data...)
-	binary.BigEndian.PutUint16(bytes[1:3], uint16(len(se.Data)))
+	bytes := append([]byte{0, 0, byte(se.Command)}, se.Data...)
+	binary.BigEndian.PutUint16(bytes[0:2], OpcSystemId)
 	return bytes
 }
 
 func (m OpcMessage) Bytes() []byte {
 	bytes := []byte{m.Channel, m.Command, 0, 0}
 	if m.Command == 255 {
-		binary.BigEndian.PutUint16(bytes[2:4], OpcSystemId)
-		return append(bytes, m.SystemExclusive.Bytes()...)
-	} else {
-		binary.BigEndian.PutUint16(bytes[2:4], m.Length)
-		return append(bytes, m.Data...)
+		sysex := m.SystemExclusive.Bytes()
+		m.Length = uint16(len(sysex))
+		m.Data = sysex
 	}
+	binary.BigEndian.PutUint16(bytes[2:4], m.Length)
+	return append(bytes, m.Data...)
 }
 
 func (m OpcMessage) WritePixels(buffer [][]uint8) {
 	for i, val := range m.Data {
-		if len(buffer) == i / 3 {
+		if len(buffer) == i/3 {
 			break
 		}
-		buffer[i / 3][i % 3] = val
+		buffer[i/3][i%3] = val
 	}
 }
 
@@ -78,38 +79,26 @@ func ReadOpcMessage(r io.Reader) (OpcMessage, error) {
 	msg.Command = header[1]
 	msg.Length = binary.BigEndian.Uint16(header[2:4])
 
-	if msg.Command == 255 { // system exclusive message
-		if msg.Length == OpcSystemId {
-			// sysex data format: [command, length high byte, length low byte, data..]
-			// i.e. opc without leading channel byte
-
-			sysHeader := make([]byte, 3)
-
-			if bytesRead, err := r.Read(sysHeader); err != nil {
-				return msg, err
-			} else if bytesRead != 3 {
-				return msg, errors.New("bad header")
-			}
-
-			msg.SystemExclusive.Command = SystemExclusiveCmd(sysHeader[0])
-
-			sysDataLength := binary.BigEndian.Uint16(sysHeader[1:3])
-			msg.SystemExclusive.Data = make([]byte, sysDataLength)
-
-			if bytesRead, err := r.Read(msg.SystemExclusive.Data); err != nil {
-				return msg, err
-			} else if bytesRead != int(sysDataLength) {
-				return msg, errors.New("system exclusive data length mismatch")
-			} else {
-				return msg, nil
-			}
-		} else {
-			return msg, errors.New("system exclusive system id mismatch")
-		}
-	}
-
 	msg.Data = make([]byte, msg.Length)
 	bytesRead, err = r.Read(msg.Data)
+
+	if msg.Command == 255 {
+		if len(msg.Data) < 2 {
+			return msg, errors.New("missing sysex data")
+		}
+
+		msg.SystemExclusive.SystemId = binary.BigEndian.Uint16(msg.Data[0:2])
+
+		if msg.SystemExclusive.SystemId == OpcSystemId {
+			if len(msg.Data) < 3 {
+				return msg, errors.New("missing sysex command byte")
+			}
+			msg.SystemExclusive.Command = SystemExclusiveCmd(msg.Data[2])
+			msg.SystemExclusive.Data = msg.Data[3:]
+		} else {
+			msg.SystemExclusive.Data = msg.Data[2:]
+		}
+	}
 
 	if err != nil {
 		return msg, err
