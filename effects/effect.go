@@ -79,6 +79,8 @@ func NewByName(name string) Effect {
 		return &External{}
 	case "Fill":
 		return &Fill{}
+	case "Greyscale":
+		return &Greyscale{}
 	case "Layer":
 		return NewLayer()
 	case "LarsonEffect":
@@ -112,6 +114,7 @@ func Names() []string {
 		"Clear",
 		"External",
 		"Fill",
+		"Greyscale",
 		"Layer",
 		"LarsonEffect",
 		"Mirror",
