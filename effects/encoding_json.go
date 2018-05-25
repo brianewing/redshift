@@ -31,6 +31,7 @@ func (e *EffectEnvelope) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &tmp); err == nil {
 		e.Effect = NewByName(tmp.Type)
 		e.Controls = tmp.Controls
+		e.Disabled = tmp.Disabled
 
 		if tmp.Effect != nil {
 			return json.Unmarshal(*tmp.Effect, &e.Effect)

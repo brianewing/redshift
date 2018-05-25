@@ -14,6 +14,7 @@ type Destroyable interface { Destroy() }
 type EffectEnvelope struct {
 	Effect
 	Controls ControlSet
+	Disabled bool
 }
 
 func (e *EffectEnvelope) Init() {
@@ -31,6 +32,9 @@ func (e *EffectEnvelope) Destroy() {
 }
 
 func (e *EffectEnvelope) Render(strip *strip.LEDStrip) {
+	if e.Disabled {
+		return
+	}
 	// apply controls
 	e.Controls.Apply(e.Effect)
 	// render effect
