@@ -6,40 +6,12 @@ import (
 	"io"
 )
 
-// Redshift System Exclusive Messages
-
-const OpcSystemId uint16 = 65535
-
-type SystemExclusiveCmd uint8
-
-const (
-	CmdOpenStream = iota
-	CmdCloseStream
-	CmdSetStreamFps
-	CmdSetEffectsJson
-	CmdSetEffectsStreamFps
-)
-
-// Message format
-
 type OpcMessage struct {
 	Channel, Command uint8
 	Length           uint16
 	Data             []byte
 
 	SystemExclusive SystemExclusive
-}
-
-type SystemExclusive struct {
-	SystemId uint16
-	Command  SystemExclusiveCmd
-	Data     []byte
-}
-
-func (se SystemExclusive) Bytes() []byte {
-	bytes := append([]byte{0, 0, byte(se.Command)}, se.Data...)
-	binary.BigEndian.PutUint16(bytes[0:2], OpcSystemId)
-	return bytes
 }
 
 func (m OpcMessage) Bytes() []byte {
@@ -107,4 +79,31 @@ func ReadOpcMessage(r io.Reader) (OpcMessage, error) {
 	} else {
 		return msg, nil
 	}
+}
+
+// System exclusive messages
+
+const OpcSystemId uint16 = 65535
+
+type SystemExclusiveCmd uint8
+
+const (
+	CmdWelcome = iota
+	CmdOpenStream
+	CmdCloseStream
+	CmdSetStreamFps
+	CmdSetEffectsJson
+	CmdSetEffectsStreamFps
+)
+
+type SystemExclusive struct {
+	SystemId uint16
+	Command  SystemExclusiveCmd
+	Data     []byte
+}
+
+func (se SystemExclusive) Bytes() []byte {
+	bytes := append([]byte{0, 0, byte(se.Command)}, se.Data...)
+	binary.BigEndian.PutUint16(bytes[0:2], OpcSystemId)
+	return bytes
 }
