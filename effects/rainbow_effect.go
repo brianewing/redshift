@@ -19,7 +19,7 @@ func NewRainbowEffect() *RainbowEffect {
 	return &RainbowEffect{
 		Size:  100,
 		Depth: 60,
-		Speed: 0.5,
+		Speed: 0.1,
 		Blend: *NewBlend(),
 	}
 }
