@@ -9,7 +9,10 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"time"
 )
+
+var REDSHIFT_VERSION = "0.1.0"
 
 type OpcWriter interface {
 	WriteOpc(msg OpcMessage) error
@@ -27,13 +30,12 @@ func (s *OpcSession) Receive(msg OpcMessage) error {
 	case 0:
 		log.Println("got incoming pixels", msg)
 	case 255:
-		log.Println("got sysex", msg)
 		switch msg.SystemExclusive.Command {
+		case CmdWelcome:
+			s.sendWelcome() // confirms successful connection by sending server info
 		case CmdOpenStream:
 			channel := msg.Channel
 			description := string(msg.SystemExclusive.Data)
-
-			log.Println("open stream", channel, description)
 
 			if stream, err := s.openStream(channel, description); err == nil {
 				s.streams = append(s.streams, stream)
@@ -60,6 +62,24 @@ func (s *OpcSession) Receive(msg OpcMessage) error {
 		return errors.New("command not recognised")
 	}
 	return nil
+}
+
+var startTime = time.Now()
+
+func (s *OpcSession) sendWelcome() error {
+	welcomeJson, _ := json.Marshal(map[string]interface{}{
+		"version": REDSHIFT_VERSION,
+		"started": startTime,
+		"uptime":  time.Now().Sub(startTime).Seconds(),
+	})
+	msg := OpcMessage{
+		Command: 255,
+		SystemExclusive: SystemExclusive{
+			Command: CmdWelcome,
+			Data:    welcomeJson,
+		},
+	}
+	return s.client.WriteOpc(msg)
 }
 
 func (s *OpcSession) openStream(channel uint8, description string) (*opcStream, error) {

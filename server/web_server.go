@@ -61,17 +61,10 @@ func (s *webServer) serveWebSocket(w http.ResponseWriter, r *http.Request) {
 		log.Print("WS websocket client connected (", r.URL, ") [", c.RemoteAddr().String(), "]")
 	}
 
-	s.sendSocketWelcome(c)
-
 	opcSession := &OpcSession{animator: s.animator, client: websocketOpcWriter{Conn: c}}
 	s.readOpcMessages(c, opcSession)
 
 	opcSession.Close()
-}
-
-func (s *webServer) sendSocketWelcome(c *websocket.Conn) {
-	welcome, _ := json.Marshal(s.welcomeInfo())
-	c.WriteMessage(websocket.TextMessage, welcome)
 }
 
 func (s *webServer) readOpcMessages(c *websocket.Conn, opcSession *OpcSession) {
