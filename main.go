@@ -61,8 +61,8 @@ func main() {
 		Strip:   ledStrip,
 		Effects: getEffects(),
 		PostEffects: effects.EffectSet{
-			effects.EffectEnvelope{Effect: &effects.Blend{Buffer: opcBuffer}},
-			effects.EffectEnvelope{Effect: &effects.Blend{Buffer: wssBuffer}},
+			effects.EffectEnvelope{Effect: effects.NewBlendFromBuffer(opcBuffer)},
+			effects.EffectEnvelope{Effect: effects.NewBlendFromBuffer(wssBuffer)},
 		},
 	}
 

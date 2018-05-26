@@ -24,6 +24,12 @@ func NewBlend() *Blend {
 	}
 }
 
+func NewBlendFromBuffer(buffer [][]uint8) *Blend {
+	b := NewBlend()
+	b.Buffer = buffer
+	return b
+}
+
 func (e *Blend) Render(strip *strip.LEDStrip) {
 	for i := 0; i < len(e.Buffer) && i+e.Offset < strip.Size; i++ {
 		source := e.Buffer[i]
