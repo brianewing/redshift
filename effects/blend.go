@@ -6,7 +6,7 @@ import (
 )
 
 type Blend struct {
-	Buffer  strip.Buffer
+	Buffer  strip.Buffer `json:"-"`
 	Offset  int
 	Reverse bool
 	Force   bool
