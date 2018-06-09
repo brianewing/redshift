@@ -1,0 +1,10 @@
+e.*.sh
+
+*.timing
+*.typescript
+
+main
+termclient
+
+*.tar
+*.tar.*
