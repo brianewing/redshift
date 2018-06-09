@@ -4,6 +4,7 @@ e.*.sh
 *.typescript
 
 main
+termclient
 
 *.tar
 *.tar.*

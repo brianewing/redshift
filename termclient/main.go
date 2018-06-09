@@ -15,7 +15,7 @@ import (
 var addr = flag.String("addr", "localhost:7890", "opc address")
 
 var clear = flag.Bool("clear", true, "clear output before each frame")
-var _return = flag.Bool("return", false, "carriage return after each frame")
+var _return = flag.Bool("return", false, "line feed after each frame")
 
 var leds = flag.Int("leds", 60, "number of leds for virtual streams (use with -yaml)")
 var fps = flag.Int("fps", 60, "fps")
