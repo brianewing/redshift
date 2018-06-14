@@ -90,11 +90,17 @@ type SystemExclusiveCmd uint8
 
 const (
 	CmdWelcome = iota
+
 	CmdOpenStream
 	CmdCloseStream
 	CmdSetStreamFps
+
 	CmdSetEffectsJson
 	CmdSetEffectsStreamFps
+	CmdSetEffectsYaml
+
+	CmdAppendEffectsJson
+	CmdAppendEffectsYaml
 )
 
 type SystemExclusive struct {
