@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/brianewing/redshift/strip"
 	"net"
 	"log"
 )
@@ -9,7 +10,7 @@ type OpcServer struct {
 	Messages chan OpcMessage
 }
 
-func RunOpcServer(addr string, buffer [][]uint8) {
+func RunOpcServer(addr string, buffer strip.Buffer) {
 	s := &OpcServer{Messages: make(chan OpcMessage)}
 	go func() {
 		for {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/brianewing/redshift/animator"
 	"github.com/brianewing/redshift/osc"
+	"github.com/brianewing/redshift/strip"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
@@ -12,7 +13,7 @@ import (
 
 type webServer struct {
 	animator *animator.Animator
-	buffer   [][]uint8
+	buffer   strip.Buffer
 
 	server   *http.Server
 	upgrader *websocket.Upgrader
@@ -20,7 +21,7 @@ type webServer struct {
 	http.Handler
 }
 
-func RunWebServer(addr string, animator *animator.Animator, buffer [][]uint8) {
+func RunWebServer(addr string, animator *animator.Animator, buffer strip.Buffer) {
 	s := &webServer{
 		animator: animator,
 		buffer:   buffer,
