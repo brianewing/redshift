@@ -1,11 +1,6 @@
 package strip
 
-import (
-	"bytes"
-	"strconv"
-)
-
-type Buffer [][]uint8
+type Buffer []LED
 
 func NewBuffer(size int) Buffer {
 	buffer := make(Buffer, size)
@@ -17,6 +12,29 @@ func (b Buffer) Clear() {
 	for i := range b {
 		b[i] = []uint8{0, 0, 0}
 	}
+}
+
+// returns a new slice containing the data in buffer rotated by n
+func (b Buffer) Rotate(n int, reverse bool) Buffer {
+	if reverse {
+		head, tail := b[0:n], b[n:]
+		return append(tail, head...)
+	} else {
+		head, tail := b[:len(b)-n], b[len(b)-n:]
+		return append(tail, head...)
+	}
+}
+
+// returns a subset of buffer (n evenly-spaced elements)
+func (b Buffer) Sample(n int) Buffer {
+	subset := make(Buffer, n)
+	if n > 0 {
+		step := len(b) / n
+		for i := 0; i < n; i++ {
+			subset[i] = b[i*step]
+		}
+	}
+	return subset
 }
 
 func (b Buffer) MarshalBytes() []byte {
@@ -37,24 +55,4 @@ func (b Buffer) UnmarshalBytes(bytes []byte) {
 		}
 		b[i / 3][i % 3] = val
 	}
-}
-
-func (b *Buffer) MarshalJSON() ([]byte, error) {
-	var tmp bytes.Buffer
-	tmp.WriteRune('[')
-	for i, led := range *b {
-		if i != 0 {
-			tmp.WriteRune(',')
-		}
-		tmp.WriteRune('[')
-		for j, val := range led {
-			if j != 0 {
-				tmp.WriteRune(',')
-			}
-			tmp.WriteString(strconv.Itoa(int(val)))
-		}
-		tmp.WriteRune(']')
-	}
-	tmp.WriteRune(']')
-	return tmp.Bytes(), nil
 }

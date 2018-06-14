@@ -3,13 +3,13 @@ package effects
 import "github.com/brianewing/redshift/strip"
 
 type Stripe struct {
-	Color []uint8
+	Color strip.LED
 	N     int
 }
 
 func NewStripe() *Stripe {
 	return &Stripe{
-		Color: []uint8{255, 255, 255},
+		Color: strip.LED{255, 255, 255},
 		N: 2,
 	}
 }

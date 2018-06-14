@@ -12,7 +12,7 @@ type RainbowEffect struct {
 	Reverse bool
 	Blend   Blend
 
-	wheel [][]uint8
+	wheel   strip.Buffer
 }
 
 func NewRainbowEffect() *RainbowEffect {
@@ -31,25 +31,22 @@ func (e *RainbowEffect) Render(s *strip.LEDStrip) {
 	steps := e.Size * e.Depth
 
 	if e.wheel == nil || len(e.wheel) != int(steps) {
-		e.wheel = generateWheel(steps)
+		e.wheel = strip.Buffer(generateWheel(steps))
 	}
 
 	phase := round(CycleBetween(0, float64(len(e.wheel)), e.Speed))
 
-	rotatedWheel := rotateBuffer(e.wheel, phase, e.Reverse)
-	sampledWheel := sampleBuffer(rotatedWheel, int(e.Size))
-
-	e.Blend.Buffer = sampledWheel
+	e.Blend.Buffer = e.wheel.Rotate(phase, false).Sample(e.Size)
 	e.Blend.Render(s)
 }
 
-func generateWheel(size int) [][]uint8 {
-	wheel := make([][]uint8, size)
+func generateWheel(size int) strip.Buffer {
+	wheel := make(strip.Buffer, size)
 
 	for i := range wheel {
 		hue := float64(i) / float64(size) * 360
 		r, g, b := colorful.Hsv(hue, 1, 1).RGB255()
-		wheel[i] = []uint8{r, g, b}
+		wheel[i] = strip.LED{r, g, b}
 	}
 
 	return wheel

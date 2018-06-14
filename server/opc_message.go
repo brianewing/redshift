@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/brianewing/redshift/strip"
 	"encoding/binary"
 	"errors"
 	"io"
@@ -25,7 +26,7 @@ func (m OpcMessage) Bytes() []byte {
 	return append(bytes, m.Data...)
 }
 
-func (m OpcMessage) WritePixels(buffer [][]uint8) {
+func (m OpcMessage) WritePixels(buffer strip.Buffer) {
 	for i, val := range m.Data {
 		if len(buffer) == i/3 {
 			break
