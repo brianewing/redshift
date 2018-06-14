@@ -55,10 +55,23 @@ func (s *OpcSession) Receive(msg OpcMessage) error {
 			fps := msg.SystemExclusive.Data[0]
 			stream.SetEffectsFps(fps)
 		case CmdSetEffectsJson:
-			var newEffects effects.EffectSet
-			json.Unmarshal(msg.SystemExclusive.Data, &newEffects)
+			newEffects, _ := effects.UnmarshalJSON(msg.SystemExclusive.Data)
 			stream := s.streams[msg.Channel]
 			stream.animator.SetEffects(newEffects)
+		case CmdSetEffectsYaml:
+			newEffects, _ := effects.UnmarshalYAML(msg.SystemExclusive.Data)
+			stream := s.streams[msg.Channel]
+			stream.animator.SetEffects(newEffects)
+		case CmdAppendEffectsJson:
+			newEffects, _ := effects.UnmarshalJSON(msg.SystemExclusive.Data)
+			newEffects.Init()
+			stream := s.streams[msg.Channel]
+			stream.animator.Effects = append(stream.animator.Effects, newEffects...)
+		case CmdAppendEffectsYaml:
+			newEffects, _ := effects.UnmarshalYAML(msg.SystemExclusive.Data)
+			newEffects.Init()
+			stream := s.streams[msg.Channel]
+			stream.animator.Effects = append(stream.animator.Effects, newEffects...)
 		default:
 			println("dont know how to handle system cmd", strconv.Itoa(int(msg.SystemExclusive.Command)))
 		}
