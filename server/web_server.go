@@ -8,6 +8,7 @@ import (
 	"github.com/brianewing/redshift/strip"
 	"github.com/gorilla/websocket"
 	"log"
+	"sync"
 	"net/http"
 )
 
@@ -62,7 +63,7 @@ func (s *webServer) serveWebSocket(w http.ResponseWriter, r *http.Request) {
 		log.Print("WS websocket client connected (", r.URL, ") [", c.RemoteAddr().String(), "]")
 	}
 
-	opcSession := &OpcSession{animator: s.animator, client: websocketOpcWriter{Conn: c}}
+	opcSession := &OpcSession{animator: s.animator, client: &websocketOpcWriter{Conn: c}}
 	s.readOpcMessages(c, opcSession)
 
 	opcSession.Close()
@@ -83,9 +84,13 @@ func (s *webServer) readOpcMessages(c *websocket.Conn, opcSession *OpcSession) {
 
 type websocketOpcWriter struct {
 	*websocket.Conn
+	sync.Mutex
 }
 
-func (w websocketOpcWriter) WriteOpc(msg OpcMessage) error {
+func (w *websocketOpcWriter) WriteOpc(msg OpcMessage) error {
+	w.Lock()
+	defer w.Unlock()
+
 	return w.WriteMessage(websocket.BinaryMessage, msg.Bytes())
 }
 
