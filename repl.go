@@ -8,6 +8,7 @@ import (
 	"github.com/robertkrimen/otto"
 	"os"
 	"reflect"
+	"runtime/pprof"
 	"strconv"
 	"strings"
 )
@@ -26,6 +27,9 @@ func repl(a *animator.Animator) {
 		switch cmd {
 		case "h", "help", "?":
 			println("(e) effects, (e.y) effects.yaml, (e.j) effects.json, (t) types, (a) add, (p) pop, (s) shift, (n) count")
+
+		case "goroutines":
+			pprof.Lookup("goroutine").WriteTo(os.Stdout, 1)
 
 		case ".":
 			jsVm.Set("a", a)
@@ -49,7 +53,7 @@ func repl(a *animator.Animator) {
 			println(string(yaml))
 
 		case "e.j", "effects.json":
-			json, _ := effects.MarshalJSON(a.Effects)
+			json, _ := json.MarshalIndent(a.Effects, "", "  ")
 			println(string(json))
 
 		case "t", "types":
@@ -71,6 +75,15 @@ func repl(a *animator.Animator) {
 		case "s", "shift":
 			a.Effects[0].Destroy()
 			a.Effects = a.Effects[1:]
+
+		case "u", "unshift":
+			var newEffect effects.EffectEnvelope
+			if err := newEffect.UnmarshalJSON([]byte(tail)); err != nil {
+				println(err.Error())
+			} else {
+				newEffect.Init()
+				a.Effects = append(effects.EffectSet{newEffect}, a.Effects...)
+			}
 
 		case "n", "count":
 			println(strconv.Itoa(len(a.Effects)) + " effects")
