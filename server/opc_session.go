@@ -42,6 +42,10 @@ func (s *OpcSession) Receive(msg OpcMessage) error {
 			} else {
 				return err
 			}
+		case CmdCloseStream:
+			stream := s.streams[msg.Channel]
+			stream.Close()
+			s.streams = append(s.streams[:msg.Channel], s.streams[msg.Channel+1:]...)
 		case CmdSetStreamFps:
 			stream := s.streams[msg.Channel]
 			fps := msg.SystemExclusive.Data[0]
