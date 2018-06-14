@@ -11,6 +11,10 @@ func (e *Switch) Init() {
 	e.Effects.Init()
 }
 
+func (e *Switch) Destroy() {
+	e.Effects.Destroy()
+}
+
 func (e *Switch) Render(s *strip.LEDStrip) {
 	if e.Selection < len(e.Effects) {
 		e.Effects[e.Selection].Render(s)
