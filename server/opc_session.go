@@ -7,7 +7,6 @@ import (
 	"github.com/brianewing/redshift/effects"
 	"github.com/brianewing/redshift/osc"
 	"github.com/brianewing/redshift/strip"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -29,7 +28,11 @@ type OpcSession struct {
 func (s *OpcSession) Receive(msg OpcMessage) error {
 	switch msg.Command {
 	case 0:
-		log.Println("got incoming pixels", msg)
+		if s.animator != nil {
+			s.animator.Strip.Lock()
+			msg.WritePixels(s.animator.Strip.Buffer)
+			s.animator.Strip.Unlock()
+		}
 	case 255:
 		switch msg.SystemExclusive.Command {
 		case CmdWelcome:
@@ -93,7 +96,6 @@ func (s *OpcSession) sendWelcome() error {
 	welcomeJson, _ := json.Marshal(map[string]interface{}{
 		"version": REDSHIFT_VERSION,
 		"started": startTime,
-		"uptime":  time.Now().Sub(startTime).Seconds(),
 	})
 	msg := OpcMessage{
 		Command: 255,
@@ -110,7 +112,7 @@ func (s *OpcSession) openStream(channel uint8, description string) (*opcStream, 
 	desc := strings.Fields(description)
 
 	switch desc[0] {
-	case "strip":
+	case "strip", "":
 		stream.animator = s.animator
 	case "virtual":
 		stream.virtual = true
