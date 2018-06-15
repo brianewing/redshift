@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/brianewing/redshift/animator"
 	"github.com/brianewing/redshift/effects"
+	"github.com/brianewing/redshift/osc"
 	"github.com/robertkrimen/otto"
 	"os"
 	"reflect"
@@ -87,6 +88,15 @@ func repl(a *animator.Animator) {
 
 		case "n", "count":
 			println(strconv.Itoa(len(a.Effects)) + " effects")
+
+		case "osc":
+			summary := osc.Summary()
+			oscJson, _ := json.MarshalIndent(summary, "", "  ")
+			println("Summary:")
+			println(string(oscJson))
+
+		case "osc.c":
+			osc.ClearSummary()
 
 		default:
 			println("?")
