@@ -72,7 +72,7 @@ func main() {
 
 	go server.RunWebServer(*httpAddr, animator, wssBuffer)
 	go server.RunWebDavServer(*davAddr, *scriptsDir)
-	go server.RunOpcServer(*opcAddr, opcBuffer)
+	go server.RunOpcServer(*opcAddr, animator, opcBuffer)
 	go server.RunOscServer(*oscAddr)
 
 	go repl(animator)

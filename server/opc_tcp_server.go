@@ -1,24 +1,19 @@
 package server
 
 import (
+	"github.com/brianewing/redshift/animator"
 	"github.com/brianewing/redshift/strip"
 	"net"
 	"log"
 )
 
 type OpcServer struct {
-	Messages chan OpcMessage
+	animator *animator.Animator
+	buffer strip.Buffer
 }
 
-func RunOpcServer(addr string, buffer strip.Buffer) {
-	s := &OpcServer{Messages: make(chan OpcMessage)}
-	go func() {
-		for {
-			if msg := <-s.Messages; msg.Command == 0 {
-				msg.WritePixels(buffer)
-			}
-		}
-	}()
+func RunOpcServer(addr string, animator *animator.Animator, buffer strip.Buffer) {
+	s := &OpcServer{animator: animator, buffer: buffer}
 	log.Fatalln("OPC", s.ListenAndServe("tcp", addr))
 }
 
@@ -40,13 +35,29 @@ func (s *OpcServer) ListenAndServe(protocol string, port string) error {
 }
 
 func (s *OpcServer) readMessages(conn net.Conn) {
+	opcSession := &OpcSession{animator: s.animator, client: opcTcpWriter{Conn: conn}}
 	for {
 		msg, err := ReadOpcMessage(conn)
 		if err != nil {
 			log.Println("OPC client read error", conn.RemoteAddr(), err)
 			break
 		}
-		s.Messages <- msg
+
+		if msg.Command == 0 {
+			msg.WritePixels(s.buffer)
+		} else {
+			opcSession.Receive(msg)
+		}
 	}
+	opcSession.Close()
 	conn.Close()
+}
+
+type opcTcpWriter struct {
+	net.Conn
+}
+
+func (w opcTcpWriter) WriteOpc(msg OpcMessage) (error) {
+	_, err := w.Conn.Write(msg.Bytes())
+	return err
 }
