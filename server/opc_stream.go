@@ -64,6 +64,8 @@ func (s *opcStream) Run(w OpcWriter) {
 			if newFps > 0 {
 				pixelTicker = time.NewTicker(time.Second / time.Duration(newFps))
 				pixelChan = pixelTicker.C
+			} else {
+				s.WritePixels(w)
 			}
 
 		case newEffectsFps := <-s.effectsFpsChange:
@@ -73,6 +75,8 @@ func (s *opcStream) Run(w OpcWriter) {
 			if newEffectsFps > 0 {
 				effectsTicker = time.NewTicker(time.Second / time.Duration(newEffectsFps))
 				effectsChan = effectsTicker.C
+			} else {
+				s.WriteEffects(w)
 			}
 
 		case <-s.stop:
