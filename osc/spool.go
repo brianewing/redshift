@@ -3,6 +3,7 @@ package osc
 import (
 	"log"
 	"sync"
+	"time"
 )
 
 // This is a bit of a hack, could be improved with better architecture
@@ -43,6 +44,10 @@ func removeWhenDone(msgs chan OscMessage, done chan struct{}) {
 }
 
 func ReceiveMessage(msg OscMessage) {
+	if msg.Timestamp.IsZero() {
+		msg.Timestamp = time.Now()
+	}
+
 	spool.Lock()
 	for _, c := range spool.listeners {
 		c <- msg
@@ -51,10 +56,12 @@ func ReceiveMessage(msg OscMessage) {
 }
 
 func init() {
+	go debugOscMessages()
+}
+
+func debugOscMessages() {
 	debugStream, _ := StreamMessages()
-	go func() {
-		for msg := range debugStream {
-			log.Println("Incoming OSC message:", msg.Address, msg.Arguments)
-		}
-	}()
+	for msg := range debugStream {
+		log.Println("Incoming OSC message:", msg.Address, msg.Arguments)
+	}
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/brianewing/redshift/animator"
 	"github.com/brianewing/redshift/effects"
+	"github.com/brianewing/redshift/osc"
 	"github.com/brianewing/redshift/strip"
 	"log"
 	"strconv"
@@ -33,6 +34,11 @@ func (s *OpcSession) Receive(msg OpcMessage) error {
 		switch msg.SystemExclusive.Command {
 		case CmdWelcome:
 			s.sendWelcome() // confirms successful connection by sending server info
+		case CmdOscSummary:
+			s.sendOscSummary(msg.Channel) // identifies which osc addresses are receiving msgs
+		case CmdClearOscSummary:
+			osc.ClearSummary()
+			s.sendOscSummary(msg.Channel)
 		case CmdOpenStream:
 			channel := msg.Channel
 			description := string(msg.SystemExclusive.Data)
@@ -122,6 +128,20 @@ func (s *OpcSession) openStream(channel uint8, description string) (*opcStream, 
 
 	go stream.Run(s.client)
 	return stream, nil
+}
+
+func (s *OpcSession) sendOscSummary(channel uint8) {
+	oscMsgs := osc.Summary()
+	jsonBytes, _ := json.Marshal(oscMsgs)
+
+	s.client.WriteOpc(OpcMessage{
+		Channel: channel,
+		Command: 255,
+		SystemExclusive: SystemExclusive{
+			Command: CmdOscSummary,
+			Data: jsonBytes,
+		},
+	})
 }
 
 func (s *OpcSession) Close() {

@@ -101,6 +101,9 @@ const (
 
 	CmdAppendEffectsJson
 	CmdAppendEffectsYaml
+
+	CmdOscSummary
+	CmdClearOscSummary
 )
 
 type SystemExclusive struct {
