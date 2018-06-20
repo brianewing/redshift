@@ -1,4 +1,4 @@
-package server
+package opc
 
 import (
 	"encoding/json"
@@ -14,24 +14,24 @@ import (
 
 var REDSHIFT_VERSION = "0.1.0"
 
-type OpcWriter interface {
-	WriteOpc(msg OpcMessage) error
+type Writer interface {
+	WriteOpc(msg Message) error
 }
 
-type OpcSession struct {
-	client OpcWriter
+type Session struct {
+	Animator *animator.Animator
+	Client   Writer
 
-	animator *animator.Animator
-	streams  []*opcStream
+	streams []*opcStream
 }
 
-func (s *OpcSession) Receive(msg OpcMessage) error {
+func (s *Session) Receive(msg Message) error {
 	switch msg.Command {
 	case 0:
-		if s.animator != nil {
-			s.animator.Strip.Lock()
-			msg.WritePixels(s.animator.Strip.Buffer)
-			s.animator.Strip.Unlock()
+		if s.Animator != nil {
+			s.Animator.Strip.Lock()
+			msg.WritePixels(s.Animator.Strip.Buffer)
+			s.Animator.Strip.Unlock()
 		}
 	case 255:
 		switch msg.SystemExclusive.Command {
@@ -92,28 +92,28 @@ func (s *OpcSession) Receive(msg OpcMessage) error {
 
 var startTime = time.Now()
 
-func (s *OpcSession) sendWelcome() error {
+func (s *Session) sendWelcome() error {
 	welcomeJson, _ := json.Marshal(map[string]interface{}{
 		"version": REDSHIFT_VERSION,
 		"started": startTime,
 	})
-	msg := OpcMessage{
+	msg := Message{
 		Command: 255,
 		SystemExclusive: SystemExclusive{
 			Command: CmdWelcome,
 			Data:    welcomeJson,
 		},
 	}
-	return s.client.WriteOpc(msg)
+	return s.Client.WriteOpc(msg)
 }
 
-func (s *OpcSession) openStream(channel uint8, description string) (*opcStream, error) {
+func (s *Session) openStream(channel uint8, description string) (*opcStream, error) {
 	stream := NewOpcStream(channel)
 	desc := strings.Fields(description)
 
 	switch desc[0] {
 	case "strip", "":
-		stream.animator = s.animator
+		stream.animator = s.Animator
 	case "virtual":
 		stream.virtual = true
 		stream.animator = &animator.Animator{}
@@ -128,25 +128,25 @@ func (s *OpcSession) openStream(channel uint8, description string) (*opcStream, 
 		stream.animator.Strip = strip.New(numLeds)
 	}
 
-	go stream.Run(s.client)
+	go stream.Run(s.Client)
 	return stream, nil
 }
 
-func (s *OpcSession) sendOscSummary(channel uint8) {
+func (s *Session) sendOscSummary(channel uint8) {
 	oscMsgs := osc.Summary()
 	jsonBytes, _ := json.Marshal(oscMsgs)
 
-	s.client.WriteOpc(OpcMessage{
+	s.Client.WriteOpc(Message{
 		Channel: channel,
 		Command: 255,
 		SystemExclusive: SystemExclusive{
 			Command: CmdOscSummary,
-			Data: jsonBytes,
+			Data:    jsonBytes,
 		},
 	})
 }
 
-func (s *OpcSession) Close() {
+func (s *Session) Close() {
 	for _, stream := range s.streams {
 		stream.Close()
 	}

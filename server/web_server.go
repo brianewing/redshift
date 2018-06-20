@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/brianewing/redshift/animator"
+	"github.com/brianewing/redshift/opc"
 	"github.com/brianewing/redshift/osc"
 	"github.com/brianewing/redshift/strip"
 	"github.com/gorilla/websocket"
@@ -63,18 +64,18 @@ func (s *webServer) serveWebSocket(w http.ResponseWriter, r *http.Request) {
 		log.Print("WS websocket client connected (", r.URL, ") [", c.RemoteAddr().String(), "]")
 	}
 
-	opcSession := &OpcSession{animator: s.animator, client: &websocketOpcWriter{Conn: c}}
+	opcSession := &opc.Session{Animator: s.animator, Client: &websocketOpcWriter{Conn: c}}
 	s.readOpcMessages(c, opcSession)
 
 	opcSession.Close()
 }
 
-func (s *webServer) readOpcMessages(c *websocket.Conn, opcSession *OpcSession) {
+func (s *webServer) readOpcMessages(c *websocket.Conn, opcSession *opc.Session) {
 	for {
 		if _, data, err := c.ReadMessage(); err != nil {
 			log.Println("WS websocket opc read error:", err)
 			break
-		} else if msg, err := ReadOpcMessage(bytes.NewReader(data)); err != nil {
+		} else if msg, err := opc.ReadMessage(bytes.NewReader(data)); err != nil {
 			log.Println("WS websocket opc parse error:", err)
 		} else if err := opcSession.Receive(msg); err != nil {
 			log.Println("WS websocket opc handle error:", err)
@@ -87,7 +88,7 @@ type websocketOpcWriter struct {
 	sync.Mutex
 }
 
-func (w *websocketOpcWriter) WriteOpc(msg OpcMessage) error {
+func (w *websocketOpcWriter) WriteOpc(msg opc.Message) error {
 	w.Lock()
 	defer w.Unlock()
 
