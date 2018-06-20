@@ -7,8 +7,8 @@ notes.txt
 /redshift*
 
 # effect config 
-/effects*.json
-/effects*.yaml
+/*.json
+/*.yaml
 
 # user scripts dir
 /scripts
