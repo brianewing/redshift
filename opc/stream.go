@@ -1,4 +1,4 @@
-package server
+package opc
 
 import (
 	"encoding/json"
@@ -38,7 +38,7 @@ func (s *opcStream) SetEffectsFps(fps uint8) {
 	s.effectsFpsChange <- fps
 }
 
-func (s *opcStream) Run(w OpcWriter) {
+func (s *opcStream) Run(w Writer) {
 	var pixelTicker *time.Ticker
 	var pixelChan <-chan time.Time
 
@@ -94,11 +94,11 @@ func (s *opcStream) Run(w OpcWriter) {
 	}
 }
 
-func (s *opcStream) WritePixels(w OpcWriter) error {
+func (s *opcStream) WritePixels(w Writer) error {
 	s.animator.Strip.Lock()
 	pixels := s.animator.Strip.MarshalBytes()
 	s.animator.Strip.Unlock()
-	msg := OpcMessage{
+	msg := Message{
 		Channel: s.channel,
 		Command: 0, // write pixels
 		Length:  uint16(len(pixels)),
@@ -107,11 +107,11 @@ func (s *opcStream) WritePixels(w OpcWriter) error {
 	return w.WriteOpc(msg)
 }
 
-func (s *opcStream) WriteEffects(w OpcWriter) error {
+func (s *opcStream) WriteEffects(w Writer) error {
 	if effectsJson, err := json.Marshal(s.animator.Effects); err != nil {
 		return err
 	} else {
-		msg := OpcMessage{
+		msg := Message{
 			Channel: s.channel,
 			Command: 255, // system exclusive
 			SystemExclusive: SystemExclusive{

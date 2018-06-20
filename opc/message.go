@@ -1,4 +1,4 @@
-package server
+package opc
 
 import (
 	"github.com/brianewing/redshift/strip"
@@ -7,7 +7,7 @@ import (
 	"io"
 )
 
-type OpcMessage struct {
+type Message struct {
 	Channel, Command uint8
 	Length           uint16
 	Data             []byte
@@ -15,7 +15,7 @@ type OpcMessage struct {
 	SystemExclusive SystemExclusive
 }
 
-func (m OpcMessage) Bytes() []byte {
+func (m Message) Bytes() []byte {
 	bytes := []byte{m.Channel, m.Command, 0, 0}
 	if m.Command == 255 {
 		sysex := m.SystemExclusive.Bytes()
@@ -26,7 +26,7 @@ func (m OpcMessage) Bytes() []byte {
 	return append(bytes, m.Data...)
 }
 
-func (m OpcMessage) WritePixels(buffer strip.Buffer) {
+func (m Message) WritePixels(buffer strip.Buffer) {
 	for i, val := range m.Data {
 		if len(buffer) == i/3 {
 			break
@@ -35,9 +35,9 @@ func (m OpcMessage) WritePixels(buffer strip.Buffer) {
 	}
 }
 
-func ReadOpcMessage(r io.Reader) (OpcMessage, error) {
+func ReadMessage(r io.Reader) (Message, error) {
 	// message format : [channel, command, length high byte, length low byte, data...]
-	msg := OpcMessage{}
+	msg := Message{}
 
 	header := make([]byte, 4)
 	bytesRead, err := r.Read(header)
