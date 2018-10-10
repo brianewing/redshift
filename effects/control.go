@@ -363,7 +363,7 @@ func setValue(field reflect.Value, newVal interface{}) error {
 		case bool:
 			field.SetBool(bool(v.(bool)))
 		default:
-			return errors.New("can't set field (unknown type: " + field.Type().String())
+			return errors.New("can't set field (unknown type: " + field.Type().String() + ")")
 		}
 		return nil
 	} else {
