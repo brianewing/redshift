@@ -8,13 +8,13 @@ type Effect interface {
 	Render(strip *strip.LEDStrip)
 }
 
-type Initable interface { Init() }
-type Destroyable interface { Destroy() }
+type Initable interface{ Init() }
+type Destroyable interface{ Destroy() }
 
 type EffectEnvelope struct {
-	Effect
 	Controls ControlSet
 	Disabled bool
+	Effect
 }
 
 func (e *EffectEnvelope) Init() {
@@ -69,10 +69,10 @@ func NewByName(name string) Effect {
 	switch name {
 	case "BlueEffect":
 		return NewBlueEffect()
+	case "Buffer", "Blend":
+		return NewBlend()
 	case "Brightness":
 		return NewBrightness()
-	case "Blend":
-		return &Blend{}
 	case "Clear":
 		return &Clear{}
 	case "External":
