@@ -7,16 +7,39 @@ import (
 	"github.com/brianewing/redshift/effects"
 	"github.com/brianewing/redshift/osc"
 	"github.com/robertkrimen/otto"
+	"io"
+	"net"
 	"os"
 	"reflect"
+	"runtime"
 	"runtime/pprof"
 	"strconv"
 	"strings"
 )
 
-func repl(a *animator.Animator) {
-	scanner := bufio.NewScanner(os.Stdin)
+func RunReplServer(address string, animator *animator.Animator) error {
+	s, _ := net.Listen("tcp", address)
+	for {
+		if client, err := s.Accept(); err == nil {
+      go repl(animator, client)
+    } else {
+      return err
+    }
+	}
+  return nil
+}
+
+func repl(a *animator.Animator, client io.ReadWriter) {
+	scanner := bufio.NewScanner(client)
 	jsVm := otto.New()
+
+	print := func(response string) {
+		io.WriteString(client, response)
+	}
+
+	println := func(response string) {
+		io.WriteString(client, response+"\n")
+	}
 
 	for scanner.Scan() {
 		input := scanner.Text()
@@ -28,11 +51,29 @@ func repl(a *animator.Animator) {
 		switch cmd {
 		case "h", "help", "?":
 			println("(e) effects, (e.y) effects.yaml, (e.j) effects.json, (t) types, (a) add, (p) pop, (s) shift, (n) count")
+			if len(words) > 1 {
+				println("dev: (g|g.n) goroutines, (m|m.n) mutexes, (h|h.n) heap, (osc|osc.c) osc, (.) eval, (q) quit")
+			}
 
-		case "goroutines":
+		case "gc!":
+			runtime.GC()
+
+		case "g", "goroutines":
 			pprof.Lookup("goroutine").WriteTo(os.Stdout, 1)
+		case "g.n":
+			println(strconv.Itoa(pprof.Lookup("goroutine").Count()) + " goroutines")
 
-		case ".":
+		case "m", "mutexes":
+			pprof.Lookup("mutex").WriteTo(os.Stdout, 1)
+		case "m.n":
+			println(strconv.Itoa(pprof.Lookup("mutex").Count()) + " mutexes")
+
+		case "heap":
+			pprof.Lookup("heap").WriteTo(os.Stdout, 1)
+		case "h.n":
+			println(strconv.Itoa(pprof.Lookup("heap").Count()) + " heaps")
+
+		case ".", "eval":
 			jsVm.Set("a", a)
 			jsVm.Set("fx", a.Effects)
 
@@ -92,7 +133,7 @@ func repl(a *animator.Animator) {
 		case "osc":
 			summary := osc.Summary()
 			oscJson, _ := json.MarshalIndent(summary, "", "  ")
-			println("Summary:")
+			print("Summary: ")
 			println(string(oscJson))
 
 		case "osc.c":
@@ -105,4 +146,6 @@ func repl(a *animator.Animator) {
 		}
 		print("> ")
 	}
+
+	println("repl done")
 }

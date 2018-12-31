@@ -12,18 +12,18 @@ func NewStrobe() *Strobe {
 }
 
 func (e *Strobe) Render(s *strip.LEDStrip) {
-	if e.shouldBlank() {
+	if e.shouldBeOff() {
 		s.Clear()
 	}
 	e.i++
 }
 
-func (e *Strobe) shouldBlank() bool {
+func (e *Strobe) shouldBeOff() bool {
 	if e.N == 0 {
 		return false
 	} else if e.Reverse {
-		return e.i%e.N != 0
-	} else {
 		return e.i%e.N == 0
+	} else {
+		return e.i%e.N != 0
 	}
 }

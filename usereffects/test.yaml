@@ -1,0 +1,4 @@
+- Type: Clear
+- Type: External
+  Params:
+    Program: scripts/New

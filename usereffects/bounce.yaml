@@ -1,0 +1,11 @@
+- Type: Clear
+
+- Type: Mirror
+  Effect:
+    Effects:
+    - Type: External
+      Effect:
+        Program: scripts/bouncingballs.js
+    - Type: LarsonEffect
+
+- Type: Mirror

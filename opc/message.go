@@ -1,9 +1,9 @@
 package opc
 
 import (
-	"github.com/brianewing/redshift/strip"
 	"encoding/binary"
 	"errors"
+	"github.com/brianewing/redshift/strip"
 	"io"
 )
 
@@ -53,19 +53,23 @@ func ReadMessage(r io.Reader) (Message, error) {
 	msg.Length = binary.BigEndian.Uint16(header[2:4])
 
 	msg.Data = make([]byte, msg.Length)
-	bytesRead, err = r.Read(msg.Data)
+
+	if bytesRead, err = r.Read(msg.Data); err != nil {
+		return msg, err
+	} else if bytesRead != int(msg.Length) {
+		return msg, errors.New("data length mismatch")
+	}
 
 	if msg.Command == 255 {
 		if len(msg.Data) < 2 {
-			return msg, errors.New("missing sysex data")
+			return msg, errors.New("missing sysex system id")
+		} else if len(msg.Data) < 3 {
+			return msg, errors.New("missing sysex command")
 		}
 
 		msg.SystemExclusive.SystemId = binary.BigEndian.Uint16(msg.Data[0:2])
 
 		if msg.SystemExclusive.SystemId == OpcSystemId {
-			if len(msg.Data) < 3 {
-				return msg, errors.New("missing sysex command byte")
-			}
 			msg.SystemExclusive.Command = SystemExclusiveCmd(msg.Data[2])
 			msg.SystemExclusive.Data = msg.Data[3:]
 		} else {
@@ -73,13 +77,7 @@ func ReadMessage(r io.Reader) (Message, error) {
 		}
 	}
 
-	if err != nil {
-		return msg, err
-	} else if bytesRead != int(msg.Length) {
-		return msg, errors.New("data length mismatch")
-	} else {
-		return msg, nil
-	}
+	return msg, nil
 }
 
 // System exclusive messages
@@ -89,7 +87,7 @@ const OpcSystemId uint16 = 65535
 type SystemExclusiveCmd uint8
 
 const (
-	CmdWelcome = iota
+	CmdWelcome SystemExclusiveCmd = iota
 
 	CmdOpenStream
 	CmdCloseStream
@@ -104,6 +102,8 @@ const (
 
 	CmdOscSummary
 	CmdClearOscSummary
+
+	CmdErrorOccurred
 )
 
 type SystemExclusive struct {

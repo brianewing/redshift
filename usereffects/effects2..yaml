@@ -1,0 +1,84 @@
+- Type: Toggle
+  Effect:
+    Effects:
+      - Type: Fill
+        Effect:
+          Color: [255, 0, 0]
+  Controls:
+    - Type: OscControl
+      Control:
+        Field: Enabled
+        Address: /toggl1
+        Transform: "!!v"
+
+- Type: Toggle
+  Effect:
+    Effects:
+      - Type: Stripe
+        Effect:
+          N: 2
+        Controls:
+          - Type: OscControl
+            Control:
+              Field: "N"
+              Address: /pad
+              Argument: 0
+              Transform: "+v/4+2"
+  Controls:
+    - Type: OscControl
+      Control:
+        Field: Enabled
+        Address: /toggle
+        Transform: "!!v"
+
+- Type: LarsonEffect
+  Effect:
+    # Color: [0, 255, 255]
+    Width: 3
+  Controls:
+    - Type: OscControl
+      Control:
+        Field: Position
+        Address: /pad
+        Argument: 0
+        Transform: "+(v/100*80)"
+
+- Type: Layer
+  Effect:
+    Effects:
+      - Type: Mirror
+        Effect:
+          Effects:
+            - Type: RainbowEffect
+              Effect:
+                Size: 100
+                Speed: 1
+              Controls:
+                - Type: OscControl
+                  Control:
+                    Field: Speed
+                    Address: /hslider
+                    Transform: v*3
+                - Type: OscControl
+                  Control:
+                    Field: Size
+                    Address: /vslider0
+                    Transform: +v*100
+                - Type: TweenControl
+                  Control:
+                    Field: Size
+                    Max: 300
+                    Speed: 0.05
+                    Function: sin
+  Controls:
+    - Type: OscControl
+      Control:
+        Field: BlendFactor
+        Address: /pad
+        Argument: 1
+        Transform: "v/100+0.05"
+        Min: 10
+        Max: 255
+        Speed: 0.1
+        Function: sin
+        # Transform: "v/255.0"

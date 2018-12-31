@@ -35,9 +35,7 @@ func (e *EffectEnvelope) Render(strip *strip.LEDStrip) {
 	if e.Disabled {
 		return
 	}
-	// apply controls
 	e.Controls.Apply(e.Effect)
-	// render effect
 	e.Effect.Render(strip)
 }
 
@@ -57,6 +55,10 @@ func (s EffectSet) Destroy() {
 
 func (s EffectSet) Render(strip *strip.LEDStrip) {
 	for _, effect := range s {
+		if effect.Effect == nil {
+			println("wtf...")
+			continue
+		}
 		effect.Render(strip)
 	}
 }
@@ -75,10 +77,14 @@ func NewByName(name string) Effect {
 		return NewBrightness()
 	case "Clear":
 		return &Clear{}
+	case "Channels":
+		return NewChannels()
 	case "External":
 		return &External{}
 	case "Fill":
 		return &Fill{}
+	case "Gamma":
+		return NewGamma()
 	case "Greyscale":
 		return &Greyscale{}
 	case "Layer":
@@ -93,14 +99,20 @@ func NewByName(name string) Effect {
 		return NewRainbowEffect()
 	case "RandomEffect":
 		return &RandomEffect{}
+	case "Script":
+		return &Script{}
 	case "Stripe":
 		return NewStripe()
 	case "Strobe":
 		return NewStrobe()
+	case "Slideshow":
+		return NewSlideshow()
 	case "Switch":
 		return &Switch{}
 	case "Toggle":
 		return &Toggle{}
+	case "Wheee":
+		return NewWheee()
 	default:
 		return &Null{}
 	}
@@ -112,8 +124,10 @@ func Names() []string {
 		"Brightness",
 		"Buffer",
 		"Clear",
+		"Channels",
 		"External",
 		"Fill",
+		"Gamma",
 		"Greyscale",
 		"Layer",
 		"LarsonEffect",
@@ -122,9 +136,12 @@ func Names() []string {
 		"Null",
 		"RainbowEffect",
 		"RandomEffect",
+		"Script",
 		"Stripe",
 		"Strobe",
+		"Slideshow",
 		"Switch",
 		"Toggle",
+		"Wheee",
 	}
 }

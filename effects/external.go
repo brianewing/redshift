@@ -15,49 +15,48 @@ const PIPE_SIZE = 65536
 // todo: write tests / benchmarks
 
 type External struct {
-	Program   string
-	Args      []string
-	Shellhack bool
+	Program string
+	Args    []string
 
-	cmd         *exec.Cmd
+	WatchForChanges bool
+	IsShellScript   bool
+
+	watcher *fsnotify.Watcher
+
+	cmd    *exec.Cmd
+	stdin  io.Writer
+	stdout io.Reader
+
 	halted      bool
-	stdin       io.Writer
-	stdout      io.Reader
-	watcher     *fsnotify.Watcher
 	reloadMutex sync.Mutex
 }
 
-func (e *External) Render(s *strip.LEDStrip) {
-	e.reloadMutex.Lock()
+func (e *External) Init() {
+	e.startProcess()
 
-	if e.cmd == nil && !e.halted {
-		//log.Println(e.logPrefix(), "Starting process")
-		e.startProcess()
-	}
-	if e.watcher == nil {
-		log.Println(e.logPrefix(), "Watching for changes")
+	if e.WatchForChanges {
 		go e.watchForChanges()
 	}
+}
+
+func (e *External) Render(s *strip.LEDStrip) {
 	if e.halted {
-		e.reloadMutex.Unlock()
 		return
 	}
 
-	// write the buffer to the program's stdin, i.e. request a frame
-	e.sendFrame(s.Buffer)
-	// wait until the program replies, then copy its response into the strip buffer
-	e.readFrame(s.Buffer)
+	e.reloadMutex.Lock()
+
+	e.sendFrame(s.Buffer) // write the buffer to the program's stdin, i.e. request a frame
+	e.readFrame(s.Buffer) // wait until the program replies, then copy its response into the strip buffer
 
 	e.reloadMutex.Unlock()
 }
 
 func (e *External) Destroy() {
 	if e.cmd != nil {
-		log.Println(e.logPrefix(), "Killing process")
 		e.cmd.Process.Kill()
 	}
 	if e.watcher != nil {
-		log.Println(e.logPrefix(), "Stopping watcher")
 		e.watcher.Close()
 	}
 }
@@ -105,7 +104,8 @@ func (e *External) reload() {
 
 func (e *External) sendFrame(buffer strip.Buffer) {
 	frame := buffer.MarshalBytes()
-	if e.Shellhack {
+	if e.IsShellScript {
+		// shell scripts can't process null bytes so we change them to \001
 		for i, byte := range frame {
 			if byte == 0 {
 				frame[i] = 1
@@ -121,7 +121,7 @@ func (e *External) readFrame(buffer strip.Buffer) {
 		log.Println(e.logPrefix(), "stdout read error", err)
 		e.halted = true
 	} else {
-		//log.Println(e.logPrefix(), "got", n, "bytes", bytes[:n])
+		// log.Println(e.logPrefix(), "got", n, "bytes", bytes[:n])
 		buffer.UnmarshalBytes(bytes[:n])
 	}
 }

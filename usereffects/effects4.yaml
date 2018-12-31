@@ -1,0 +1,42 @@
+- Type: Clear
+
+- Type: Fill
+  Params:
+    Color: [ 1, 1, 1 ]
+
+- Type: BlueEffect
+  Params:
+    Speed: 0.5
+
+# - Type: LarsonEffect
+#   Params:
+#     Speed: 1
+#     Color: [ 255, 255, 255 ]
+
+# - Type: External
+#   Params:
+#     Program: scripts/rainbow.py
+
+- Type: Stripe
+  Params:
+    Color: [ 255, 255, 255 ]
+
+- Type: LarsonEffect
+  Params:
+    Speed: 1
+    Color: [ 255, 255, 255 ]
+
+- Type: RainbowEffect
+  Params:
+    Speed: 0.35
+    Size: 150
+
+# - Type: Brightness
+
+- Type: External
+  Params:
+    Program: scripts/Eyo
+
+# - Type: External
+#   Params:
+#     Program: scripts/Eyo

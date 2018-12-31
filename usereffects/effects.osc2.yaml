@@ -1,0 +1,8 @@
+- Type: RainbowEffect
+  Effect:
+    Size: 300
+    Depth: 30
+  Controls:
+    - Type: OscControl
+      Control:
+        Address: /vslider0

@@ -1,0 +1,11 @@
+- Type: RainbowEffect
+- Type: LarsonEffect
+  Effect:
+    Speed: 0
+  Controls:
+  - Type: OscControl
+    Control:
+      Field: Position
+      Address: /cursor
+      Argument: 2
+      Transform: "+(v*n)"

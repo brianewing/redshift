@@ -1,0 +1,159 @@
+- Controls: null
+  Disabled: false
+  Effect: {}
+  Type: Clear
+- Controls: null
+  Disabled: false
+  Effect:
+    Blend:
+      Factor: 0.5
+      Force: false
+      Func: rgb
+      Offset: 0
+      Reverse: false
+    Effects:
+    - Controls: null
+      Disabled: false
+      Effect:
+        Color:
+        - 255
+        - 255
+        - 255
+        "N": 2
+      Type: Stripe
+    - Controls:
+      - Control:
+          Address: /vslider1
+          Argument: 0
+          Debug: null
+          Field: Level
+          Initial: null
+          LastError: ""
+          Transform: +(v*255)
+        Controls: null
+        Type: OscControl
+      Disabled: false
+      Effect:
+        Func: hsl
+        Level: 255
+      Type: Brightness
+    - Controls: null
+      Disabled: false
+      Effect:
+        Args: null
+        Program: /usr/bin/tee
+        Shellhack: true
+      Type: External
+    - Controls: null
+      Disabled: false
+      Effect:
+        Speed: 1
+      Type: BlueEffect
+    Size: 60
+  Type: Layer
+- Controls: null
+  Disabled: false
+  Effect:
+    Blend:
+      Factor: 0.5
+      Force: false
+      Func: rgb
+      Offset: 0
+      Reverse: false
+    Effects:
+    - Controls: null
+      Disabled: false
+      Effect:
+        Args: null
+        Program: scripts/rainbow.py
+        Shellhack: false
+      Type: External
+    Size: 60
+  Type: Layer
+- Controls: null
+  Disabled: false
+  Effect:
+    Color:
+    - 0
+    - 0
+    - 0
+    Position: 43
+    Speed: 0.5
+    Width: 2
+  Type: LarsonEffect
+- Controls:
+  - Control:
+      Address: /multifader_1
+      Argument: 1
+      Debug: null
+      Field: Blend.Factor
+      Initial: null
+      LastError: ""
+      Transform: ""
+    Controls: null
+    Type: OscControl
+  Disabled: true
+  Effect:
+    Blend:
+      Factor: 0.9
+      Force: false
+      Func: rgb
+      Offset: 0
+      Reverse: false
+    Effects:
+    - Controls: null
+      Disabled: false
+      Effect:
+        Args: null
+        Program: scripts/example.py
+        Shellhack: false
+      Type: External
+    - Controls:
+      - Control:
+          Address: /vslider1
+          Argument: 0
+          Debug: null
+          Field: Level
+          Initial: 0
+          LastError: ""
+          Transform: +(255-(v*255))
+        Controls: null
+        Type: OscControl
+      Disabled: false
+      Effect:
+        Func: hsl
+        Level: 255
+      Type: Brightness
+    Size: 60
+  Type: Layer
+- Controls: null
+  Disabled: false
+  Effect:
+    Blend:
+      Factor: 0.5
+      Force: false
+      Func: rgb
+      Offset: 0
+      Reverse: false
+    "N": 50
+  Type: Wheee
+- Controls: null
+  Disabled: false
+  Effect:
+    "N": 5
+    Reverse: false
+  Type: Strobe
+- Controls: null
+  Disabled: false
+  Effect:
+    Speed: 1
+  Type: BlueEffect
+- Controls: null
+  Disabled: false
+  Effect:
+    Args: null
+    Program: scripts/bouncingballs.js
+    Shellhack: false
+  Type: External
+
+

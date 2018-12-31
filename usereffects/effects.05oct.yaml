@@ -1,0 +1,89 @@
+- Controls: null
+  Disabled: false
+  Effect: {}
+  Type: Clear
+- Controls: null
+  Disabled: true
+  Effect:
+    "N": 41
+  Type: RandomEffect
+- Controls: null
+  Disabled: false
+  Effect:
+    Color:
+    - 255
+    - 255
+    - 255
+    "N": 2
+  Type: Stripe
+- Controls: null
+  Disabled: true
+  Effect:
+    Color:
+    - 0
+    - 0
+    - 0
+    Position: 18
+    Speed: 0.5
+    Width: 2
+  Type: LarsonEffect
+- Controls: null
+  Disabled: false
+  Effect:
+    Args: null
+    Program: scripts/deblue.py
+    Shellhack: false
+  Type: External
+- Controls: null
+  Disabled: true
+  Effect:
+    Blend:
+      Factor: 0.5
+      Force: false
+      Func: rgb
+      Offset: 0
+      Reverse: false
+    "N": 133
+  Type: Wheee
+- Controls: null
+  Disabled: false
+  Effect:
+    Blend:
+      Factor: 0.5
+      Force: false
+      Func: rgb
+      Offset: 0
+      Reverse: false
+    Depth: 60
+    Size: 100
+    Speed: 0.1
+  Type: RainbowEffect
+- Controls: null
+  Disabled: false
+  Effect:
+    Args: null
+    Program: scripts/strip_redblue.js
+    Shellhack: false
+  Type: External
+- Controls: null
+  Disabled: false
+  Effect:
+    Color:
+    - 255
+    - 255
+    - 255
+    "N": 3
+  Type: Stripe
+- Controls: null
+  Disabled: false
+  Effect:
+    Blend:
+      Factor: 0.5
+      Force: false
+      Func: rgb
+      Offset: 0
+      Reverse: false
+    Depth: 60
+    Size: 37
+    Speed: 0.1
+  Type: RainbowEffect

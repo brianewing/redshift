@@ -1,11 +1,9 @@
 package osc
 
-// osc address => last msg
-var summary = make(map[string]OscMessage)
+var summary = make(map[string]OscMessage) // osc address => last msg
 
 // Returns a summary map all the messages that have been received
-// Keys represent an osc address and values are the latest
-// message received for that address
+// Keys represent an osc address and values are the latest message received for that address
 func Summary() map[string]OscMessage {
 	return summary
 }
