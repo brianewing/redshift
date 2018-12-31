@@ -1,0 +1,38 @@
+[
+  {
+    "Effect": {
+    },
+    "Controls": null,
+    "Disabled": false,
+    "Type": "MoodEffect"
+  },
+  {
+    "Effect": {
+      "Color": [
+        0,
+        0,
+        0
+      ],
+      "Speed": 0.0,
+      "Position": 31,
+      "Width": 2
+    },
+    "Controls": [
+      {
+        "Control": {
+          "Field": "Position",
+          "LastError": "field not found: N",
+          "Initial": null,
+          "Transform": "+(v*n)",
+          "Address": "/hslider",
+          "Argument": 0,
+          "Debug": 0.729
+        },
+        "Controls": null,
+        "Type": "OscControl"
+      }
+    ],
+    "Disabled": false,
+    "Type": "LarsonEffect"
+  }
+]

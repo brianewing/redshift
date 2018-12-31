@@ -10,13 +10,16 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"os/signal"
 	"path"
+	"runtime"
 	"time"
 )
 
 var numLeds = flag.Int("leds", 30, "number of leds")
 var scriptsDir = flag.String("scriptsDir", "scripts", "scripts directory relative to cwd")
-var animationInterval = flag.Duration("animationInterval", 16*time.Millisecond, "interval between animation frames")
+var effectsDir = flag.String("effectsDir", "usereffects", "effect definitions directory relative to cwd")
+var animationInterval = flag.Duration("animationInterval", time.Second/60, "interval between animation frames")
 
 var pathToEffectsJson = flag.String("effectsJson", "", "path to effects json file")
 var pathToEffectsYaml = flag.String("effectsYaml", "", "path to effects yaml file")
@@ -30,6 +33,7 @@ var midiDeviceId = flag.Int("midiDeviceId", 0, "midi device id")
 
 var httpAddr = flag.String("httpAddr", "0.0.0.0:9191", "http service address")
 var davAddr = flag.String("davAddr", "0.0.0.0:9292", "webdav (scripts) service address")
+var effectsDavAddr = flag.String("effectsDavAddr", "0.0.0.0:9393", "webdav (effects) service address")
 var opcAddr = flag.String("opcAddr", "0.0.0.0:7890", "opc service address")
 var oscAddr = flag.String("oscAddr", "0.0.0.0:9494", "osc service address")
 
@@ -37,6 +41,8 @@ func main() {
 	flag.Parse()
 
 	rand.Seed(time.Now().UnixNano())
+
+	runtime.GOMAXPROCS(4)
 
 	if _, err := os.Stat(*scriptsDir); os.IsNotExist(err) {
 		writePackedScripts(*scriptsDir)
@@ -47,7 +53,7 @@ func main() {
 	opcBuffer := strip.NewBuffer(ledStrip.Size)
 	wssBuffer := strip.NewBuffer(ledStrip.Size)
 
-	if *midiListDevices == true {
+	if *midiListDevices {
 		devices := midi.Devices()
 		println("** MIDI Devices Available **")
 		for i, device := range devices {
@@ -71,13 +77,24 @@ func main() {
 	}
 
 	go server.RunWebServer(*httpAddr, animator, wssBuffer)
-	go server.RunWebDavServer(*davAddr, *scriptsDir)
+	go server.RunWebDavServer(*davAddr, *scriptsDir, true)
+	go server.RunWebDavServer(*effectsDavAddr, *effectsDir, false)
 	go server.RunOpcServer(*opcAddr, animator, opcBuffer)
 	go server.RunOscServer(*oscAddr)
 
-	go repl(animator)
+	go repl(animator, os.Stdin)
+	go RunReplServer(":9999", animator)
+
+	go cleanupOnCtrlC(animator)
 
 	animator.Run(*animationInterval)
+}
+
+func cleanupOnCtrlC(animator *animator.Animator) {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	<-c
+	animator.Finish()
 }
 
 //go:generate go-bindata --prefix skel/ skel/...

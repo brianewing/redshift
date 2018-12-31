@@ -30,6 +30,18 @@ func StreamMessages() (msgs chan OscMessage, done chan struct{}) {
 	return
 }
 
+func ReceiveMessage(msg OscMessage) {
+	if msg.Timestamp.IsZero() {
+		msg.Timestamp = time.Now()
+	}
+
+	spool.Lock()
+	for _, c := range spool.listeners {
+		c <- msg
+	}
+	spool.Unlock()
+}
+
 func removeWhenDone(msgs chan OscMessage, done chan struct{}) {
 	<-done
 	spool.Lock()
@@ -39,18 +51,6 @@ func removeWhenDone(msgs chan OscMessage, done chan struct{}) {
 			close(c)
 			break
 		}
-	}
-	spool.Unlock()
-}
-
-func ReceiveMessage(msg OscMessage) {
-	if msg.Timestamp.IsZero() {
-		msg.Timestamp = time.Now()
-	}
-
-	spool.Lock()
-	for _, c := range spool.listeners {
-		c <- msg
 	}
 	spool.Unlock()
 }

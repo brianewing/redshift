@@ -1,0 +1,19 @@
+- Type: Clear
+
+- Type: Fill
+  Params:
+    Color: [ 1, 1, 1 ]
+
+- Type: BlueEffect
+  Params:
+    Speed: 0.2
+
+- Type: Layer
+  Params:
+    Effects:
+      - Type: Clear
+
+      - Type: LarsonEffect
+        Params:
+          Color: [ 255, 255, 255 ]
+          Speed: 0.1

@@ -15,6 +15,7 @@ func (b Buffer) Clear() {
 }
 
 // returns a new slice containing the data in buffer rotated by n
+// e.g. [a, b, c, d] rotated by 2 would be [c, d, a, b]
 func (b Buffer) Rotate(n int, reverse bool) Buffer {
 	if reverse {
 		head, tail := b[0:n], b[n:]
@@ -38,7 +39,7 @@ func (b Buffer) Sample(n int) Buffer {
 }
 
 func (b Buffer) MarshalBytes() []byte {
-	bytes := make([]byte, len(b) * 3)
+	bytes := make([]byte, len(b)*3)
 	for i, led := range b {
 		y := i * 3
 		bytes[y] = led[0]
@@ -50,9 +51,9 @@ func (b Buffer) MarshalBytes() []byte {
 
 func (b Buffer) UnmarshalBytes(bytes []byte) {
 	for i, val := range bytes {
-		if len(b) == i / 3 {
+		if len(b) == i/3 {
 			break
 		}
-		b[i / 3][i % 3] = val
+		b[i/3][i%3] = val
 	}
 }

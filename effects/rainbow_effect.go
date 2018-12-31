@@ -9,10 +9,10 @@ type RainbowEffect struct {
 	Size    int
 	Depth   int
 	Speed   float64
+	Blend   *Blend
 	Reverse bool
-	Blend   Blend
 
-	wheel   strip.Buffer
+	wheel strip.Buffer
 }
 
 func NewRainbowEffect() *RainbowEffect {
@@ -20,7 +20,7 @@ func NewRainbowEffect() *RainbowEffect {
 		Size:  100,
 		Depth: 60,
 		Speed: 0.1,
-		Blend: *NewBlend(),
+		Blend: NewBlend(),
 	}
 }
 
@@ -28,6 +28,7 @@ func (e *RainbowEffect) Render(s *strip.LEDStrip) {
 	if e.Depth == 0 {
 		e.Depth = 1
 	}
+
 	steps := e.Size * e.Depth
 
 	if e.wheel == nil || len(e.wheel) != int(steps) {
@@ -36,6 +37,7 @@ func (e *RainbowEffect) Render(s *strip.LEDStrip) {
 
 	phase := round(CycleBetween(0, float64(len(e.wheel)), e.Speed))
 
+	e.Blend.Reverse = e.Reverse
 	e.Blend.Buffer = e.wheel.Rotate(phase, false).Sample(e.Size)
 	e.Blend.Render(s)
 }

@@ -32,7 +32,7 @@ module.exports = function run(fn) {
 	}
 }
 
-/* Pipe io */
+/* IO */
 
 function read(fd, strip) {
 	const buffer = new Buffer(MAX_BUFFER_SIZE);

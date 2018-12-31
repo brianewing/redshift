@@ -1,0 +1,82 @@
+- Effect: {}
+  Type: Clear
+- Effect:
+    BlendA:
+      Offset: 0
+      Reverse: true
+    BlendB:
+      Offset: 0
+      Reverse: false
+    Effects:
+    - Effect:
+        Args: null
+        Program: scripts/My-Effect.py
+        Shellhack: false
+      Type: External
+    - Effect:
+        Offset: 0
+        Reverse: false
+        Size: 100
+        Speed: 0.1
+      Type: RainbowEffect
+    Size: 0
+  Type: Mirror
+- Effect:
+    BlendA:
+      Offset: 0
+      Reverse: false
+    BlendB:
+      Offset: 0
+      Reverse: false
+    Effects:
+    - Effect: {}
+      Type: Clear
+    - Effect:
+        Effects:
+        - Effect:
+            Color:
+            - 255
+            - 255
+            - 255
+            Position: 0
+            Speed: 0.2
+            Width: 2
+          Type: LarsonEffect
+        - Effect:
+            Color:
+            - 255
+            - 255
+            - 255
+            "N": 2
+          Type: Stripe
+        - Effect:
+            Color:
+            - 0
+            - 255
+            - 255
+          Type: Fill
+        Selection: 0
+      Type: Switch
+    Size: 0
+  Type: Mirror
+- Effect:
+    Blend:
+      Offset: 0
+      Reverse: false
+    Effects:
+    - Effect:
+        Color:
+        - 255
+        - 255
+        - 255
+        "N": 3
+      Type: Stripe
+    Size: 0
+  Type: Layer
+- Effect:
+    Effect: hi
+    Enabled: false
+  Type: Toggle
+- Effect:
+    "N": 50
+  Type: Wheee

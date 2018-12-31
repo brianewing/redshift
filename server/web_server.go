@@ -5,12 +5,11 @@ import (
 	"encoding/json"
 	"github.com/brianewing/redshift/animator"
 	"github.com/brianewing/redshift/opc"
-	"github.com/brianewing/redshift/osc"
 	"github.com/brianewing/redshift/strip"
 	"github.com/gorilla/websocket"
 	"log"
-	"sync"
 	"net/http"
+	"sync"
 )
 
 type webServer struct {
@@ -93,16 +92,4 @@ func (w *websocketOpcWriter) WriteOpc(msg opc.Message) error {
 	defer w.Unlock()
 
 	return w.WriteMessage(websocket.BinaryMessage, msg.Bytes())
-}
-
-func (s *webServer) streamOscMessages(c *websocket.Conn) {
-	oscMessages, stop := osc.StreamMessages()
-	for msg := range oscMessages {
-		msgJson, _ := json.Marshal(msg)
-		if err := c.WriteMessage(websocket.TextMessage, msgJson); err != nil {
-			log.Println("WS osc write error:", err)
-			break
-		}
-	}
-	stop <- struct{}{}
 }

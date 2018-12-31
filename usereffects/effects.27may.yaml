@@ -1,0 +1,77 @@
+- Type: Toggle
+  Effect:
+    Effects:
+      - Type: Clear
+
+- Type: RainbowEffect
+  Effect:
+    Speed: 1.0
+  Controls:
+    - Type: TimeControl
+      Control:
+        Field: Reverse
+        Format: second
+        Transform: "v > 30 ? true : false"
+
+- Type: Clear
+
+- Type: RainbowEffect
+  Effect:
+    Speed: 0.0
+
+- Type: LarsonEffect
+  Effect:
+    Speed: 0
+  Controls:
+    - Type: TweenControl
+      Control:
+        Field: Position
+        Speed: 0.1
+        Function: test
+        Transform: +(10+(v*n)%n)
+    - Type: OscControl
+      Control:
+        Address: /hslider
+        Field: Position
+        Transform: "+(v*30)"
+    - Type: OscControl
+      Control:
+        Address: /vslider1
+        Field: Color[0]
+        Transform: "+(v*255)"
+    - Type: OscControl
+      Control:
+        Address: /vslider2
+        Field: Color[1]
+        Transform: "+(v*255)"
+    - Type: OscControl
+      Control:
+        Address: /vslider3
+        Field: Color[2]
+        Transform: "+(v*255)"
+
+- Type: External nah
+  Effect:
+    Program: scripts/test2.py
+    Params:
+      I: 5
+  Controls:
+    - Type: TimeControl
+      Control:
+        Field: Tmp
+        Format: second
+        Transform: v
+
+- Type: LarsonEffect
+  Effect:
+    Speed: 0
+  Controls:
+    - Type: TweenControl
+      Control:
+        Field: Position
+        Function: test
+        Speed: 0.1
+        Max: 1
+        Transform: "+(v*n)"
+        # Format: unix
+        # Transform: "+((v/100000000)%n)"

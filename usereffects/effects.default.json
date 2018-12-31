@@ -1,0 +1,1 @@
+[{"Type":"Clear","Params":{}},{"Type":"RainbowEffect","Params":{"Reverse":false,"Size":150,"Speed":1,"Dynamic":true}},{"Type":"External","Params":{"Program":"scripts/example.py","Args":null,"Shellhack":false}}]

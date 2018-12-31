@@ -6,13 +6,15 @@ import (
 )
 
 type Blend struct {
-	Buffer  strip.Buffer `json:"-"`
+	Buffer strip.Buffer `json:"-"`
+
 	Offset  int
 	Reverse bool
-	Force   bool
 
-	Func   string // e.g. rgb, hcl, lab
+	Force bool // blend even when destination led is off (black)?
+
 	Factor float64
+	Func   string // e.g. rgb, hcl, lab
 }
 
 type blendFunction func(a, b strip.LED, factor float64) (c strip.LED)
@@ -31,13 +33,21 @@ func NewBlendFromBuffer(buffer strip.Buffer) *Blend {
 }
 
 func (e *Blend) Render(strip *strip.LEDStrip) {
-	for i := 0; i < len(e.Buffer) && i+e.Offset < strip.Size; i++ {
-		source := e.Buffer[i]
-		dest := strip.Buffer[i+e.Offset]
+	for i := 0; i < len(e.Buffer); i++ {
+		j := 0
 
 		if e.Reverse {
-			dest = strip.Buffer[len(e.Buffer)+e.Offset-i-1]
+			j = len(e.Buffer) + e.Offset - i - 1
+		} else {
+			j = i + e.Offset
 		}
+
+		if j < 0 || len(strip.Buffer) <= j {
+			break
+		}
+
+		source := e.Buffer[i]
+		dest := strip.Buffer[j]
 
 		if dest.IsOff() && !e.Force {
 			copy(dest, source)
