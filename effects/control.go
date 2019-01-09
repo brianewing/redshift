@@ -116,6 +116,7 @@ func (c *BaseControl) transformValue() interface{} {
 
 		if err != nil {
 			c.setError(err)
+			return c.value
 		}
 
 		return newVal
