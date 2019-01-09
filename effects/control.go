@@ -19,6 +19,7 @@ type Control interface {
 type ControlEnvelope struct {
 	Control
 	Controls ControlSet // recursively controllable
+	Disabled bool
 }
 
 func (e *ControlEnvelope) Init() {
@@ -36,6 +37,9 @@ func (e *ControlEnvelope) Destroy() {
 }
 
 func (e *ControlEnvelope) Apply(effect interface{}) {
+	if e.Disabled {
+		return
+	}
 	e.Controls.Apply(e.Control) // meta controls
 	e.Control.Apply(effect)
 }

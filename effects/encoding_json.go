@@ -72,6 +72,7 @@ func (e *ControlEnvelope) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, &tmp); err == nil {
 		e.Control = ControlByName(tmp.Type)
 		e.Controls = tmp.Controls
+		e.Disabled = tmp.Disabled
 		if tmp.Control != nil {
 			return json.Unmarshal(*tmp.Control, &e.Control)
 		} else {
