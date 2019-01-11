@@ -8,9 +8,7 @@ type Toggle struct {
 }
 
 func NewToggle() *Toggle {
-	return &Toggle{
-		Enabled: true,
-	}
+	return &Toggle{Enabled: true}
 }
 
 func (e *Toggle) Init() {

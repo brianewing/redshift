@@ -146,7 +146,9 @@ module Redshift
       socket = TCPSocket.new 'localhost', 7890
       conn = Redshift::OPC::Conn.new(socket)
 
-      conn.welcome
+      welcome = conn.welcome
+      puts welcome.sysex_data.length
+      puts JSON.parse(welcome.sysex_data).inspect
       conn.open_stream(0, "strip")
       conn.set_fps(0, 60)
 
@@ -158,5 +160,6 @@ module Redshift
 end
 
 if __FILE__ == $0
+  require 'json'
   Redshift::Console.run
 end

@@ -1,11 +1,12 @@
 package animator
 
 import (
-	"github.com/brianewing/redshift/effects"
-	"github.com/brianewing/redshift/strip"
 	"io/ioutil"
 	"log"
 	"time"
+
+	"github.com/brianewing/redshift/effects"
+	"github.com/brianewing/redshift/strip"
 )
 
 type Animator struct {
@@ -16,76 +17,17 @@ type Animator struct {
 	Running bool
 	didInit bool
 
-	framesLastPrint time.Time
-	framesCount     int
-
-	frameDurations []time.Duration
-}
-
-func min(durations []time.Duration) (m time.Duration) {
-	if len(durations) > 0 {
-		m = durations[0]
-		for _, d := range durations {
-			if d < m {
-				m = d
-			}
-		}
-	}
-	return
-}
-
-func max(durations []time.Duration) (m time.Duration) {
-	if len(durations) > 0 {
-		m = durations[0]
-		for _, d := range durations {
-			if d > m {
-				m = d
-			}
-		}
-	}
-	return
-}
-
-func (a *Animator) logFrameRate() {
-	ticker := time.NewTicker(1 * time.Second)
-
-	for ; ; <-ticker.C {
-		if a.framesLastPrint.IsZero() {
-			a.framesLastPrint = time.Now()
-			continue
-		}
-
-		if !a.Running {
-			return
-		}
-
-		a.Strip.Lock()
-
-		framesPerSecond := float64(a.framesCount) / float64((time.Now().Sub(a.framesLastPrint))) * float64(time.Second)
-		a.framesCount = 0
-
-		minT := min(a.frameDurations)
-		maxT := max(a.frameDurations)
-
-		a.frameDurations = []time.Duration{}
-		
-		a.Strip.Unlock()
-
-		log.Println("frames per second", framesPerSecond, "min", minT, "max", maxT)
-
-		a.framesLastPrint = time.Now()
-	}
-
-	ticker.Stop()
+	Performance *Performance
 }
 
 func (a *Animator) Run(interval time.Duration) {
-	// go a.logFrameRate()
-	a.frameDurations = []time.Duration{}
+	log.Println("Running")
+	a.Running = true
+	go a.logFrameRate()
+
 	ticker := time.NewTicker(interval)
-	for a.Running = true; a.Running; <-ticker.C {
+	for ; a.Running; <-ticker.C {
 		a.Strip.Lock()
-		a.framesCount += 1
 		a.Render()
 		a.Strip.Unlock()
 	}
@@ -102,7 +44,9 @@ func (a *Animator) Render() {
 	t1 := time.Now()
 	a.Effects.Render(a.Strip)
 	a.PostEffects.Render(a.Strip)
-	a.frameDurations = append(a.frameDurations, time.Now().Sub(t1))
+	if a.Performance != nil {
+		a.Performance.Tick(time.Now().Sub(t1))
+	}
 }
 
 func (a *Animator) SetEffects(newEffects effects.EffectSet) {
@@ -124,4 +68,17 @@ func (a *Animator) SetEffects(newEffects effects.EffectSet) {
 func (a *Animator) Finish() {
 	a.SetEffects(nil)
 	a.Running = false
+}
+
+func (a *Animator) logFrameRate() {
+	a.Performance = NewPerformance()
+
+	ticker := time.NewTicker(1 * time.Second)
+	<-ticker.C // wait for first second to pass
+
+	for ; a.Running; <-ticker.C {
+		log.Println(a.Performance.String())
+		a.Performance.Reset()
+	}
+	ticker.Stop()
 }

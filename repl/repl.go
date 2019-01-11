@@ -3,10 +3,6 @@ package main
 import (
 	"bufio"
 	"encoding/json"
-	"github.com/brianewing/redshift/animator"
-	"github.com/brianewing/redshift/effects"
-	"github.com/brianewing/redshift/osc"
-	"github.com/robertkrimen/otto"
 	"io"
 	"net"
 	"os"
@@ -15,21 +11,27 @@ import (
 	"runtime/pprof"
 	"strconv"
 	"strings"
+	"syscall"
+
+	"github.com/brianewing/redshift/animator"
+	"github.com/brianewing/redshift/effects"
+	"github.com/brianewing/redshift/osc"
+	"github.com/robertkrimen/otto"
 )
 
 func RunReplServer(address string, animator *animator.Animator) error {
 	s, _ := net.Listen("tcp", address)
 	for {
 		if client, err := s.Accept(); err == nil {
-      go repl(animator, client)
-    } else {
-      return err
-    }
+			go repl(animator, client)
+		} else {
+			return err
+		}
 	}
-  return nil
+	return nil
 }
 
-func repl(a *animator.Animator, client io.ReadWriter) {
+func Run(a *animator.Animator, client io.ReadWriter) {
 	scanner := bufio.NewScanner(client)
 	jsVm := otto.New()
 
@@ -139,6 +141,9 @@ func repl(a *animator.Animator, client io.ReadWriter) {
 		case "osc.c":
 			osc.ClearSummary()
 
+		case "q", "quit", "exit":
+			syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+
 		default:
 			println("?")
 
@@ -146,6 +151,4 @@ func repl(a *animator.Animator, client io.ReadWriter) {
 		}
 		print("> ")
 	}
-
-	println("repl done")
 }

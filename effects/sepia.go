@@ -6,6 +6,10 @@ type Sepia struct {
 	Factor float64
 }
 
+func NewSepia() *Sepia {
+  return &Sepia{Factor: 170}
+}
+
 func (e *Sepia) Render(s *strip.LEDStrip) {
 	for _, led := range s.Buffer {
 		r, g, b := led[0], led[1], led[2]

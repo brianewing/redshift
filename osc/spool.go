@@ -6,10 +6,7 @@ import (
 	"time"
 )
 
-// This is a bit of a hack, could be improved with better architecture
-// I hope to come back and refactor this
-
-// The spool receives messages from the OscServer in the server package
+// The spool receives messages from OscServer in the server package
 // and fans them out to listeners (e.g. OscControl's in redshift/effects)
 
 var spool struct {
@@ -25,7 +22,7 @@ func StreamMessages() (msgs chan OscMessage, done chan struct{}) {
 	spool.listeners = append(spool.listeners, msgs)
 	spool.Unlock()
 
-	go removeWhenDone(msgs, done)
+	go removeListenerOnDone(msgs, done)
 
 	return
 }
@@ -42,8 +39,9 @@ func ReceiveMessage(msg OscMessage) {
 	spool.Unlock()
 }
 
-func removeWhenDone(msgs chan OscMessage, done chan struct{}) {
+func removeListenerOnDone(msgs chan OscMessage, done chan struct{}) {
 	<-done
+
 	spool.Lock()
 	for i, c := range spool.listeners {
 		if c == msgs {

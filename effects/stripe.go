@@ -10,7 +10,7 @@ type Stripe struct {
 func NewStripe() *Stripe {
 	return &Stripe{
 		Color: strip.LED{255, 255, 255},
-		N: 2,
+		N:     2,
 	}
 }
 

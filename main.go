@@ -2,11 +2,6 @@ package main
 
 import (
 	"flag"
-	"github.com/brianewing/redshift/animator"
-	"github.com/brianewing/redshift/effects"
-	"github.com/brianewing/redshift/midi"
-	"github.com/brianewing/redshift/server"
-	"github.com/brianewing/redshift/strip"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -14,9 +9,16 @@ import (
 	"path"
 	"runtime"
 	"time"
+
+	"github.com/brianewing/redshift/animator"
+	"github.com/brianewing/redshift/effects"
+	"github.com/brianewing/redshift/midi"
+	"github.com/brianewing/redshift/server"
+	"github.com/brianewing/redshift/strip"
+	"github.com/robertkrimen/otto/repl"
 )
 
-var numLeds = flag.Int("leds", 30, "number of leds")
+var numLeds = flag.Int("leds", 100, "number of leds")
 var scriptsDir = flag.String("scriptsDir", "scripts", "scripts directory relative to cwd")
 var effectsDir = flag.String("effectsDir", "usereffects", "effect definitions directory relative to cwd")
 var animationInterval = flag.Duration("animationInterval", time.Second/60, "interval between animation frames")
@@ -37,13 +39,13 @@ var effectsDavAddr = flag.String("effectsDavAddr", "0.0.0.0:9393", "webdav (effe
 var opcAddr = flag.String("opcAddr", "0.0.0.0:7890", "opc service address")
 var oscAddr = flag.String("oscAddr", "0.0.0.0:9494", "osc service address")
 
-func main() {
-	flag.Parse()
-
-	rand.Seed(time.Now().UnixNano())
-
+func init() {
 	runtime.GOMAXPROCS(4)
+	rand.Seed(time.Now().UnixNano())
+	flag.Parse()
+}
 
+func main() {
 	if _, err := os.Stat(*scriptsDir); os.IsNotExist(err) {
 		writePackedScripts(*scriptsDir)
 	}
@@ -82,8 +84,8 @@ func main() {
 	go server.RunOpcServer(*opcAddr, animator, opcBuffer)
 	go server.RunOscServer(*oscAddr)
 
-	go repl(animator, os.Stdin)
-	go RunReplServer(":9999", animator)
+	go repl.Run(animator, os.Stdin)
+	go repl.RunReplServer(":9999", animator)
 
 	go cleanupOnCtrlC(animator)
 

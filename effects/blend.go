@@ -2,14 +2,14 @@ package effects
 
 import (
 	"github.com/brianewing/redshift/strip"
-	"github.com/lucasb-eyer/go-colorful"
+	colorful "github.com/lucasb-eyer/go-colorful"
 )
 
 type Blend struct {
 	Buffer strip.Buffer `json:"-"`
 
 	Offset  int
-	Reverse bool
+	Reverse bool // fixme: i think this has some bugs
 
 	Force bool // blend even when destination led is off (black)?
 
@@ -37,13 +37,14 @@ func (e *Blend) Render(strip *strip.LEDStrip) {
 		j := 0
 
 		if e.Reverse {
-			j = len(e.Buffer) + e.Offset - i - 1
+			j = len(e.Buffer) - i + e.Offset - 1
+			// j = len(e.Buffer) + e.Offset - i - 1
 		} else {
 			j = i + e.Offset
 		}
 
-		if j < 0 || len(strip.Buffer) <= j {
-			break
+		if j < 0 || j >= len(strip.Buffer) {
+			continue
 		}
 
 		source := e.Buffer[i]
@@ -52,6 +53,8 @@ func (e *Blend) Render(strip *strip.LEDStrip) {
 		if dest.IsOff() && !e.Force {
 			copy(dest, source)
 		} else if !source.IsOff() || e.Force {
+			// copy(dest, []uint8{255, 0, 0})
+			// continue
 			blendFn := e.getFunction()
 			copy(dest, blendFn(dest, source, e.Factor))
 		}

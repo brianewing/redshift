@@ -5,11 +5,12 @@ import (
 )
 
 type Layer struct {
-	Size         int
-	Effects      EffectSet
-	virtualStrip *strip.LEDStrip
+	Blend   Blend
+	Effects EffectSet
+	Size    int
+	Offset  int
 
-	Blend Blend
+	virtualStrip *strip.LEDStrip
 }
 
 func NewLayer() *Layer {
@@ -27,7 +28,7 @@ func (e *Layer) Destroy() {
 }
 
 func (e *Layer) Render(s *strip.LEDStrip) {
-	if e.virtualStrip == nil {
+	if e.virtualStrip == nil || e.virtualStrip.Size != e.Size {
 		if e.Size == 0 {
 			e.Size = s.Size
 		}
@@ -36,7 +37,8 @@ func (e *Layer) Render(s *strip.LEDStrip) {
 		e.Blend.Buffer = e.virtualStrip.Buffer
 	}
 
-	e.Effects.Render(e.virtualStrip)
+	e.Blend.Offset = e.Offset
 
+	e.Effects.Render(e.virtualStrip)
 	e.Blend.Render(s)
 }

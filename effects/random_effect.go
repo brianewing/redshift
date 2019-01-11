@@ -4,8 +4,8 @@ import (
 	"github.com/brianewing/redshift/strip"
 )
 
-type RandomEffect struct{
-	i, N int
+type RandomEffect struct {
+	i, N  int
 	color []uint8
 }
 
@@ -18,7 +18,7 @@ func (e *RandomEffect) Init() {
 
 func (e *RandomEffect) Render(s *strip.LEDStrip) {
 	e.i++
-	if e.i % e.N == 0 {
+	if e.i%e.N == 0 {
 		e.color = (&MoodEffect{}).newColor()
 		// s.Randomize()
 	}

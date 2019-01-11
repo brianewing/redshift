@@ -9,11 +9,9 @@ import (
 type stream struct {
 	channel  uint8
 	animator *animator.Animator
-
 	stop             chan struct{}
 	fpsChange        chan uint8
 	effectsFpsChange chan uint8
-
 	virtual bool
 }
 
@@ -98,27 +96,26 @@ func (s *stream) WritePixels(w Writer) error {
 	s.animator.Strip.Lock()
 	pixels := s.animator.Strip.MarshalBytes()
 	s.animator.Strip.Unlock()
-	msg := Message{
+
+  return w.WriteOpc(Message{
 		Channel: s.channel,
 		Command: 0, // write pixels
 		Length:  uint16(len(pixels)),
 		Data:    pixels,
-	}
-	return w.WriteOpc(msg)
+	})
 }
 
 func (s *stream) WriteEffects(w Writer) error {
 	if effectsJson, err := json.Marshal(s.animator.Effects); err != nil {
 		return err
 	} else {
-		msg := Message{
+		return w.WriteOpc(Message{
 			Channel: s.channel,
 			Command: 255, // system exclusive
 			SystemExclusive: SystemExclusive{
 				Command: CmdSetEffectsJson,
 				Data:    []byte(effectsJson),
 			},
-		}
-		return w.WriteOpc(msg)
+		})
 	}
 }

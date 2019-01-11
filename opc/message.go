@@ -3,8 +3,9 @@ package opc
 import (
 	"encoding/binary"
 	"errors"
-	"github.com/brianewing/redshift/strip"
 	"io"
+
+	"github.com/brianewing/redshift/strip"
 )
 
 type Message struct {
@@ -104,6 +105,8 @@ const (
 	CmdClearOscSummary
 
 	CmdErrorOccurred
+
+	CmdRepl
 )
 
 type SystemExclusive struct {
