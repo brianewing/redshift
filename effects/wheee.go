@@ -4,6 +4,7 @@ import "github.com/brianewing/redshift/strip"
 
 type Wheee struct {
 	N, i, x int
+	Reverse bool
 	Blend   Blend
 }
 
@@ -19,7 +20,7 @@ func (e *Wheee) Render(s *strip.LEDStrip) {
 		copy(tmp[i], led)
 	}
 
-	e.Blend.Buffer = tmp.Rotate(e.i%len(s.Buffer), false)
+	e.Blend.Buffer = tmp.Rotate(e.i%len(s.Buffer), e.Reverse)
 	e.Blend.Render(s)
 
 	if e.x++; e.N > 0 && e.x%e.N == 0 {

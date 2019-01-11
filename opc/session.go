@@ -3,15 +3,17 @@ package opc
 import (
 	"encoding/json"
 	"errors"
-	"github.com/brianewing/redshift/animator"
-	"github.com/brianewing/redshift/effects"
-	"github.com/brianewing/redshift/osc"
-	"github.com/brianewing/redshift/strip"
+	"io"
 	"log"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/brianewing/redshift/animator"
+	"github.com/brianewing/redshift/effects"
+	"github.com/brianewing/redshift/osc"
+	"github.com/brianewing/redshift/strip"
 )
 
 var REDSHIFT_VERSION = "0.1.0"
@@ -26,7 +28,8 @@ type Session struct {
 
 	ClientInfo
 
-	streams []*stream
+	streams      []*stream       // opened strips indexed by channel
+	replSessions []io.ReadWriter // indexed by channel
 	sync.Mutex
 }
 
@@ -112,6 +115,11 @@ func (s *Session) Receive(msg Message) error {
 				newEffects.Init()
 				stream := s.streams[msg.Channel]
 				stream.animator.Effects = append(stream.animator.Effects, newEffects...)
+			}
+
+		case CmdRepl:
+			if s.replSessions[msg.Channel] != nil {
+
 			}
 
 		default:

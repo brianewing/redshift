@@ -7,13 +7,13 @@ import (
 
 type Brightness struct {
 	Level uint8
-	Func string // e.g. hsl, basic
+	Func  string // e.g. hsl, basic
 }
 
 func NewBrightness() *Brightness {
 	return &Brightness{
 		Level: 255,
-		Func: "hsl",
+		Func:  "hsl",
 	}
 }
 

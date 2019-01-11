@@ -5,9 +5,9 @@ import (
 	"time"
 )
 
-var timeBegan = time.Now()
-
 type TimingFunction func(min, max, hertz float64) float64
+
+var timeBegan = time.Now()
 
 // simple time-based linear oscillator, e.g 1-2-3-4-3-2-1-2-3-4
 func OscillateBetween(min, max, hertz float64) float64 {

@@ -18,7 +18,7 @@ func RunWebDavServer(addr string, directory string, makeNewFilesExecutable bool)
 		FileSystem: webdav.Dir(directory),
 		LockSystem: webdav.NewMemLS(),
 		Logger: func(r *http.Request, err error) {
-			log.Println("WD", r.Method, r.RequestURI, "["+r.RemoteAddr+"]", "|", err)
+			log.Println("DAV", r.Method, r.RequestURI, "["+r.RemoteAddr+"]", "|", err)
 		},
 	}
 
@@ -29,7 +29,7 @@ func RunWebDavServer(addr string, directory string, makeNewFilesExecutable bool)
 	}
 
 	server := &http.Server{Addr: addr, Handler: wrappedHandler}
-	log.Fatalln("WD", server.ListenAndServe())
+	log.Fatalln("DAV", server.ListenAndServe())
 }
 
 func slowWrapper(wait time.Duration, h http.Handler) http.Handler {

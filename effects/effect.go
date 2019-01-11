@@ -8,8 +8,12 @@ type Effect interface {
 	Render(strip *strip.LEDStrip)
 }
 
-type Initable interface{ Init() }
-type Destroyable interface{ Destroy() }
+type Initable interface {
+	Init()
+}
+type Destroyable interface {
+	Destroy()
+}
 
 type EffectEnvelope struct {
 	Controls ControlSet
@@ -56,7 +60,6 @@ func (s EffectSet) Destroy() {
 func (s EffectSet) Render(strip *strip.LEDStrip) {
 	for _, effect := range s {
 		if effect.Effect == nil {
-			println("wtf...")
 			continue
 		}
 		effect.Render(strip)
@@ -82,7 +85,7 @@ func NewByName(name string) Effect {
 	case "External":
 		return &External{}
 	case "Fill":
-		return &Fill{}
+		return NewFill()
 	case "Gamma":
 		return NewGamma()
 	case "Greyscale":
@@ -102,7 +105,7 @@ func NewByName(name string) Effect {
 	case "Script":
 		return &Script{}
 	case "Sepia":
-		return &Sepia{}
+		return NewSepia()
 	case "Stripe":
 		return NewStripe()
 	case "Strobe":
@@ -112,7 +115,7 @@ func NewByName(name string) Effect {
 	case "Switch":
 		return &Switch{}
 	case "Toggle":
-		return &Toggle{}
+		return NewToggle()
 	case "Wheee":
 		return NewWheee()
 	default:

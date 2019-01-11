@@ -224,10 +224,10 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"scripts/example.py": scriptsExamplePy,
-	"scripts/rainbow.py": scriptsRainbowPy,
-	"scripts/redshift.js": scriptsRedshiftJs,
-	"scripts/redshift.py": scriptsRedshiftPy,
+	"scripts/example.py":       scriptsExamplePy,
+	"scripts/rainbow.py":       scriptsRainbowPy,
+	"scripts/redshift.js":      scriptsRedshiftJs,
+	"scripts/redshift.py":      scriptsRedshiftPy,
 	"scripts/strip_redblue.js": scriptsStrip_redblueJs,
 }
 
@@ -270,12 +270,13 @@ type bintree struct {
 	Func     func() (*asset, error)
 	Children map[string]*bintree
 }
+
 var _bintree = &bintree{nil, map[string]*bintree{
 	"scripts": &bintree{nil, map[string]*bintree{
-		"example.py": &bintree{scriptsExamplePy, map[string]*bintree{}},
-		"rainbow.py": &bintree{scriptsRainbowPy, map[string]*bintree{}},
-		"redshift.js": &bintree{scriptsRedshiftJs, map[string]*bintree{}},
-		"redshift.py": &bintree{scriptsRedshiftPy, map[string]*bintree{}},
+		"example.py":       &bintree{scriptsExamplePy, map[string]*bintree{}},
+		"rainbow.py":       &bintree{scriptsRainbowPy, map[string]*bintree{}},
+		"redshift.js":      &bintree{scriptsRedshiftJs, map[string]*bintree{}},
+		"redshift.py":      &bintree{scriptsRedshiftPy, map[string]*bintree{}},
 		"strip_redblue.js": &bintree{scriptsStrip_redblueJs, map[string]*bintree{}},
 	}},
 }}
@@ -326,4 +327,3 @@ func _filePath(dir, name string) string {
 	cannonicalName := strings.Replace(name, "\\", "/", -1)
 	return filepath.Join(append([]string{dir}, strings.Split(cannonicalName, "/")...)...)
 }
-

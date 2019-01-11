@@ -18,7 +18,11 @@ func NewMirror() *Mirror {
 	blendA := NewBlend()
 	blendA.Reverse = true
 
-	return &Mirror{BlendA: blendA, BlendB: NewBlend()}
+	return &Mirror{
+    BlendA: blendA,
+    BlendB: NewBlend(),
+    Effects: EffectSet{EffectEnvelope{Effect: &Clear{}}},
+  }
 }
 
 func (e *Mirror) Init() {

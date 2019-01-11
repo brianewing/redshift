@@ -3,9 +3,9 @@ package effects
 import "github.com/brianewing/redshift/strip"
 
 type Slideshow struct {
-	Speed float64
+	Speed        float64
 	ActiveEffect EffectSet
-	switcher Switch
+	switcher     Switch
 }
 
 func NewSlideshow() *Slideshow {

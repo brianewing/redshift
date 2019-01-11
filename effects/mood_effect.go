@@ -1,8 +1,9 @@
 package effects
 
 import (
+	colorful "github.com/lucasb-eyer/go-colorful"
+
 	"github.com/brianewing/redshift/strip"
-	"math/rand"
 )
 
 type MoodEffect struct {
@@ -15,7 +16,8 @@ type MoodEffect struct {
 
 func NewMoodEffect() *MoodEffect {
 	return &MoodEffect{
-		Speed: 0.1,
+		// Speed: 0.1,
+		Speed: 0.3,
 	}
 }
 
@@ -32,9 +34,9 @@ func (e *MoodEffect) Init() {
 				ControlEnvelope{
 					Control: &TweenControl{
 						BaseControl: BaseControl{Field: "Level"},
-						Min:         0,
+						Min:         1,
 						Max:         255,
-						Function:    "triangle",
+						Function:    "sin",
 						Speed:       e.Speed,
 					},
 				},
@@ -54,5 +56,6 @@ func (e *MoodEffect) Render(s *strip.LEDStrip) {
 }
 
 func (e *MoodEffect) newColor() []uint8 {
-	return []uint8{uint8(rand.Intn(255)), uint8(rand.Intn(255)), uint8(rand.Intn(255))}
+	r, g, b := colorful.FastHappyColor().Clamped().RGB255()
+	return []uint8{uint8(r), uint8(g), uint8(b)}
 }

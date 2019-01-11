@@ -2,14 +2,15 @@ package effects
 
 import (
 	"errors"
-	"github.com/brianewing/redshift/midi"
-	"github.com/brianewing/redshift/osc"
-	"github.com/robertkrimen/otto"
 	"log"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/brianewing/redshift/midi"
+	"github.com/brianewing/redshift/osc"
+	"github.com/robertkrimen/otto"
 )
 
 type Control interface {
@@ -77,10 +78,14 @@ type BaseControl struct {
 
 	Transform string
 	vm        *otto.Otto
+	transform *otto.Script
+	t2        *otto.Object
 }
 
 func (c *BaseControl) Init() {
 	c.value = c.Initial
+	c.LastError = ""
+	c.initTransform()
 }
 
 func (c *BaseControl) Apply(effect interface{}) {
@@ -104,21 +109,34 @@ func (c *BaseControl) setError(err error) {
 	}
 }
 
-func (c *BaseControl) transformValue() interface{} {
+func (c *BaseControl) initTransform() {
 	if c.Transform != "" {
+		c.vm = otto.New()
+
+		var err error
+		c.transform, err = c.vm.Compile("", c.Transform)
+
+		if err != nil {
+			c.setError(err)
+		}
+	}
+}
+
+func (c *BaseControl) transformValue() interface{} {
+	if c.transform != nil {
 		if c.vm == nil {
 			c.vm = otto.New()
 		}
 
 		c.vm.Set("v", c.value)
-		result, err := c.vm.Run(c.Transform)
-		newVal, _ := result.Export()
+		result, err := c.vm.Run(c.transform)
 
 		if err != nil {
 			c.setError(err)
 			return c.value
 		}
 
+		newVal, _ := result.Export()
 		return newVal
 	} else {
 		return c.value
@@ -266,20 +284,18 @@ func (c *TimeControl) Apply(effect interface{}) {
 }
 
 func (c *TimeControl) getValue() interface{} {
-	t := time.Now()
-
 	switch c.Format {
-	case "day", "days":
-		return int(t.Weekday())
-	case "hour", "hours":
-		return int(t.Hour())
-	case "minute", "minutes":
-		return int(t.Minute())
-	case "second", "seconds":
-		return int(t.Second())
 	case "unix":
+		return float64(time.Now().UnixNano()) / float64(time.Second)
+	case "day", "days":
+		return int(time.Now().Weekday())
+	case "hour", "hours":
+		return int(time.Now().Hour())
+	case "minute", "minutes":
+		return int(time.Now().Minute())
+	case "second", "seconds":
 	}
-	return float64(t.UnixNano())
+	return int(time.Now().Second())
 }
 
 /*
@@ -316,6 +332,8 @@ func ControlByName(name string) Control {
  * Reflection functions
  */
 
+// getField looks up string paths like "Effects[0].Color[0]" on a given struct using reflection
+// returning a reflect.Value for the target field where possible
 func getField(effect interface{}, path string) (reflect.Value, error) {
 	parts := strings.Split(path, ".")
 	field := getFieldPart(reflect.ValueOf(effect).Elem(), parts[0])
@@ -335,19 +353,27 @@ func getField(effect interface{}, path string) (reflect.Value, error) {
 	return field, nil
 }
 
+// getFieldPart looks up a path segment (e.g. 'Name', or 'Effects[0]') under a reflect.Value
+// Essentially it wraps reflect.Value.FieldByName() with support for indicies
+//
+// Additionally, if it encounters an EffectEnvelope while deindexing, it will unwrap the Effect
+// inside and return it, so that users don't have to know about the envelope wrapper
 func getFieldPart(field reflect.Value, part string) reflect.Value {
 	tmp := strings.Split(part, "[")
 	name, indexes := tmp[0], tmp[1:]
 
 	field = field.FieldByName(name)
 
+	// follow any indicies
 	for j := 0; j < len(indexes); j++ {
 		index := strings.Split(indexes[j], "]")[0] // discard trailing ]
 		i, _ := strconv.Atoi(index)
 
 		field = field.Index(i)
 
-		// transparently unwrap effect envelopes
+		// if the field we have arrived at is an EffectEnvelope, unwrap the Effect
+		// so that users can reference sub-effect fields using a path like `Effects[0].SomeParam`
+		// without having to know about the intermediate layer (e.g. `Effects[0].Effect.SomeParam`)
 		if _, ok := field.Interface().(EffectEnvelope); ok {
 			field = reflect.Indirect(field.FieldByName("Effect").Elem())
 		}
@@ -357,16 +383,20 @@ func getFieldPart(field reflect.Value, part string) reflect.Value {
 }
 
 func setValue(field reflect.Value, newVal interface{}) error {
-	if err, v := convertValue(newVal, field.Type()); err == nil {
+	if v, err := convertValue(newVal, field.Type()); err == nil {
 		switch field.Interface().(type) {
 		case int:
 			field.SetInt(int64(v.(int)))
 		case uint8:
 			field.SetUint(uint64(v.(uint8)))
+		case uint16:
+			field.SetUint(uint64(v.(uint16)))
 		case float64:
 			field.SetFloat(float64(v.(float64)))
 		case bool:
 			field.SetBool(bool(v.(bool)))
+		case string:
+			field.SetString(string(v.(string)))
 		default:
 			return errors.New("can't set field (unknown type: " + field.Type().String() + ")")
 		}
@@ -376,9 +406,12 @@ func setValue(field reflect.Value, newVal interface{}) error {
 	}
 }
 
-func convertValue(val interface{}, t reflect.Type) (error, interface{}) {
-	if reflect.TypeOf(val).ConvertibleTo(t) {
-		return nil, reflect.ValueOf(val).Convert(t).Interface()
+func convertValue(val interface{}, newType reflect.Type) (interface{}, error) {
+	t := reflect.TypeOf(val)
+	if t == nil {
+		return nil, errors.New("value is nil")
+	} else if t.ConvertibleTo(newType) {
+		return reflect.ValueOf(val).Convert(newType).Interface(), nil
 	}
-	return errors.New("can't convert " + reflect.TypeOf(val).String() + "->" + t.String()), nil
+	return nil, errors.New("can't convert " + t.String() + "->" + newType.String())
 }
