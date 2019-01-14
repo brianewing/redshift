@@ -15,11 +15,10 @@ type Script struct {
 func (e *Script) Init() {
 	scriptsDir := flag.Lookup("scriptsDir").Value.String()
 
-	e.External = &External{
-		Program:         filepath.Join(scriptsDir, e.Name),
-		Args:            e.Args,
-		WatchForChanges: true,
-	}
+	e.External = NewExternal()
+	e.External.Program = filepath.Join(scriptsDir, e.Name)
+	e.External.Args = e.Args
+	e.WatchForChanges = true
 
 	e.External.Init()
 }

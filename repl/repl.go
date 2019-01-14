@@ -1,17 +1,17 @@
-package main
+package repl
 
 import (
 	"bufio"
 	"encoding/json"
 	"io"
 	"net"
-	"os"
 	"reflect"
 	"runtime"
 	"runtime/pprof"
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/brianewing/redshift/animator"
 	"github.com/brianewing/redshift/effects"
@@ -19,11 +19,13 @@ import (
 	"github.com/robertkrimen/otto"
 )
 
+var serverStartTime = time.Now()
+
 func RunReplServer(address string, animator *animator.Animator) error {
 	s, _ := net.Listen("tcp", address)
 	for {
 		if client, err := s.Accept(); err == nil {
-			go repl(animator, client)
+			go Run(animator, client, "> ")
 		} else {
 			return err
 		}
@@ -31,7 +33,7 @@ func RunReplServer(address string, animator *animator.Animator) error {
 	return nil
 }
 
-func Run(a *animator.Animator, client io.ReadWriter) {
+func Run(a *animator.Animator, client io.ReadWriter, prompt string) {
 	scanner := bufio.NewScanner(client)
 	jsVm := otto.New()
 
@@ -42,6 +44,8 @@ func Run(a *animator.Animator, client io.ReadWriter) {
 	println := func(response string) {
 		io.WriteString(client, response+"\n")
 	}
+
+	var stopLoggingFrameRate chan struct{}
 
 	for scanner.Scan() {
 		input := scanner.Text()
@@ -61,17 +65,17 @@ func Run(a *animator.Animator, client io.ReadWriter) {
 			runtime.GC()
 
 		case "g", "goroutines":
-			pprof.Lookup("goroutine").WriteTo(os.Stdout, 1)
+			pprof.Lookup("goroutine").WriteTo(client, 2)
 		case "g.n":
 			println(strconv.Itoa(pprof.Lookup("goroutine").Count()) + " goroutines")
 
 		case "m", "mutexes":
-			pprof.Lookup("mutex").WriteTo(os.Stdout, 1)
+			pprof.Lookup("mutex").WriteTo(client, 1)
 		case "m.n":
 			println(strconv.Itoa(pprof.Lookup("mutex").Count()) + " mutexes")
 
 		case "heap":
-			pprof.Lookup("heap").WriteTo(os.Stdout, 1)
+			pprof.Lookup("heap").WriteTo(client, 1)
 		case "h.n":
 			println(strconv.Itoa(pprof.Lookup("heap").Count()) + " heaps")
 
@@ -113,12 +117,16 @@ func Run(a *animator.Animator, client io.ReadWriter) {
 			}
 
 		case "p", "pop":
-			a.Effects[len(a.Effects)-1].Destroy()
-			a.Effects = a.Effects[:len(a.Effects)-1]
+			if len(a.Effects) > 0 {
+				a.Effects[len(a.Effects)-1].Destroy()
+				a.Effects = a.Effects[:len(a.Effects)-1]
+			}
 
 		case "s", "shift":
-			a.Effects[0].Destroy()
-			a.Effects = a.Effects[1:]
+			if len(a.Effects) > 0 {
+				a.Effects[0].Destroy()
+				a.Effects = a.Effects[1:]
+			}
 
 		case "u", "unshift":
 			var newEffect effects.EffectEnvelope
@@ -128,6 +136,9 @@ func Run(a *animator.Animator, client io.ReadWriter) {
 				newEffect.Init()
 				a.Effects = append(effects.EffectSet{newEffect}, a.Effects...)
 			}
+
+		case "uptime":
+			println(time.Now().Sub(serverStartTime).String())
 
 		case "n", "count":
 			println(strconv.Itoa(len(a.Effects)) + " effects")
@@ -141,6 +152,14 @@ func Run(a *animator.Animator, client io.ReadWriter) {
 		case "osc.c":
 			osc.ClearSummary()
 
+		case "fps":
+			if stopLoggingFrameRate != nil {
+				stopLoggingFrameRate <- struct{}{}
+				stopLoggingFrameRate = nil
+			} else {
+				stopLoggingFrameRate = logFrameRate(a, client)
+			}
+
 		case "q", "quit", "exit":
 			syscall.Kill(syscall.Getpid(), syscall.SIGINT)
 
@@ -149,6 +168,33 @@ func Run(a *animator.Animator, client io.ReadWriter) {
 
 		case "":
 		}
-		print("> ")
+		print(prompt)
 	}
+
+	// cleanup
+	println("cleanup repl")
+	if stopLoggingFrameRate != nil {
+		stopLoggingFrameRate <- struct{}{}
+	}
+}
+
+func logFrameRate(animator *animator.Animator, client io.ReadWriter) (stop chan struct{}) {
+	stop = make(chan struct{})
+
+	ticker := time.NewTicker(1 * time.Second)
+
+	go func() {
+		for {
+			select {
+			case <-stop:
+				ticker.Stop()
+				return
+			case <-ticker.C:
+				client.Write(append([]byte(animator.Performance.String()), '\n'))
+				animator.Performance.Reset()
+			}
+		}
+	}()
+
+	return stop
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"os"
 	"os/signal"
@@ -13,9 +14,9 @@ import (
 	"github.com/brianewing/redshift/animator"
 	"github.com/brianewing/redshift/effects"
 	"github.com/brianewing/redshift/midi"
+	"github.com/brianewing/redshift/repl"
 	"github.com/brianewing/redshift/server"
 	"github.com/brianewing/redshift/strip"
-	"github.com/robertkrimen/otto/repl"
 )
 
 var numLeds = flag.Int("leds", 100, "number of leds")
@@ -39,10 +40,18 @@ var effectsDavAddr = flag.String("effectsDavAddr", "0.0.0.0:9393", "webdav (effe
 var opcAddr = flag.String("opcAddr", "0.0.0.0:7890", "opc service address")
 var oscAddr = flag.String("oscAddr", "0.0.0.0:9494", "osc service address")
 
+var logToFile = flag.Bool("log", false, "log to redshift.log")
+var logDebug = flag.Bool("logDebug", false, "include source code filenames in log messages")
+
 func init() {
 	runtime.GOMAXPROCS(4)
 	rand.Seed(time.Now().UnixNano())
+
 	flag.Parse()
+
+	if *logDebug {
+		log.SetFlags(log.Ltime | log.Lshortfile)
+	}
 }
 
 func main() {
@@ -84,7 +93,7 @@ func main() {
 	go server.RunOpcServer(*opcAddr, animator, opcBuffer)
 	go server.RunOscServer(*oscAddr)
 
-	go repl.Run(animator, os.Stdin)
+	go repl.Run(animator, os.Stdin, "> ")
 	go repl.RunReplServer(":9999", animator)
 
 	go cleanupOnCtrlC(animator)

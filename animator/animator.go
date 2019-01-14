@@ -22,8 +22,9 @@ type Animator struct {
 
 func (a *Animator) Run(interval time.Duration) {
 	log.Println("Running")
+
 	a.Running = true
-	go a.logFrameRate()
+	a.Performance = NewPerformance()
 
 	ticker := time.NewTicker(interval)
 	for ; a.Running; <-ticker.C {
@@ -41,11 +42,13 @@ func (a *Animator) Render() {
 		a.didInit = true
 	}
 
-	t1 := time.Now()
+	t := time.Now()
+
 	a.Effects.Render(a.Strip)
 	a.PostEffects.Render(a.Strip)
+
 	if a.Performance != nil {
-		a.Performance.Tick(time.Now().Sub(t1))
+		a.Performance.Tick(time.Now().Sub(t))
 	}
 }
 
@@ -68,17 +71,4 @@ func (a *Animator) SetEffects(newEffects effects.EffectSet) {
 func (a *Animator) Finish() {
 	a.SetEffects(nil)
 	a.Running = false
-}
-
-func (a *Animator) logFrameRate() {
-	a.Performance = NewPerformance()
-
-	ticker := time.NewTicker(1 * time.Second)
-	<-ticker.C // wait for first second to pass
-
-	for ; a.Running; <-ticker.C {
-		log.Println(a.Performance.String())
-		a.Performance.Reset()
-	}
-	ticker.Stop()
 }

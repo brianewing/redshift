@@ -83,7 +83,7 @@ func NewByName(name string) Effect {
 	case "Channels":
 		return NewChannels()
 	case "External":
-		return &External{}
+		return NewExternal()
 	case "Fill":
 		return NewFill()
 	case "Gamma":
@@ -92,6 +92,8 @@ func NewByName(name string) Effect {
 		return &Greyscale{}
 	case "Layer":
 		return NewLayer()
+	case "Layout":
+		return NewLayout()
 	case "LarsonEffect":
 		return NewLarsonEffect()
 	case "Mirror":
@@ -116,8 +118,8 @@ func NewByName(name string) Effect {
 		return &Switch{}
 	case "Toggle":
 		return NewToggle()
-	case "Wheee":
-		return NewWheee()
+	case "Wheee", "Whoosh":
+		return NewWhoosh()
 	default:
 		return &Null{}
 	}
@@ -135,6 +137,7 @@ func Names() []string {
 		"Gamma",
 		"Greyscale",
 		"Layer",
+		"Layout",
 		"LarsonEffect",
 		"Mirror",
 		"MoodEffect",
@@ -148,6 +151,6 @@ func Names() []string {
 		"Slideshow",
 		"Switch",
 		"Toggle",
-		"Wheee",
+		"Whoosh",
 	}
 }

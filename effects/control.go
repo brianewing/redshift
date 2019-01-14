@@ -315,7 +315,7 @@ func ControlByName(name string) Control {
 	case "FixedValueControl":
 		return &FixedValueControl{}
 	case "TweenControl":
-		return &TweenControl{}
+		return &TweenControl{Max: 255}
 	case "MidiControl":
 		return &MidiControl{}
 	case "TimeControl":

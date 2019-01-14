@@ -2,17 +2,17 @@ package effects
 
 import "github.com/brianewing/redshift/strip"
 
-type Wheee struct {
+type Whoosh struct {
 	N, i, x int
 	Reverse bool
 	Blend   Blend
 }
 
-func NewWheee() *Wheee {
-	return &Wheee{N: 50, Blend: *NewBlend()}
+func NewWhoosh() *Whoosh {
+	return &Whoosh{N: 50, Blend: *NewBlend()}
 }
 
-func (e *Wheee) Render(s *strip.LEDStrip) {
+func (e *Whoosh) Render(s *strip.LEDStrip) {
 	tmp := make(strip.Buffer, len(s.Buffer))
 
 	for i, led := range s.Buffer {

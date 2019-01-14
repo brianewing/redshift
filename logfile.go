@@ -8,8 +8,6 @@ import (
 	"time"
 )
 
-var logToFile = flag.Bool("log", false, "log to redshift.log")
-
 func init() {
 	if !flag.Parsed() {
 		flag.Parse()

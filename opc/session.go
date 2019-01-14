@@ -13,6 +13,7 @@ import (
 	"github.com/brianewing/redshift/animator"
 	"github.com/brianewing/redshift/effects"
 	"github.com/brianewing/redshift/osc"
+	"github.com/brianewing/redshift/repl"
 	"github.com/brianewing/redshift/strip"
 )
 
@@ -28,9 +29,19 @@ type Session struct {
 
 	ClientInfo
 
-	streams      []*stream       // opened strips indexed by channel
-	replSessions []io.ReadWriter // indexed by channel
+	streams map[uint8]*stream   // strips opened, indexed by channel
+	repls   map[uint8]*replPipe // indexed by channel
 	sync.Mutex
+}
+
+func NewSession(animator *animator.Animator, client Writer) *Session {
+	return &Session{
+		Animator: animator,
+		Client:   client,
+
+		streams: make(map[uint8]*stream),
+		repls:   make(map[uint8]*replPipe),
+	}
 }
 
 func (s *Session) Receive(msg Message) error {
@@ -62,7 +73,7 @@ func (s *Session) Receive(msg Message) error {
 			description := string(msg.SystemExclusive.Data)
 
 			if stream, err := s.openStream(channel, description); err == nil {
-				s.streams = append(s.streams, stream)
+				s.streams[msg.Channel] = stream
 			} else {
 				return err
 			}
@@ -70,7 +81,7 @@ func (s *Session) Receive(msg Message) error {
 		case CmdCloseStream:
 			stream := s.streams[msg.Channel]
 			stream.Close()
-			s.streams = append(s.streams[:msg.Channel], s.streams[msg.Channel+1:]...)
+			s.streams[msg.Channel] = nil
 
 		case CmdSetStreamFps:
 			stream := s.streams[msg.Channel]
@@ -118,9 +129,14 @@ func (s *Session) Receive(msg Message) error {
 			}
 
 		case CmdRepl:
-			if s.replSessions[msg.Channel] != nil {
-
+			if s.repls[msg.Channel] == nil {
+				r, w := io.Pipe()
+				session := &replPipe{r, w, msg.Channel, s.Client, nil, nil}
+				s.repls[msg.Channel] = session
+				go repl.Run(s.Animator, session, "")
 			}
+
+			s.repls[msg.Channel].inWriter.Write(append(msg.SystemExclusive.Data, '\n'))
 
 		default:
 			println("unrecognised opc system cmd", strconv.Itoa(int(msg.SystemExclusive.Command)))
@@ -131,6 +147,46 @@ func (s *Session) Receive(msg Message) error {
 	}
 
 	s.Unlock()
+	return nil
+}
+
+type replPipe struct {
+	inReader *io.PipeReader
+	inWriter *io.PipeWriter
+
+	channel   uint8
+	opcClient Writer
+
+	io.Reader // reads from inReader
+	io.Writer // sends responses as opc msg to opcClient
+}
+
+func (p *replPipe) Read(buf []byte) (int, error) {
+	return p.inReader.Read(buf)
+}
+
+func (p *replPipe) Write(data []byte) (int, error) {
+	println("repl write...")
+	println(string(data))
+	msg := Message{
+		Channel: p.channel,
+		Command: 255,
+		SystemExclusive: SystemExclusive{
+			Command: CmdRepl,
+			Data:    data,
+		},
+	}
+	return len(msg.Bytes()), p.opcClient.WriteOpc(msg)
+}
+
+func (p *replPipe) Close() error {
+	println("repl pipe close")
+	if err := p.inReader.Close(); err != nil {
+		return err
+	}
+	if err := p.inWriter.Close(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -217,5 +273,8 @@ func (s *Session) sendError(channel uint8, cmd SystemExclusiveCmd, err error) {
 func (s *Session) Close() {
 	for _, stream := range s.streams {
 		stream.Close()
+	}
+	for _, replSession := range s.repls {
+		replSession.Close()
 	}
 }

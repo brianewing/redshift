@@ -3,13 +3,14 @@ package server
 import (
 	"bytes"
 	"encoding/json"
+	"log"
+	"net/http"
+	"sync"
+
 	"github.com/brianewing/redshift/animator"
 	"github.com/brianewing/redshift/opc"
 	"github.com/brianewing/redshift/strip"
 	"github.com/gorilla/websocket"
-	"log"
-	"net/http"
-	"sync"
 )
 
 type webServer struct {
@@ -63,7 +64,7 @@ func (s *webServer) serveWebSocket(w http.ResponseWriter, r *http.Request) {
 		log.Print("WS websocket client connected (", r.URL, ") [", c.RemoteAddr().String(), "]")
 	}
 
-	opcSession := &opc.Session{Animator: s.animator, Client: &websocketOpcWriter{Conn: c}}
+	opcSession := opc.NewSession(s.animator, &websocketOpcWriter{Conn: c})
 	s.readOpcMessages(c, opcSession)
 
 	opcSession.Close()

@@ -21,10 +21,11 @@ type RainbowEffect struct {
 
 func NewRainbowEffect() *RainbowEffect {
 	return &RainbowEffect{
-		Size:  0,
-		Depth: 5,
-		Speed: 0.1,
-		Blend: NewBlend(),
+		Size:      0,
+		Depth:     5,
+		Speed:     0.1,
+		Blend:     NewBlend(),
+		NewMethod: true,
 	}
 }
 
@@ -32,6 +33,10 @@ func (e *RainbowEffect) Render(s *strip.LEDStrip) {
 	if !e.NewMethod {
 		e.oldRender(s)
 		return
+	}
+
+	if e.Size == 0 {
+		e.Size = uint16(s.Size)
 	}
 
 	if len(e.Blend.Buffer) != int(e.Size) {

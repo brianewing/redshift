@@ -2,17 +2,19 @@ package opc
 
 import (
 	"encoding/json"
-	"github.com/brianewing/redshift/animator"
+	"log"
 	"time"
+
+	"github.com/brianewing/redshift/animator"
 )
 
 type stream struct {
-	channel  uint8
-	animator *animator.Animator
+	channel          uint8
+	animator         *animator.Animator
 	stop             chan struct{}
 	fpsChange        chan uint8
 	effectsFpsChange chan uint8
-	virtual bool
+	virtual          bool
 }
 
 func newStream(channel uint8) *stream {
@@ -29,6 +31,7 @@ func (s *stream) Close() {
 }
 
 func (s *stream) SetFps(fps uint8) {
+	log.Println("set stream fps", fps)
 	s.fpsChange <- fps
 }
 
@@ -97,7 +100,7 @@ func (s *stream) WritePixels(w Writer) error {
 	pixels := s.animator.Strip.MarshalBytes()
 	s.animator.Strip.Unlock()
 
-  return w.WriteOpc(Message{
+	return w.WriteOpc(Message{
 		Channel: s.channel,
 		Command: 0, // write pixels
 		Length:  uint16(len(pixels)),
@@ -106,6 +109,9 @@ func (s *stream) WritePixels(w Writer) error {
 }
 
 func (s *stream) WriteEffects(w Writer) error {
+	s.animator.Strip.Lock()
+	defer s.animator.Strip.Unlock()
+
 	if effectsJson, err := json.Marshal(s.animator.Effects); err != nil {
 		return err
 	} else {

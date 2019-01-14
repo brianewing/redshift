@@ -2,12 +2,14 @@ package effects
 
 import (
 	"bufio"
-	"github.com/brianewing/redshift/strip"
-	"github.com/fsnotify/fsnotify"
 	"io"
 	"log"
 	"os/exec"
 	"sync"
+	"time"
+
+	"github.com/brianewing/redshift/strip"
+	"github.com/fsnotify/fsnotify"
 )
 
 const PIPE_SIZE = 65536
@@ -26,9 +28,17 @@ type External struct {
 	cmd    *exec.Cmd
 	stdin  io.Writer
 	stdout io.Reader
+	halted bool
 
-	halted      bool
 	reloadMutex sync.Mutex
+	debouncer   *time.Timer
+}
+
+func NewExternal() *External {
+	return &External{
+		WatchForChanges: true,
+		debouncer:       time.NewTimer(999999 * time.Hour),
+	}
 }
 
 func (e *External) Init() {
@@ -40,11 +50,12 @@ func (e *External) Init() {
 }
 
 func (e *External) Render(s *strip.LEDStrip) {
+	e.reloadMutex.Lock()
+
 	if e.halted {
+		e.reloadMutex.Unlock()
 		return
 	}
-
-	e.reloadMutex.Lock()
 
 	e.sendFrame(s.Buffer) // write the buffer to the program's stdin, i.e. request a frame
 	e.readFrame(s.Buffer) // wait until the program replies, then copy its response into the strip buffer
@@ -55,6 +66,7 @@ func (e *External) Render(s *strip.LEDStrip) {
 func (e *External) Destroy() {
 	if e.cmd != nil {
 		e.cmd.Process.Kill()
+		e.cmd.Process.Release()
 	}
 	if e.watcher != nil {
 		e.watcher.Close()
@@ -85,8 +97,19 @@ func (e *External) watchForChanges() {
 	} else {
 		e.watcher = watcher
 		watcher.Add(e.Program)
-		for range watcher.Events {
-			e.reload()
+		for {
+			select {
+			case _, ok := <-watcher.Events:
+				if !ok { // channel has closed
+					println("WATCHFOR CHANGES EXITED2")
+					return
+				}
+				log.Println("reset debouncer")
+				e.debouncer.Reset(1500 * time.Millisecond)
+			case <-e.debouncer.C:
+				log.Println("debouncer fired")
+				e.reload()
+			}
 		}
 	}
 }
@@ -96,9 +119,12 @@ func (e *External) reload() {
 	log.Println(e.logPrefix(), "reloading")
 	if e.cmd != nil {
 		e.cmd.Process.Kill()
+		e.cmd.Process.Release()
 		e.cmd = nil
 	}
 	e.halted = false
+	e.startProcess()
+	log.Println("restarted process, e.halted is", e.halted)
 	e.reloadMutex.Unlock()
 }
 
