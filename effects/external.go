@@ -101,7 +101,6 @@ func (e *External) watchForChanges() {
 			select {
 			case _, ok := <-watcher.Events:
 				if !ok { // channel has closed
-					println("WATCHFOR CHANGES EXITED2")
 					return
 				}
 				log.Println("reset debouncer")

@@ -7,18 +7,19 @@ import (
 )
 
 type Layout struct {
-	Type    string
-	Effects EffectSet
-
+	Type     string
 	lastType string
 
-	layer        *Layer
+	Blend   *Blend
+	Effects EffectSet
+
 	virtualStrip *strip.LEDStrip
 }
 
 func NewLayout() *Layout {
 	return &Layout{
-		Type: "grid", // grid, mirror, none
+		Type:  "grid", // grid, mirror, line, reverse, none
+		Blend: NewBlend(),
 	}
 }
 
@@ -36,14 +37,16 @@ func (e *Layout) Render(s *strip.LEDStrip) {
 			e.virtualStrip = strip.New(int(math.Sqrt(float64(s.Size))))
 		} else if e.Type == "mirror" {
 			e.virtualStrip = strip.New(s.Size / 2)
+		} else if e.Type == "reverse" {
+			e.virtualStrip = strip.New(s.Size)
 		} else { // "none"
 			e.virtualStrip = strip.New(s.Size)
 		}
+		e.lastType = e.Type
 	}
 
-	e.lastType = e.Type
-
 	e.Effects.Render(e.virtualStrip)
+
 	out := strip.New(s.Size)
 
 	if e.Type == "grid" {
@@ -68,9 +71,12 @@ func (e *Layout) Render(s *strip.LEDStrip) {
 	} else if e.Type == "mirror" {
 		(&Blend{Offset: e.virtualStrip.Size, Buffer: e.virtualStrip.Buffer}).Render(out)
 		(&Blend{Offset: 0, Reverse: true, Buffer: e.virtualStrip.Buffer}).Render(out)
+	} else if e.Type == "reverse" {
+		(&Blend{Offset: 0, Reverse: true, Buffer: e.virtualStrip.Buffer}).Render(out)
 	} else {
 		out.Buffer = e.virtualStrip.Buffer
 	}
 
-	(&Blend{Func: "none", Buffer: out.Buffer}).Render(s)
+	e.Blend.Buffer = out.Buffer
+	e.Blend.Render(s)
 }

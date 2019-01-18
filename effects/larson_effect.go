@@ -16,9 +16,10 @@ type LarsonEffect struct {
 
 func NewLarsonEffect() *LarsonEffect {
 	return &LarsonEffect{
-		Width: 2,
-		Color: strip.LED{0, 0, 0},
-		Speed: 0.1,
+		Bounce: true,
+		Color:  strip.LED{0, 0, 0},
+		Speed:  0.1,
+		Width:  2,
 	}
 }
 

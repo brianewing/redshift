@@ -22,6 +22,8 @@ func (m Message) Bytes() []byte {
 		sysex := m.SystemExclusive.Bytes()
 		m.Length = uint16(len(sysex))
 		m.Data = sysex
+	} else {
+		m.Length = uint16(len(m.Data))
 	}
 	binary.BigEndian.PutUint16(bytes[2:4], m.Length)
 	return append(bytes, m.Data...)
@@ -68,9 +70,9 @@ func ReadMessage(r io.Reader) (Message, error) {
 			return msg, errors.New("missing sysex command")
 		}
 
-		msg.SystemExclusive.SystemId = binary.BigEndian.Uint16(msg.Data[0:2])
+		msg.SystemExclusive.SystemID = binary.BigEndian.Uint16(msg.Data[0:2])
 
-		if msg.SystemExclusive.SystemId == OpcSystemId {
+		if msg.SystemExclusive.SystemID == OpcSystemID {
 			msg.SystemExclusive.Command = SystemExclusiveCmd(msg.Data[2])
 			msg.SystemExclusive.Data = msg.Data[3:]
 		} else {
@@ -83,7 +85,7 @@ func ReadMessage(r io.Reader) (Message, error) {
 
 // System exclusive messages
 
-const OpcSystemId uint16 = 65535
+const OpcSystemID uint16 = 65535
 
 type SystemExclusiveCmd uint8
 
@@ -107,16 +109,23 @@ const (
 	CmdErrorOccurred
 
 	CmdRepl
+
+	CmdPing
+	CmdPong
 )
 
 type SystemExclusive struct {
-	SystemId uint16
+	SystemID uint16
 	Command  SystemExclusiveCmd
 	Data     []byte
 }
 
 func (se SystemExclusive) Bytes() []byte {
 	bytes := append([]byte{0, 0, byte(se.Command)}, se.Data...)
-	binary.BigEndian.PutUint16(bytes[0:2], OpcSystemId)
+	if se.SystemID == 0 {
+		binary.BigEndian.PutUint16(bytes[0:2], OpcSystemID)
+	} else {
+		binary.BigEndian.PutUint16(bytes[0:2], se.SystemID)
+	}
 	return bytes
 }

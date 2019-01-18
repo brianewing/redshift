@@ -3,7 +3,6 @@ package opc
 import (
 	"encoding/json"
 	"errors"
-	"io"
 	"log"
 	"strconv"
 	"strings"
@@ -26,10 +25,9 @@ type Writer interface {
 type Session struct {
 	Animator *animator.Animator
 	Client   Writer
-
 	ClientInfo
 
-	streams map[uint8]*stream   // strips opened, indexed by channel
+	streams map[uint8]*stream   // opened, indexed by channel
 	repls   map[uint8]*replPipe // indexed by channel
 	sync.Mutex
 }
@@ -57,15 +55,21 @@ func (s *Session) Receive(msg Message) error {
 
 	case 255:
 		switch msg.SystemExclusive.Command {
+		// confirms successful connection by sending server info
 		case CmdWelcome:
 			s.receiveClientInfo(msg.SystemExclusive.Data)
-			s.sendWelcome() // confirms successful connection by sending server info
+			s.sendWelcome()
 
+		case CmdPing:
+			s.sendPong(msg.Channel, msg.SystemExclusive.Data)
+
+		// identifies which osc addresses have received msgs so far
 		case CmdOscSummary:
-			s.sendOscSummary(msg.Channel) // identifies which osc addresses have received msgs so far
+			s.sendOscSummary(msg.Channel)
 
+		// clears the list of addresses that have received msgs so far
 		case CmdClearOscSummary:
-			osc.ClearSummary() // clears the list of addresses that have received msgs so far
+			osc.ClearSummary()
 			s.sendOscSummary(msg.Channel)
 
 		case CmdOpenStream:
@@ -130,13 +134,12 @@ func (s *Session) Receive(msg Message) error {
 
 		case CmdRepl:
 			if s.repls[msg.Channel] == nil {
-				r, w := io.Pipe()
-				session := &replPipe{r, w, msg.Channel, s.Client, nil, nil}
-				s.repls[msg.Channel] = session
-				go repl.Run(s.Animator, session, "")
+				pipe := newReplPipe(msg.Channel, s.Client)
+				s.repls[msg.Channel] = &pipe
+				go repl.Run(s.Animator, s.repls[msg.Channel], "> ") // will exit when repl pipe is closed
 			}
 
-			s.repls[msg.Channel].inWriter.Write(append(msg.SystemExclusive.Data, '\n'))
+			s.repls[msg.Channel].inputWriter.Write(append(msg.SystemExclusive.Data, '\n'))
 
 		default:
 			println("unrecognised opc system cmd", strconv.Itoa(int(msg.SystemExclusive.Command)))
@@ -147,46 +150,6 @@ func (s *Session) Receive(msg Message) error {
 	}
 
 	s.Unlock()
-	return nil
-}
-
-type replPipe struct {
-	inReader *io.PipeReader
-	inWriter *io.PipeWriter
-
-	channel   uint8
-	opcClient Writer
-
-	io.Reader // reads from inReader
-	io.Writer // sends responses as opc msg to opcClient
-}
-
-func (p *replPipe) Read(buf []byte) (int, error) {
-	return p.inReader.Read(buf)
-}
-
-func (p *replPipe) Write(data []byte) (int, error) {
-	println("repl write...")
-	println(string(data))
-	msg := Message{
-		Channel: p.channel,
-		Command: 255,
-		SystemExclusive: SystemExclusive{
-			Command: CmdRepl,
-			Data:    data,
-		},
-	}
-	return len(msg.Bytes()), p.opcClient.WriteOpc(msg)
-}
-
-func (p *replPipe) Close() error {
-	println("repl pipe close")
-	if err := p.inReader.Close(); err != nil {
-		return err
-	}
-	if err := p.inWriter.Close(); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -209,6 +172,17 @@ func (s *Session) sendWelcome() error {
 		},
 	}
 	return s.Client.WriteOpc(msg)
+}
+
+func (s *Session) sendPong(channel uint8, data []byte) error {
+	return s.Client.WriteOpc(Message{
+		Channel: channel,
+		Command: 255,
+		SystemExclusive: SystemExclusive{
+			Command: CmdPong,
+			Data:    data,
+		},
+	})
 }
 
 func (s *Session) openStream(channel uint8, description string) (*stream, error) {

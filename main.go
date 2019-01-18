@@ -44,7 +44,7 @@ var logToFile = flag.Bool("log", false, "log to redshift.log")
 var logDebug = flag.Bool("logDebug", false, "include source code filenames in log messages")
 
 func init() {
-	runtime.GOMAXPROCS(4)
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	rand.Seed(time.Now().UnixNano())
 
 	flag.Parse()

@@ -8,7 +8,12 @@ type Toggle struct {
 }
 
 func NewToggle() *Toggle {
-	return &Toggle{Enabled: true}
+	return &Toggle{
+		Effects: EffectSet{
+			EffectEnvelope{Effect: &Clear{}},
+		},
+		Enabled: true,
+	}
 }
 
 func (e *Toggle) Init() {

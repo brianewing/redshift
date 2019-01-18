@@ -86,6 +86,8 @@ func NewByName(name string) Effect {
 		return NewExternal()
 	case "Fill":
 		return NewFill()
+	case "GameOfLife":
+		return NewGameOfLife()
 	case "Gamma":
 		return NewGamma()
 	case "Greyscale":
@@ -134,6 +136,7 @@ func Names() []string {
 		"Channels",
 		"External",
 		"Fill",
+		"GameOfLife",
 		"Gamma",
 		"Greyscale",
 		"Layer",

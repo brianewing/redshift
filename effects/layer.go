@@ -15,7 +15,8 @@ type Layer struct {
 
 func NewLayer() *Layer {
 	return &Layer{
-		Blend: *NewBlend(),
+		Blend:   *NewBlend(),
+		Effects: EffectSet{EffectEnvelope{Effect: &Clear{}}},
 	}
 }
 

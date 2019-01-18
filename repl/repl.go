@@ -172,7 +172,6 @@ func Run(a *animator.Animator, client io.ReadWriter, prompt string) {
 	}
 
 	// cleanup
-	println("cleanup repl")
 	if stopLoggingFrameRate != nil {
 		stopLoggingFrameRate <- struct{}{}
 	}

@@ -299,6 +299,14 @@ func (c *TimeControl) getValue() interface{} {
 }
 
 /*
+ * Audio Control
+ */
+
+type AudioControl struct{}
+
+func (c AudioControl) Apply(interface{}) {}
+
+/*
  * Null Control
  */
 
@@ -318,6 +326,8 @@ func ControlByName(name string) Control {
 		return &TweenControl{Max: 255}
 	case "MidiControl":
 		return &MidiControl{}
+	case "AudioControl":
+		return &AudioControl{}
 	case "TimeControl":
 		return &TimeControl{}
 	case "OscControl":
@@ -333,7 +343,7 @@ func ControlByName(name string) Control {
  */
 
 // getField looks up string paths like "Effects[0].Color[0]" on a given struct using reflection
-// returning a reflect.Value for the target field where possible
+// and returns a reflect.Value for the target field, or an error
 func getField(effect interface{}, path string) (reflect.Value, error) {
 	parts := strings.Split(path, ".")
 	field := getFieldPart(reflect.ValueOf(effect).Elem(), parts[0])
@@ -364,22 +374,31 @@ func getFieldPart(field reflect.Value, part string) reflect.Value {
 
 	field = field.FieldByName(name)
 
+	// dereference pointers, e.g. *Blend => Blend
+	// if field.Kind() == reflect.Ptr {
+	// field = field.Elem()
+	// }
+
 	// follow any indicies
 	for j := 0; j < len(indexes); j++ {
-		index := strings.Split(indexes[j], "]")[0] // discard trailing ]
-		i, _ := strconv.Atoi(index)
+		if field.Kind() != reflect.Slice {
+			continue
+		}
+
+		tmp := strings.Split(indexes[j], "]")[0] // discard trailing ]
+		i, _ := strconv.Atoi(tmp)
 
 		field = field.Index(i)
 
-		// if the field we have arrived at is an EffectEnvelope, unwrap the Effect
-		// so that users can reference sub-effect fields using a path like `Effects[0].SomeParam`
-		// without having to know about the intermediate layer (e.g. `Effects[0].Effect.SomeParam`)
+		// if the new field is an EffectEnvelope, unwrap the Effect so that users
+		// can reference sub-effect fields without having to know about the intermediate layer
+		// (i.e. `Effects[0].SomeParam` instead of `Effects[0].Effect.SomeParam`)
 		if _, ok := field.Interface().(EffectEnvelope); ok {
-			field = reflect.Indirect(field.FieldByName("Effect").Elem())
+			field = field.FieldByName("Effect").Elem()
 		}
 	}
 
-	return field
+	return reflect.Indirect(field)
 }
 
 func setValue(field reflect.Value, newVal interface{}) error {
