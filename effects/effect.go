@@ -118,6 +118,8 @@ func NewByName(name string) Effect {
 		return NewSlideshow()
 	case "Switch":
 		return &Switch{}
+	case "Trigger":
+		return &Trigger{}
 	case "Toggle":
 		return NewToggle()
 	case "Wheee", "Whoosh":
@@ -154,6 +156,7 @@ func Names() []string {
 		"Slideshow",
 		"Switch",
 		"Toggle",
+		"Trigger",
 		"Whoosh",
 	}
 }

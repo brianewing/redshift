@@ -11,6 +11,14 @@ type Trigger struct {
 	lastSeenValue int
 }
 
+func (t *Trigger) Init() {
+	t.Effects.Init()
+}
+
+func (t *Trigger) Destroy() {
+	t.Effects.Destroy()
+}
+
 func (t *Trigger) Render(s *strip.LEDStrip) {
 	if t.Value != t.lastSeenValue {
 		t.Effects.Render(s)
