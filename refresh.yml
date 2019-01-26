@@ -14,7 +14,7 @@ build_path: /var/folders/1x/dkzmwgpj4fjdrl61w49t2zlh0000gn/T/
 build_flags: []
 build_delay: 200ns
 binary_name: refresh-build
-command_flags: ['-effectsYaml', 'effects.yaml']
+command_flags: ['-effectsYaml', 'effects.yaml', '-leds', '576']
 command_env: []
 enable_colors: true
 log_name: ""

@@ -444,12 +444,12 @@ type LatchValue struct {
 
 // Read returns true if Value has been changed since the last time it was called
 func (lv *LatchValue) Read() bool {
+	return lv.Value == 1
 	if lv.last == 0 {
 		lv.last = lv.Value
 	}
 	if lv.Value != lv.last {
 		lv.last = lv.Value
-		log.Println("value changed...")
 		return true
 	}
 	return false
