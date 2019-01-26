@@ -7,7 +7,7 @@ import (
 	colorful "github.com/lucasb-eyer/go-colorful"
 )
 
-type RainbowEffect struct {
+type Rainbow struct {
 	Size    uint16
 	Depth   uint8   `max:20"`
 	Speed   float64 `max:"10"`
@@ -19,8 +19,8 @@ type RainbowEffect struct {
 	wheel strip.Buffer
 }
 
-func NewRainbowEffect() *RainbowEffect {
-	return &RainbowEffect{
+func NewRainbow() *Rainbow {
+	return &Rainbow{
 		Size:      0,
 		Depth:     5,
 		Speed:     0.1,
@@ -29,7 +29,7 @@ func NewRainbowEffect() *RainbowEffect {
 	}
 }
 
-func (e *RainbowEffect) Render(s *strip.LEDStrip) {
+func (e *Rainbow) Render(s *strip.LEDStrip) {
 	if !e.NewMethod {
 		e.oldRender(s)
 		return
@@ -66,7 +66,7 @@ func (e *RainbowEffect) Render(s *strip.LEDStrip) {
 	e.Blend.Render(s)
 }
 
-func (e *RainbowEffect) oldRender(s *strip.LEDStrip) {
+func (e *Rainbow) oldRender(s *strip.LEDStrip) {
 	if e.Depth == 0 {
 		e.Depth = 1
 	} else if e.Depth > 20 {

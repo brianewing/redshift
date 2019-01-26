@@ -3,6 +3,7 @@ package repl
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net"
 	"reflect"
@@ -46,6 +47,7 @@ func Run(a *animator.Animator, client io.ReadWriter, prompt string) {
 	}
 
 	var stopLoggingFrameRate chan struct{}
+	var stopLoggingOscMsgs chan struct{}
 
 	for scanner.Scan() {
 		input := scanner.Text()
@@ -143,14 +145,23 @@ func Run(a *animator.Animator, client io.ReadWriter, prompt string) {
 		case "n", "count":
 			println(strconv.Itoa(len(a.Effects)) + " effects")
 
-		case "osc":
+		case "osc.summary", "osc.s":
 			summary := osc.Summary()
 			oscJson, _ := json.MarshalIndent(summary, "", "  ")
 			print("Summary: ")
 			println(string(oscJson))
 
-		case "osc.c":
+		case "osc.clear", "osc.c":
 			osc.ClearSummary()
+
+		case "osc", "osc.stream":
+			if stopLoggingOscMsgs != nil {
+				stopLoggingOscMsgs <- struct{}{}
+			} else {
+				var oscMsgs chan osc.OscMessage
+				oscMsgs, stopLoggingOscMsgs = osc.StreamMessages()
+				go streamOscMessages(oscMsgs, client)
+			}
 
 		case "fps":
 			if stopLoggingFrameRate != nil {
@@ -196,4 +207,12 @@ func logFrameRate(animator *animator.Animator, client io.ReadWriter) (stop chan 
 	}()
 
 	return stop
+}
+
+func streamOscMessages(msgs chan osc.OscMessage, client io.ReadWriter) {
+	for msg := range msgs {
+		fmt.Fprintln(client, "Received OSC message", struct {
+			Address, Arguments interface{}
+		}{msg.Address, msg.Arguments})
+	}
 }

@@ -17,12 +17,12 @@ func BenchmarkExampleAnimation(b *testing.B) {
 		Strip: ledStrip,
 		Effects: effects.EffectSet{
 			effects.EffectEnvelope{Effect: &effects.Clear{}},
-			effects.EffectEnvelope{Effect: &effects.Blend{Buffer: randomStrip.Buffer}},
-			effects.EffectEnvelope{Effect: &effects.RainbowEffect{Size: 150, Speed: 1}},
+			effects.EffectEnvelope{Effect: effects.NewBlendFromBuffer(randomStrip.Buffer),
+			effects.EffectEnvelope{Effect: effects.NewRainbowEffect(),
 			effects.EffectEnvelope{Effect: &effects.Layer{
 				Effects: effects.EffectSet{
 					effects.EffectEnvelope{Effect: &effects.Clear{}},
-					effects.EffectEnvelope{Effect: &effects.RainbowEffect{Size: 100, Speed: 1}},
+					effects.EffectEnvelope{Effect: &effects.NewRainbowEffect(),
 					effects.EffectEnvelope{Effect: &effects.Brightness{Level: 200}},
 				},
 			}},

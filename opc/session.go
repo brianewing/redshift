@@ -3,6 +3,7 @@ package opc
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"log"
 	"strconv"
 	"strings"
@@ -59,9 +60,6 @@ func (s *Session) Receive(msg Message) error {
 		case CmdWelcome:
 			s.receiveClientInfo(msg.SystemExclusive.Data)
 			s.sendWelcome()
-
-		case CmdPing:
-			s.sendPong(msg.Channel, msg.SystemExclusive.Data)
 
 		// identifies which osc addresses have received msgs so far
 		case CmdOscSummary:
@@ -140,6 +138,14 @@ func (s *Session) Receive(msg Message) error {
 			}
 
 			s.repls[msg.Channel].inputWriter.Write(append(msg.SystemExclusive.Data, '\n'))
+
+		case CmdPing:
+			s.sendPong(msg.Channel, msg.SystemExclusive.Data)
+
+		case CmdClose:
+			if c, ok := s.Client.(io.Closer); ok {
+				c.Close()
+			}
 
 		default:
 			println("unrecognised opc system cmd", strconv.Itoa(int(msg.SystemExclusive.Command)))

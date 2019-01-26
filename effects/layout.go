@@ -17,9 +17,11 @@ type Layout struct {
 }
 
 func NewLayout() *Layout {
+	blend := NewBlend()
+	blend.Func = "none"
 	return &Layout{
 		Type:  "grid", // grid, mirror, line, reverse, none
-		Blend: NewBlend(),
+		Blend: blend,
 	}
 }
 

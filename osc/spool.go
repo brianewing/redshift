@@ -1,7 +1,6 @@
 package osc
 
 import (
-	"log"
 	"sync"
 	"time"
 )
@@ -53,13 +52,13 @@ func removeListenerOnDone(msgs chan OscMessage, done chan struct{}) {
 	spool.Unlock()
 }
 
-func init() {
-	go debugOscMessages()
-}
+// func init() {
+// 	go debugOscMessages()
+// }
 
-func debugOscMessages() {
-	debugStream, _ := StreamMessages()
-	for msg := range debugStream {
-		log.Println("Incoming OSC message:", msg.Address, msg.Arguments)
-	}
-}
+// func debugOscMessages() {
+// 	debugStream, _ := StreamMessages()
+// 	for msg := range debugStream {
+// 		log.Println("Incoming OSC message:", msg.Address, msg.Arguments)
+// 	}
+// }

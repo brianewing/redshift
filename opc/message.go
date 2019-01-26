@@ -112,6 +112,8 @@ const (
 
 	CmdPing
 	CmdPong
+
+	CmdClose
 )
 
 type SystemExclusive struct {

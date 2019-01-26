@@ -36,7 +36,7 @@ func (e *EffectEnvelope) Destroy() {
 }
 
 func (e *EffectEnvelope) Render(strip *strip.LEDStrip) {
-	if e.Disabled {
+	if e.Disabled || e.Effect == nil {
 		return
 	}
 	e.Controls.Apply(e.Effect)
@@ -59,9 +59,6 @@ func (s EffectSet) Destroy() {
 
 func (s EffectSet) Render(strip *strip.LEDStrip) {
 	for _, effect := range s {
-		if effect.Effect == nil {
-			continue
-		}
 		effect.Render(strip)
 	}
 }
@@ -102,8 +99,8 @@ func NewByName(name string) Effect {
 		return NewMirror()
 	case "MoodEffect":
 		return NewMoodEffect()
-	case "RainbowEffect":
-		return NewRainbowEffect()
+	case "Rainbow", "RainbowEffect":
+		return NewRainbow()
 	case "RandomEffect":
 		return &RandomEffect{}
 	case "Script":
@@ -147,7 +144,7 @@ func Names() []string {
 		"Mirror",
 		"MoodEffect",
 		"Null",
-		"RainbowEffect",
+		"Rainbow",
 		"RandomEffect",
 		"Script",
 		"Sepia",

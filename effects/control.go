@@ -403,7 +403,8 @@ func getFieldPart(field reflect.Value, part string) reflect.Value {
 
 func setValue(field reflect.Value, newVal interface{}) error {
 	if v, err := convertValue(newVal, field.Type()); err == nil {
-		switch field.Interface().(type) {
+		// todo: benchmark comparing v.(type) vs field.Interface().(type)
+		switch v.(type) {
 		case int:
 			field.SetInt(int64(v.(int)))
 		case uint8:

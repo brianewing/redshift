@@ -59,11 +59,6 @@ func main() {
 		writePackedScripts(*scriptsDir)
 	}
 
-	ledStrip := strip.New(*numLeds)
-
-	opcBuffer := strip.NewBuffer(ledStrip.Size)
-	wssBuffer := strip.NewBuffer(ledStrip.Size)
-
 	if *midiListDevices {
 		devices := midi.Devices()
 		println("** MIDI Devices Available **")
@@ -73,6 +68,11 @@ func main() {
 		println("")
 		return
 	}
+
+	ledStrip := strip.New(*numLeds)
+
+	opcBuffer := strip.NewBuffer(ledStrip.Size)
+	wssBuffer := strip.NewBuffer(ledStrip.Size)
 
 	animator := &animator.Animator{
 		Strip:   ledStrip,
@@ -92,6 +92,10 @@ func main() {
 	go server.RunWebDavServer(*effectsDavAddr, *effectsDir, false)
 	go server.RunOpcServer(*opcAddr, animator, opcBuffer)
 	go server.RunOscServer(*oscAddr)
+
+	// if *opcForwardAddr != "" {
+	// 	go opc.RunForwarder(*opcForwardAddr, ledStrip)
+	// }
 
 	go repl.Run(animator, os.Stdin, "> ")
 	go repl.RunReplServer(":9999", animator)
