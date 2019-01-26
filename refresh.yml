@@ -1,0 +1,20 @@
+app_root: .
+ignored_folders:
+- vendor
+- log
+- logs
+- tmp
+- node_modules
+- bin
+- templates
+included_extensions:
+- .go
+build_target_path: ""
+build_path: /var/folders/1x/dkzmwgpj4fjdrl61w49t2zlh0000gn/T/
+build_flags: []
+build_delay: 200ns
+binary_name: refresh-build
+command_flags: ['-effectsYaml', 'effects.yaml']
+command_env: []
+enable_colors: true
+log_name: ""

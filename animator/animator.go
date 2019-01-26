@@ -37,8 +37,8 @@ func (a *Animator) Run(interval time.Duration) {
 
 func (a *Animator) Render() {
 	if !a.didInit {
-		a.Effects.Init()
-		a.PostEffects.Init()
+		a.Effects.InitWithStrip(a.Strip)
+		a.PostEffects.InitWithStrip(a.Strip)
 		a.didInit = true
 	}
 
@@ -53,7 +53,7 @@ func (a *Animator) Render() {
 }
 
 func (a *Animator) SetEffects(newEffects effects.EffectSet) {
-	newEffects.Init()
+	newEffects.InitWithStrip(a.Strip)
 	newEffects.Render(strip.New(a.Strip.Size))
 
 	a.Strip.Lock()

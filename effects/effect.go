@@ -11,6 +11,9 @@ type Effect interface {
 type Initable interface {
 	Init()
 }
+type InitableWithStrip interface {
+	Init(*strip.LEDStrip)
+}
 type Destroyable interface {
 	Destroy()
 }
@@ -25,6 +28,14 @@ func (e *EffectEnvelope) Init() {
 	if initable, ok := e.Effect.(Initable); ok {
 		initable.Init()
 	}
+	e.Controls.Init()
+}
+
+func (e *EffectEnvelope) InitWithStrip(s *strip.LEDStrip) {
+	if initable, ok := e.Effect.(InitableWithStrip); ok {
+		initable.Init(s)
+	}
+	e.Init()
 	e.Controls.Init()
 }
 
@@ -48,6 +59,12 @@ type EffectSet []EffectEnvelope
 func (s EffectSet) Init() {
 	for _, envelope := range s {
 		envelope.Init()
+	}
+}
+
+func (s EffectSet) InitWithStrip(strip *strip.LEDStrip) {
+	for _, envelope := range s {
+		envelope.InitWithStrip(strip)
 	}
 }
 
@@ -87,6 +104,8 @@ func NewByName(name string) Effect {
 		return NewGameOfLife()
 	case "Gamma":
 		return NewGamma()
+	case "GGJ":
+		return NewGGJ()
 	case "Greyscale":
 		return &Greyscale{}
 	case "Layer":
@@ -137,6 +156,7 @@ func Names() []string {
 		"Fill",
 		"GameOfLife",
 		"Gamma",
+		"GGJ",
 		"Greyscale",
 		"Layer",
 		"Layout",

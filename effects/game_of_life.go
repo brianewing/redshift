@@ -2,7 +2,6 @@ package effects
 
 import (
 	"bytes"
-	"math"
 	"math/rand"
 
 	"github.com/brianewing/redshift/strip"
@@ -46,8 +45,8 @@ func (e *GameOfLife) Render(s *strip.LEDStrip) {
 	}
 
 	if e.Width == 0 && e.Height == 0 {
-		e.Width = int(math.Sqrt(float64(s.Size)))
-		e.Height = e.Width
+		e.Width = s.Width
+		e.Height = s.Height
 	}
 
 	state := e.life.State()
