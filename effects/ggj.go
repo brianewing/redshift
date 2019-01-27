@@ -38,16 +38,16 @@ var JUMP_VELOCITY = 0.3
 var DECELERATION_FACTOR = 0.89
 
 var LEVEL_BG_COLORS = map[int]strip.LED{
-	0: strip.LED{18, 203, 196},
-	1: strip.LED{196, 229, 56},
-	2: strip.LED{18, 203, 196},
-	3: strip.LED{253, 167, 223},
-	4: strip.LED{255, 0, 0},
-	5: strip.LED{255, 0, 0},
-	6: strip.LED{255, 0, 0},
-	7: strip.LED{255, 0, 0},
-	8: strip.LED{255, 0, 0},
-	9: strip.LED{255, 0, 0},
+	0:  strip.LED{18, 203, 196},
+	2:  strip.LED{196, 229, 56},
+	3:  strip.LED{18, 203, 196},
+	4:  strip.LED{253, 167, 223},
+	5:  strip.LED{255, 0, 0},
+	6:  strip.LED{255, 0, 0},
+	7:  strip.LED{255, 0, 0},
+	8:  strip.LED{255, 0, 0},
+	9:  strip.LED{255, 0, 0},
+	10: strip.LED{255, 0, 0},
 }
 
 func NewGGJ() *GGJ {
@@ -78,11 +78,10 @@ func (e *GGJ) Render(s *strip.LEDStrip) {
 	e.background.Render(s)
 	e.gameOfLife.Render(s)
 
-	if e.isCollidingWithEnemy(s) {
 		if e.Level > 1 {
 			e.Level = 0
 		}
-		e.playerDiedState = 20
+		e.playerDiedState = 10
 		e.resetLevel(s)
 		return
 	}
