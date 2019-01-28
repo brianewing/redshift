@@ -15,7 +15,7 @@ var PLAYER_DIED_COLOR = strip.LED{200, 0, 100}
 var MOVE_VELOCITY = 0.4
 var JUMP_VELOCITY = 0.4
 
-var DECELERATION_FACTOR = 0.65
+var DECELERATION_FACTOR = 0.00
 
 var LEVEL_BG_COLORS = map[int]strip.LED{
 	0:  strip.LED{30, 30, 30},
@@ -30,6 +30,8 @@ var LEVEL_BG_COLORS = map[int]strip.LED{
 	9:  strip.LED{140, 255, 60},
 	10: strip.LED{16, 36, 100},
 }
+
+var LEVEL_INDICATOR_COLOR = strip.LED{100, 100, 100}
 
 // GGJ is a game created for Global Game Jam 2019 at Farset Labs
 type GGJ struct {
@@ -89,6 +91,10 @@ func (e *GGJ) Render(s *strip.LEDStrip) {
 	e.drawExit(s)
 	e.drawPlayer(s)
 	e.drawFlash(s)
+
+	for i := 0; i <= e.Level; i++ {
+		s.SetPixel(i, LEVEL_INDICATOR_COLOR)
+	}
 }
 
 func (e *GGJ) handleInput(s *strip.LEDStrip) {
