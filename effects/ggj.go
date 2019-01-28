@@ -12,8 +12,8 @@ var FLOOR_COLOR = strip.LED{255, 0, 0}
 var PLAYER_COLOR = strip.LED{255, 255, 0}
 var PLAYER_DIED_COLOR = strip.LED{200, 0, 100}
 
-var MOVE_VELOCITY = 0.4
-var JUMP_VELOCITY = 0.4
+var MOVE_VELOCITY = 0.2
+var JUMP_VELOCITY = 0.2
 
 var DECELERATION_FACTOR = 0.00
 
@@ -29,6 +29,20 @@ var LEVEL_BG_COLORS = map[int]strip.LED{
 	8:  strip.LED{255, 190, 40},
 	9:  strip.LED{140, 255, 60},
 	10: strip.LED{16, 36, 100},
+}
+
+var LEVEL_NS = map[int]int{
+	0:  60,
+	1:  45,
+	2:  30,
+	3:  25,
+	4:  20,
+	5:  15,
+	6:  13,
+	7:  7,
+	8:  4,
+	9:  2,
+	10: 1,
 }
 
 var LEVEL_INDICATOR_COLOR = strip.LED{100, 100, 100}
@@ -101,17 +115,20 @@ func (e *GGJ) handleInput(s *strip.LEDStrip) {
 	if e.playerDiedState > 0 {
 		return
 	}
+
+	levelVel := float64(e.Level / 10)
+
 	if e.ButtonJump.Read() {
-		e.playerVelY = -JUMP_VELOCITY
+		e.playerVelY = -JUMP_VELOCITY - levelVel
 	}
 	if e.ButtonDown.Read() {
-		e.playerVelY = JUMP_VELOCITY
+		e.playerVelY = JUMP_VELOCITY + levelVel
 	}
 	if e.ButtonLeft.Read() {
-		e.playerVelX = -MOVE_VELOCITY
+		e.playerVelX = -MOVE_VELOCITY - levelVel
 	}
 	if e.ButtonRight.Read() {
-		e.playerVelX = MOVE_VELOCITY
+		e.playerVelX = MOVE_VELOCITY + levelVel
 	}
 }
 
@@ -167,7 +184,7 @@ func (e *GGJ) resetLevel(s *strip.LEDStrip) {
 	e.background.Color = LEVEL_BG_COLORS[e.Level]
 
 	e.gameOfLife.StartingCells = (s.Width * s.Height / 6)
-	e.gameOfLife.N = 61 - (e.Level * 6)
+	e.gameOfLife.N = LEVEL_NS[e.Level]
 }
 
 func (e *GGJ) drawExit(s *strip.LEDStrip) {
