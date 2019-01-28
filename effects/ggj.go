@@ -11,41 +11,36 @@ var ENEMY_COLOR = strip.LED{255, 255, 255}
 var FLOOR_COLOR = strip.LED{255, 0, 0}
 var PLAYER_COLOR = strip.LED{255, 255, 0}
 var PLAYER_DIED_COLOR = strip.LED{200, 0, 100}
+var LEVEL_INDICATOR_COLOR = strip.LED{255, 255, 255}
 
 var MOVE_VELOCITY = 0.2
 var JUMP_VELOCITY = 0.2
 
 var DECELERATION_FACTOR = 0.00
 
-var LEVEL_BG_COLORS = map[int]strip.LED{
-	0:  strip.LED{30, 30, 30},
-	1:  strip.LED{18, 203, 196},
-	2:  strip.LED{196, 229, 56},
-	3:  strip.LED{18, 203, 196},
-	4:  strip.LED{253, 167, 223},
-	5:  strip.LED{255, 123, 50},
-	6:  strip.LED{50, 123, 255},
-	7:  strip.LED{255, 40, 190},
-	8:  strip.LED{255, 190, 40},
-	9:  strip.LED{140, 255, 60},
-	10: strip.LED{16, 36, 100},
+type gglLevel struct {
+	Color       strip.LED
+	GameOfLifeN int
+	Velocity    float64
 }
 
-var LEVEL_NS = map[int]int{
-	0:  60,
-	1:  45,
-	2:  30,
-	3:  25,
-	4:  20,
-	5:  15,
-	6:  13,
-	7:  7,
-	8:  4,
-	9:  2,
-	10: 1,
+var LEVELS = []gglLevel{
+	{strip.LED{30, 30, 30}, 999999999999, 0.4},
+	{strip.LED{18, 203, 196}, 45, 0.3},
+	{strip.LED{253, 167, 223}, 30, 0.35},
+	{strip.LED{255, 123, 50}, 25, 0.4},
+	{strip.LED{50, 123, 255}, 20, 0.45},
+	{strip.LED{255, 40, 190}, 15, 0.48},
+	{strip.LED{255, 126, 40}, 13, 0.51},
+	{strip.LED{140, 255, 60}, 9, 0.54},
+	{strip.LED{118, 36, 100}, 7, 0.58},
+	{strip.LED{70, 90, 98}, 6, 0.6},
+	{strip.LED{19, 130, 141}, 5, 0.62},
+	{strip.LED{8, 30, 127}, 4, 0.64},
+	{strip.LED{136, 30, 80}, 3, 0.67},
+	{strip.LED{250, 70, 50}, 2, 0.7},
+	{strip.LED{30, 198, 41}, 1, 0.72},
 }
-
-var LEVEL_INDICATOR_COLOR = strip.LED{100, 100, 100}
 
 // GGJ is a game created for Global Game Jam 2019 at Farset Labs
 type GGJ struct {
@@ -66,6 +61,7 @@ type GGJ struct {
 	// Layers
 	background *ggjBackground
 	gameOfLife *GameOfLife
+	winState   Effect
 }
 
 func NewGGJ() *GGJ {
@@ -86,6 +82,11 @@ func (e *GGJ) Init(s *strip.LEDStrip) {
 }
 
 func (e *GGJ) Render(s *strip.LEDStrip) {
+	if e.Level >= len(LEVELS) {
+		e.drawWinState(s)
+		return
+	}
+
 	if e.isPlayerAtExit(s) {
 		e.nextLevel(s)
 	}
@@ -96,19 +97,16 @@ func (e *GGJ) Render(s *strip.LEDStrip) {
 	e.background.Render(s)
 	e.gameOfLife.Render(s)
 
-	if e.isCollidingWithEnemy(s) && e.playerHasMoved {
-		e.playerDiedState = 10
+	if e.isCollidingWithEnemy(s) && e.playerHasMoved && e.playerDiedState == 0 {
+		e.playerDiedState = 30
 		e.prevLevel(s)
 		return
 	}
 
 	e.drawExit(s)
+	e.drawLevelIndicator(s)
 	e.drawPlayer(s)
 	e.drawFlash(s)
-
-	for i := 0; i <= e.Level; i++ {
-		s.SetPixel(i, LEVEL_INDICATOR_COLOR)
-	}
 }
 
 func (e *GGJ) handleInput(s *strip.LEDStrip) {
@@ -116,19 +114,19 @@ func (e *GGJ) handleInput(s *strip.LEDStrip) {
 		return
 	}
 
-	levelVel := float64(e.Level / 10)
+	velocity := LEVELS[e.Level].Velocity
 
 	if e.ButtonJump.Read() {
-		e.playerVelY = -JUMP_VELOCITY - levelVel
+		e.playerVelY = -velocity
 	}
 	if e.ButtonDown.Read() {
-		e.playerVelY = JUMP_VELOCITY + levelVel
+		e.playerVelY = velocity
 	}
 	if e.ButtonLeft.Read() {
-		e.playerVelX = -MOVE_VELOCITY - levelVel
+		e.playerVelX = -velocity
 	}
 	if e.ButtonRight.Read() {
-		e.playerVelX = MOVE_VELOCITY + levelVel
+		e.playerVelX = velocity
 	}
 }
 
@@ -149,7 +147,7 @@ func (e *GGJ) performMovement(s *strip.LEDStrip) {
 		e.playerY -= float64(s.Height)
 	}
 
-	if e.playerVelX != 0 || e.playerVelY != 0 {
+	if e.playerVelX > 0.1 || e.playerVelY > 0.1 {
 		e.playerHasMoved = true
 	}
 
@@ -181,14 +179,20 @@ func (e *GGJ) resetLevel(s *strip.LEDStrip) {
 
 	e.exitX, e.exitY = rand.Intn(s.Width), rand.Intn(s.Height)
 
-	e.background.Color = LEVEL_BG_COLORS[e.Level]
+	e.background.Color = LEVELS[e.Level].Color
 
-	e.gameOfLife.StartingCells = (s.Width * s.Height / 6)
-	e.gameOfLife.N = LEVEL_NS[e.Level]
+	e.gameOfLife.StartingCells = (s.Width * s.Height / 7)
+	e.gameOfLife.N = LEVELS[e.Level].GameOfLifeN
 }
 
 func (e *GGJ) drawExit(s *strip.LEDStrip) {
 	s.SetXY(e.exitX, e.exitY, EXIT_COLOR)
+}
+
+func (e *GGJ) drawLevelIndicator(s *strip.LEDStrip) {
+	for i := 0; i <= e.Level; i++ {
+		s.SetPixel(i, blendHcl(s.Buffer[i], LEVEL_INDICATOR_COLOR, 0.3))
+	}
 }
 
 func (e *GGJ) drawPlayer(s *strip.LEDStrip) {
@@ -202,6 +206,16 @@ func (e *GGJ) drawFlash(s *strip.LEDStrip) {
 	if e.playerDiedState >= 1 {
 		e.playerDiedState--
 	}
+}
+
+func (e *GGJ) drawWinState(s *strip.LEDStrip) {
+	if e.winState == nil {
+		rainbow := NewRainbow()
+		rainbow.Size = uint16(s.Size * 3)
+		e.winState = rainbow
+
+	}
+	e.winState.Render(s)
 }
 
 func (e *GGJ) isCollidingWithEnemy(s *strip.LEDStrip) bool {
@@ -223,7 +237,7 @@ func (e *ggjBackground) Render(s *strip.LEDStrip) {
 	// return
 	if e.layer == nil {
 		e.layer = NewLayer()
-		e.layer.Blend.Factor = 0.05
+		e.layer.Blend.Factor = 0.18
 		gol2 := NewGameOfLife()
 		gol2.Color = strip.LED{0, 255, 0}
 		e.layer.Effects = EffectSet{
