@@ -6,48 +6,50 @@ import (
 	"github.com/brianewing/redshift/strip"
 )
 
-type GGJ struct {
-	Level int
-
-	// game state
-	playerX, playerY       float64 // player location
-	playerVelX, playerVelY float64 // player velocity (amount added to x and y each frame)
-
-	playerDiedState int // used to flash color when player dies
-
-	exitX, exitY int // location of the exit
-
-	// game layers
-	background      *ggjBackground
-	gameOfLife      *GameOfLife
-	gameOfLifeLayer *Layer
-
-	// game controls
-	ButtonLeft, ButtonRight, ButtonJump, ButtonSpawn *LatchValue
-}
-
 var EXIT_COLOR = strip.LED{0, 0, 255}
 var ENEMY_COLOR = strip.LED{255, 255, 255}
 var FLOOR_COLOR = strip.LED{255, 0, 0}
 var PLAYER_COLOR = strip.LED{255, 255, 0}
 var PLAYER_DIED_COLOR = strip.LED{200, 0, 100}
 
-var MOVE_VELOCITY = 0.2
-var JUMP_VELOCITY = 0.3
+var MOVE_VELOCITY = 0.4
+var JUMP_VELOCITY = 0.4
 
-var DECELERATION_FACTOR = 0.89
+var DECELERATION_FACTOR = 0.65
 
 var LEVEL_BG_COLORS = map[int]strip.LED{
-	0:  strip.LED{18, 203, 196},
+	0:  strip.LED{30, 30, 30},
+	1:  strip.LED{18, 203, 196},
 	2:  strip.LED{196, 229, 56},
 	3:  strip.LED{18, 203, 196},
 	4:  strip.LED{253, 167, 223},
-	5:  strip.LED{255, 0, 0},
-	6:  strip.LED{255, 0, 0},
-	7:  strip.LED{255, 0, 0},
-	8:  strip.LED{255, 0, 0},
-	9:  strip.LED{255, 0, 0},
-	10: strip.LED{255, 0, 0},
+	5:  strip.LED{255, 123, 50},
+	6:  strip.LED{50, 123, 255},
+	7:  strip.LED{255, 40, 190},
+	8:  strip.LED{255, 190, 40},
+	9:  strip.LED{140, 255, 60},
+	10: strip.LED{16, 36, 100},
+}
+
+// GGJ is a game created for Global Game Jam 2019 at Farset Labs
+type GGJ struct {
+	Level int
+
+	// Controller buttons
+	ButtonLeft, ButtonRight, ButtonJump, ButtonDown *LatchValue
+
+	// Game state
+	playerX, playerY       float64 // player location
+	playerVelX, playerVelY float64 // player velocity (amount added to x and y each frame)
+
+	playerDiedState int  // used to flash color when player dies
+	playerHasMoved  bool // resets with level
+
+	exitX, exitY int // location of the exit
+
+	// Layers
+	background *ggjBackground
+	gameOfLife *GameOfLife
 }
 
 func NewGGJ() *GGJ {
@@ -55,65 +57,77 @@ func NewGGJ() *GGJ {
 		ButtonLeft:  &LatchValue{},
 		ButtonRight: &LatchValue{},
 		ButtonJump:  &LatchValue{},
+		ButtonDown:  &LatchValue{},
 		background:  &ggjBackground{},
 		gameOfLife:  NewGameOfLife(),
 	}
 }
 
 func (e *GGJ) Init(s *strip.LEDStrip) {
+	e.Level = 0
 	e.resetLevel(s)
 	e.gameOfLife.Init()
-	e.gameOfLifeLayer = NewLayer()
-	e.gameOfLifeLayer.Effects = EffectSet{EffectEnvelope{Effect: &Clear{}}, EffectEnvelope{Effect: e.gameOfLife}}
 }
 
 func (e *GGJ) Render(s *strip.LEDStrip) {
-	if int(e.playerX) == e.exitX && int(e.playerY) == e.exitY {
-		e.Level += 1
-		e.resetLevel(s)
+	if e.isPlayerAtExit(s) {
+		e.nextLevel(s)
 	}
 
+	e.handleInput(s)
 	e.performMovement(s)
 
 	e.background.Render(s)
 	e.gameOfLife.Render(s)
 
-		if e.Level > 1 {
-			e.Level = 0
-		}
+	if e.isCollidingWithEnemy(s) && e.playerHasMoved {
 		e.playerDiedState = 10
-		e.resetLevel(s)
+		e.prevLevel(s)
 		return
 	}
 
 	e.drawExit(s)
 	e.drawPlayer(s)
 	e.drawFlash(s)
-
-	e.handleInput(s)
 }
 
 func (e *GGJ) handleInput(s *strip.LEDStrip) {
 	if e.playerDiedState > 0 {
 		return
 	}
-	if e.ButtonJump.Read() && e.playerY > 0 {
+	if e.ButtonJump.Read() {
 		e.playerVelY = -JUMP_VELOCITY
 	}
-	if e.ButtonLeft.Read() && e.playerX > 0 {
+	if e.ButtonDown.Read() {
+		e.playerVelY = JUMP_VELOCITY
+	}
+	if e.ButtonLeft.Read() {
 		e.playerVelX = -MOVE_VELOCITY
 	}
-	if e.ButtonRight.Read() && s.Width > int(e.playerX) {
+	if e.ButtonRight.Read() {
 		e.playerVelX = MOVE_VELOCITY
 	}
 }
 
 func (e *GGJ) performMovement(s *strip.LEDStrip) {
-	if e.playerX >= 0 && int(e.playerX+e.playerVelX) <= s.Width-1 {
-		e.playerX += e.playerVelX
+	e.playerX += e.playerVelX
+	e.playerY += e.playerVelY
+
+	if e.playerX < 0 {
+		e.playerX += float64(s.Width)
 	}
-	if e.playerY >= 0 && int(e.playerY+e.playerVelY) <= s.Height-1 {
-		e.playerY += e.playerVelY
+	if e.playerY < 0 {
+		e.playerY += float64(s.Height)
+	}
+	if e.playerX > float64(s.Width)-0.5 {
+		e.playerX -= float64(s.Width)
+	}
+	if e.playerY > float64(s.Height)-0.5 {
+		e.playerY -= float64(s.Height)
+	}
+
+	if e.playerVelX != 0 || e.playerVelY != 0 {
+		e.playerHasMoved = true
 	}
 
 	e.playerVelX *= DECELERATION_FACTOR
@@ -124,21 +138,30 @@ func (e *GGJ) performMovement(s *strip.LEDStrip) {
 	// e.playerY = math.Abs(math.Mod(e.playerY, float64(s.Height)))
 }
 
+func (e *GGJ) nextLevel(s *strip.LEDStrip) {
+	e.Level += 1
+	e.resetLevel(s)
+}
+
+func (e *GGJ) prevLevel(s *strip.LEDStrip) {
+	if e.Level >= 1 {
+		e.Level -= 1
+		e.resetLevel(s)
+	}
+}
+
 func (e *GGJ) resetLevel(s *strip.LEDStrip) {
-	e.playerX = 0
-	e.playerY = float64(s.Height - 1)
-	e.playerVelX = 0
-	e.playerVelY = 0
+	e.playerX, e.playerY = 0, float64(s.Height-1)
+	e.playerVelX, e.playerVelY = 0, 0
 
-	exitPosition := rand.Intn(s.Size)
-	e.exitX = exitPosition % s.Width
-	e.exitY = int(exitPosition / s.Width)
+	e.playerHasMoved = false
 
-	// e.background.Color = blendHcl(strip.LED{0, 0, 0}, LEVEL_BG_COLORS[e.Level], float64(3+(7-e.Level/7)))
+	e.exitX, e.exitY = rand.Intn(s.Width), rand.Intn(s.Height)
+
 	e.background.Color = LEVEL_BG_COLORS[e.Level]
-	e.gameOfLife.N = 10
-	// e.gameOfLife.N = 40 - e.Level*2
-	e.gameOfLife.StartingCells = (s.Width * s.Height / 4) /// (10 - e.Level) * 3)
+
+	e.gameOfLife.StartingCells = (s.Width * s.Height / 6)
+	e.gameOfLife.N = 61 - (e.Level * 6)
 }
 
 func (e *GGJ) drawExit(s *strip.LEDStrip) {
@@ -163,34 +186,40 @@ func (e *GGJ) isCollidingWithEnemy(s *strip.LEDStrip) bool {
 	return compareColors(enemy, ENEMY_COLOR)
 }
 
+func (e *GGJ) isPlayerAtExit(s *strip.LEDStrip) bool {
+	return int(e.playerX) == e.exitX && int(e.playerY) == e.exitY
+}
+
 type ggjBackground struct {
 	Color strip.LED
 	layer *Layer
 }
 
 func (e *ggjBackground) Render(s *strip.LEDStrip) {
-	(&Fill{Color: e.Color}).Render(s)
-	return
+	// (&Fill{Color: e.Color}).Render(s)
+	// return
 	if e.layer == nil {
 		e.layer = NewLayer()
+		e.layer.Blend.Factor = 0.05
+		gol2 := NewGameOfLife()
+		gol2.Color = strip.LED{0, 255, 0}
 		e.layer.Effects = EffectSet{
 			EffectEnvelope{Effect: NewFill()},
-			EffectEnvelope{
-				Effect: NewBrightness(),
-				Controls: ControlSet{
-					ControlEnvelope{
-						Control: &TweenControl{
-							BaseControl: BaseControl{Field: "Level"},
-							Function:    "sin", Min: 200, Max: 245, Speed: 0.5,
-						},
-					},
-				},
-			},
+			// EffectEnvelope{Effect: gol2},
+		}
+
+		e.layer.Init()
+
+		if rainbow, ok := e.layer.Effects[0].Effect.(*Rainbow); ok {
+			rainbow.Size = uint16(s.Size * 3)
+			rainbow.Reverse = true
+			rainbow.Blend.Factor = 0.01
 		}
 	}
 
-	fill, _ := e.layer.Effects[0].Effect.(*Fill)
-	fill.Color = e.Color
+	if fill, ok := e.layer.Effects[0].Effect.(*Fill); ok {
+		fill.Color = e.Color
+	}
 
 	e.layer.Render(s)
 }
