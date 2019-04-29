@@ -122,6 +122,8 @@ func NewByName(name string) Effect {
 		return NewRainbow()
 	case "RandomEffect":
 		return &RandomEffect{}
+	case "Resettable":
+		return &Resettable{}
 	case "Script":
 		return &Script{}
 	case "Sepia":
@@ -166,6 +168,7 @@ func Names() []string {
 		"Null",
 		"Rainbow",
 		"RandomEffect",
+		"Resettable",
 		"Script",
 		"Sepia",
 		"Stripe",
