@@ -249,6 +249,7 @@ type OscControl struct {
 }
 
 func (c *OscControl) Init() {
+	println("osccontrol init()")
 	c.BaseControl.Init()
 
 	var stream chan osc.OscMessage
@@ -261,10 +262,12 @@ func (c *OscControl) Init() {
 				c.Debug = c.value
 			}
 		}
+		println("after range stream...")
 	}()
 }
 
 func (c *OscControl) Destroy() {
+	println("osccontrol destroy()")
 	c.stop <- struct{}{} // signals osc stream to quit
 }
 

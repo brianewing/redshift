@@ -15,6 +15,7 @@ type GameOfLife struct {
 	StartingCells int
 
 	NumPrevStates int
+	Restart       bool
 
 	life *life
 
@@ -29,6 +30,7 @@ func NewGameOfLife() *GameOfLife {
 	return &GameOfLife{
 		Color: strip.LED{255, 255, 255},
 		N:     5,
+		Restart: true,
 	}
 }
 
@@ -60,27 +62,29 @@ func (e *GameOfLife) Render(s *strip.LEDStrip) {
 	if e.i++; e.i%e.N == 0 {
 		e.life.Step()
 
-		for _, prevState := range e.prevStates {
-			if compareStates(state, prevState) {
-				e.Init()
-				return
+		if e.Restart {
+			for _, prevState := range e.prevStates {
+				if compareStates(state, prevState) {
+					e.Init()
+					return
+				}
 			}
+
+			if len(e.prevStates) > 500 {
+				e.prevStates = e.prevStates[len(e.prevStates)-500:]
+			}
+
+			e.prevStates = append(e.prevStates, state)
+
+			// if compareStates(s, e.randomPrevState) {
+			// 	e.Init() // start over
+			// 	return
+			// }
+
+			// if rand.Intn(1200) == 0 {
+			// 	e.randomPrevState = s
+			// }
 		}
-
-		if len(e.prevStates) > 500 {
-			e.prevStates = e.prevStates[len(e.prevStates)-500:]
-		}
-
-		e.prevStates = append(e.prevStates, state)
-
-		// if compareStates(s, e.randomPrevState) {
-		// 	e.Init() // start over
-		// 	return
-		// }
-
-		// if rand.Intn(1200) == 0 {
-		// 	e.randomPrevState = s
-		// }
 	}
 }
 

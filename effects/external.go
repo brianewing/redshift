@@ -14,30 +14,35 @@ import (
 
 const PIPE_SIZE = 65536
 
-// todo: write tests / benchmarks
-
+// External is an Effect which spawns a process and allows it to be part of an LED effects chain by reading and writing rgb byte values over stdio.
+// The protocol is very simple: just rgbrgbrgbrgbrgbrgbrgbrgbrgbrgb byte values exchanged via stdin/stdout, error messages over stderr.
 type External struct {
 	Program string
 	Args    []string
 
 	WatchForChanges bool
-	IsShellScript   bool
+	changeDebouncer *time.Timer
+	changeWatcher   *fsnotify.Watcher
 
-	watcher *fsnotify.Watcher
+	IsShellScript bool
 
 	cmd    *exec.Cmd
-	stdin  io.Writer
-	stdout io.Reader
 	halted bool
 
+	stdin  io.Writer
+	stdout io.Reader
+
 	reloadMutex sync.Mutex
-	debouncer   *time.Timer
 }
 
+// NewExternal makes a new External Effect.
 func NewExternal() *External {
+	changeDebouncer := time.NewTimer(0)
+	<-changeDebouncer.C
+
 	return &External{
 		WatchForChanges: true,
-		debouncer:       time.NewTimer(999999 * time.Hour),
+		changeDebouncer: time.NewTimer(99999 * time.Hour),
 	}
 }
 
@@ -52,6 +57,7 @@ func (e *External) Init() {
 func (e *External) Render(s *strip.LEDStrip) {
 	e.reloadMutex.Lock()
 
+	// if child process has exited with an error, just passthrough / skip this effect
 	if e.halted {
 		e.reloadMutex.Unlock()
 		return
@@ -68,13 +74,14 @@ func (e *External) Destroy() {
 		e.cmd.Process.Kill()
 		e.cmd.Process.Release()
 	}
-	if e.watcher != nil {
-		e.watcher.Close()
+	if e.changeWatcher != nil {
+		e.changeWatcher.Close()
 	}
 }
 
 func (e *External) startProcess() {
 	cmd := exec.Command(e.Program, e.Args...)
+
 	stdin, _ := cmd.StdinPipe()
 	stdout, _ := cmd.StdoutPipe()
 	stderr, _ := cmd.StderrPipe()
@@ -83,10 +90,9 @@ func (e *External) startProcess() {
 		log.Println(e.logPrefix(), "exec error", err)
 		e.halted = true
 	} else {
+		log.Println(e.logPrefix(), "process running")
+		e.cmd, e.stdin, e.stdout = cmd, stdin, stdout
 		e.halted = false
-		e.cmd = cmd
-		e.stdin = stdin
-		e.stdout = stdout
 		go e.readAndLogStderr(stderr)
 	}
 }
@@ -95,19 +101,17 @@ func (e *External) watchForChanges() {
 	if watcher, err := fsnotify.NewWatcher(); err != nil {
 		log.Println(e.logPrefix(), "error watching for changes", err)
 	} else {
-		e.watcher = watcher
 		watcher.Add(e.Program)
+		e.changeWatcher = watcher
 		for {
 			select {
+			case <-e.changeDebouncer.C:
+				e.reload()
 			case _, ok := <-watcher.Events:
-				if !ok { // channel has closed
+				if !ok { // channel has closed, let's exit this loop
 					return
 				}
-				log.Println("reset debouncer")
-				e.debouncer.Reset(1500 * time.Millisecond)
-			case <-e.debouncer.C:
-				log.Println("debouncer fired")
-				e.reload()
+				e.changeDebouncer.Reset(50 * time.Millisecond)
 			}
 		}
 	}
@@ -115,22 +119,25 @@ func (e *External) watchForChanges() {
 
 func (e *External) reload() {
 	e.reloadMutex.Lock()
-	log.Println(e.logPrefix(), "reloading")
+	defer e.reloadMutex.Unlock()
+
+	log.Println(e.logPrefix(), "reload()")
+
 	if e.cmd != nil {
 		e.cmd.Process.Kill()
 		e.cmd.Process.Release()
-		e.cmd = nil
 	}
+
+	e.cmd = nil
 	e.halted = false
+
 	e.startProcess()
-	log.Println("restarted process, e.halted is", e.halted)
-	e.reloadMutex.Unlock()
 }
 
 func (e *External) sendFrame(buffer strip.Buffer) {
 	frame := buffer.MarshalBytes()
 	if e.IsShellScript {
-		// shell scripts can't process null bytes so we change them to \001
+		// Many shells can't process null bytes so we replace them with \001
 		for i, byte := range frame {
 			if byte == 0 {
 				frame[i] = 1

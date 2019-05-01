@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"reflect"
 	"runtime"
@@ -173,6 +174,9 @@ func Run(a *animator.Animator, client io.ReadWriter, prompt string) {
 
 		case "q", "quit", "exit":
 			syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+
+		case "echo":
+			log.Println("(repl) echo:", tail)
 
 		default:
 			println("?")
