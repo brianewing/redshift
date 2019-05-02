@@ -75,7 +75,7 @@ func NewGGJ() *GGJ {
 }
 
 func (e *GGJ) Init(s *strip.LEDStrip) {
-	e.Level = 0
+	// e.Level = 0
 	e.playerHealth = 255
 	e.resetLevel(s)
 	// for i, _ := range LEVELS {
