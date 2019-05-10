@@ -20,7 +20,7 @@ steps:
   displayName: 'Set up Go environment'
 
 - script: |
-    go get
+    /usr/lib/go-1.10/bin/go get
   displayName: Install dependencies
 
 - script: |
