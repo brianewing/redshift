@@ -15,6 +15,15 @@ steps:
   displayName: 'Install Golang'
 
 - script: |
+    mkdir -p ~/go/src/github.com/brianewing
+    ln -s . ~/go/src/github.com/brianewing/redshift
+  displayName: 'Set up Go environment'
+
+- script: |
+    go get
+  displayName: Install dependencies
+
+- script: |
     /usr/lib/go-1.10/bin/go build
     du -sh redshift
   displayName: 'Build project'
