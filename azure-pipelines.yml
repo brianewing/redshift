@@ -11,7 +11,7 @@ pool:
 
 steps:
 - script: |
-    apt install golang-1.10-go
+    sudo apt install golang-1.10-go
   displayName: 'Install Golang'
 
 - script: |
