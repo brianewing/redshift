@@ -229,7 +229,7 @@ func (e *GGJ) drawWinState(s *strip.LEDStrip) {
 		mirror := NewMirror()
 		mirror.Effects = EffectSet{EffectEnvelope{Effect: rainbow}}
 		e.winState = mirror
-		// mood := NewMoodEffect()
+		// mood := NewMood()
 		// mood.Speed = 2
 		// mood.Init()
 		// e.winState = mood

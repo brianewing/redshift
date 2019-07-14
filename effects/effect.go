@@ -114,8 +114,8 @@ func NewByName(name string) Effect {
 		return NewLayout()
 	case "Mirror":
 		return NewMirror()
-	case "MoodEffect":
-		return NewMoodEffect()
+	case "Mood", "MoodEffect":
+		return NewMood()
 	case "Rainbow", "RainbowEffect":
 		return NewRainbow()
 	case "RandomEffect":
@@ -163,7 +163,7 @@ func Names() []string {
 		"Layer",
 		"Layout",
 		"Mirror",
-		"MoodEffect",
+		"Mood",
 		"Null",
 		"Rainbow",
 		"RandomEffect",
