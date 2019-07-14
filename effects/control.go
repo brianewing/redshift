@@ -435,6 +435,8 @@ func convertValue(val interface{}, newType reflect.Type) (interface{}, error) {
 		return nil, errors.New("value is nil")
 	} else if t.ConvertibleTo(newType) {
 		return reflect.ValueOf(val).Convert(newType).Interface(), nil
+	} else if valFloat, ok := val.(float32); ok && newType.Kind() == reflect.Bool {
+		return valFloat >= 1, nil
 	}
 	return nil, errors.New("can't convert " + t.String() + "->" + newType.String())
 }
