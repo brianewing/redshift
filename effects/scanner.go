@@ -6,7 +6,7 @@ import (
 	"github.com/brianewing/redshift/strip"
 )
 
-type LarsonEffect struct {
+type Scanner struct {
 	Color    strip.LED
 	Speed    float64
 	Position int
@@ -14,8 +14,8 @@ type LarsonEffect struct {
 	Bounce   bool
 }
 
-func NewLarsonEffect() *LarsonEffect {
-	return &LarsonEffect{
+func NewScanner() *Scanner {
+	return &Scanner{
 		Bounce: true,
 		Color:  strip.LED{0, 0, 0},
 		Speed:  0.1,
@@ -23,7 +23,7 @@ func NewLarsonEffect() *LarsonEffect {
 	}
 }
 
-func (e *LarsonEffect) Render(s *strip.LEDStrip) {
+func (e *Scanner) Render(s *strip.LEDStrip) {
 	if e.Speed != 0 {
 		var fn TimingFunction
 		speed := e.Speed
@@ -42,7 +42,7 @@ func (e *LarsonEffect) Render(s *strip.LEDStrip) {
 	}
 }
 
-func (e *LarsonEffect) getColor() []uint8 {
+func (e *Scanner) getColor() []uint8 {
 	if len(e.Color) == 0 {
 		return []uint8{uint8(rand.Intn(255)), uint8(rand.Intn(255)), uint8(rand.Intn(255))}
 	}

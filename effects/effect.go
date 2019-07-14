@@ -112,8 +112,6 @@ func NewByName(name string) Effect {
 		return NewLayer()
 	case "Layout":
 		return NewLayout()
-	case "LarsonEffect":
-		return NewLarsonEffect()
 	case "Mirror":
 		return NewMirror()
 	case "MoodEffect":
@@ -124,6 +122,8 @@ func NewByName(name string) Effect {
 		return &RandomEffect{}
 	case "Resettable":
 		return &Resettable{}
+	case "Scanner", "LarsonEffect":
+		return NewScanner()
 	case "Script":
 		return &Script{}
 	case "Sepia":
@@ -162,13 +162,13 @@ func Names() []string {
 		"Greyscale",
 		"Layer",
 		"Layout",
-		"LarsonEffect",
 		"Mirror",
 		"MoodEffect",
 		"Null",
 		"Rainbow",
 		"RandomEffect",
 		"Resettable",
+		"Scanner",
 		"Script",
 		"Sepia",
 		"Stripe",
