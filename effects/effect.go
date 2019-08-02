@@ -139,6 +139,8 @@ func NewByName(name string) Effect {
 		return &Trigger{}
 	case "Toggle":
 		return NewToggle()
+	case "VideoOSC":
+		return NewVideoOSC()
 	case "Wheee", "Whoosh":
 		return NewWhoosh()
 	default:
@@ -176,6 +178,7 @@ func Names() []string {
 		"Switch",
 		"Toggle",
 		"Trigger",
+		"VideoOSC",
 		"Whoosh",
 	}
 }
