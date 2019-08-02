@@ -36,7 +36,6 @@ func (e *EffectEnvelope) InitWithStrip(s *strip.LEDStrip) {
 		initable.Init(s)
 	}
 	e.Init()
-	e.Controls.Init()
 }
 
 func (e *EffectEnvelope) Destroy() {
