@@ -22,7 +22,7 @@ type gglLevel struct {
 }
 
 var LEVELS = []gglLevel{
-	{strip.LED{30, 30, 30}, 999999999999, 0.25},
+	{strip.LED{30, 30, 30}, 999999999, 0.25},
 	{strip.LED{18, 203, 196}, 45, 0.3},
 	{strip.LED{253, 167, 223}, 30, 0.33},
 	{strip.LED{255, 123, 50}, 25, 0.36},
