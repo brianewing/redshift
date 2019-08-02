@@ -41,8 +41,6 @@ func ReceiveMessage(msg OscMessage) {
 func removeListenerOnDone(msgs chan OscMessage, done chan struct{}) {
 	<-done
 
-	println("removeListenerOnDone...")
-
 	spool.Lock()
 	for i, c := range spool.listeners {
 		if c == msgs {
