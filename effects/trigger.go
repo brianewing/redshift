@@ -7,8 +7,6 @@ import (
 type Trigger struct {
 	Effects EffectSet
 	Value   int
-
-	lastSeenValue int
 }
 
 func (t *Trigger) Init() {
@@ -20,9 +18,8 @@ func (t *Trigger) Destroy() {
 }
 
 func (t *Trigger) Render(s *strip.LEDStrip) {
-	if t.Value != t.lastSeenValue {
+	if t.Value > 0 {
 		t.Effects.Render(s)
+		t.Value = t.Value - 1
 	}
-
-	t.lastSeenValue = t.Value
 }
