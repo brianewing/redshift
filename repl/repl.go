@@ -54,7 +54,7 @@ func Run(a *animator.Animator, client io.ReadWriter, prompt string) {
 		input := scanner.Text()
 		words := strings.Split(input, " ")
 
-		cmd := words[0]
+		cmd := strings.ToLower(words[0])
 		tail := input[strings.Index(input, " ")+1:]
 
 		switch cmd {
