@@ -244,6 +244,7 @@ func (s *Session) sendOscSummary(channel uint8) {
 
 func (s *Session) sendError(channel uint8, cmd SystemExclusiveCmd, err error) {
 	if err != nil {
+		log.Println(s, "Error", "|", err)
 		s.Client.WriteOpc(Message{
 			Channel: channel,
 			Command: 255,
@@ -262,4 +263,9 @@ func (s *Session) Close() {
 	for _, replSession := range s.repls {
 		replSession.Close()
 	}
+
+}
+
+func (s *Session) String() string {
+	return "Session{" + s.ClientInfo.DeviceName + "}"
 }
