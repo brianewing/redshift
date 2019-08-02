@@ -147,8 +147,8 @@ module Redshift
       conn = Redshift::OPC::Conn.new(socket)
 
       welcome = conn.welcome
-      puts welcome.sysex_data.length
       puts JSON.parse(welcome.sysex_data).inspect
+
       conn.open_stream(0, "strip")
       conn.set_fps(0, 60)
 
