@@ -77,6 +77,7 @@ func (s *Session) Receive(msg Message) error {
 			if stream, err := s.openStream(channel, description); err == nil {
 				s.streams[msg.Channel] = stream
 			} else {
+				s.sendError(msg.Channel, CmdOpenStream, err)
 				return err
 			}
 
@@ -192,7 +193,11 @@ func (s *Session) sendPong(channel uint8, data []byte) error {
 }
 
 func (s *Session) openStream(channel uint8, description string) (*stream, error) {
-	stream := newStream(channel)
+	if s.streams[channel] != nil {
+		return nil, errors.New("channel has an open stream, please close before opening another")
+	}
+
+	stream := makeStream(channel)
 	desc := strings.Fields(description)
 
 	switch desc[0] {

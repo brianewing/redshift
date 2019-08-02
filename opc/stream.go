@@ -17,7 +17,7 @@ type stream struct {
 	virtual          bool
 }
 
-func newStream(channel uint8) *stream {
+func makeStream(channel uint8) *stream {
 	return &stream{
 		channel:          channel,
 		stop:             make(chan struct{}),
