@@ -164,7 +164,7 @@ func Run(a *animator.Animator, client io.ReadWriter, prompt string) {
 				go streamOscMessages(oscMsgs, client)
 			}
 
-		case "fps":
+		case "fps", "perf":
 			if stopLoggingFrameRate != nil {
 				stopLoggingFrameRate <- struct{}{}
 				stopLoggingFrameRate = nil
