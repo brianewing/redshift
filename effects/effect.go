@@ -152,7 +152,6 @@ func Names() []string {
 	return []string{
 		"BlueEffect",
 		"Brightness",
-		"Buffer",
 		"Clear",
 		"Channels",
 		"External",
