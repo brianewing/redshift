@@ -1,9 +1,11 @@
 package effects
 
-import "testing"
+import (
+	"testing"
+)
 
 func BenchmarkGameOfLifeHashing(b *testing.B) {
-	g := NewLife(50, 50, 500)
+	g := newLife(50, 50, 500)
 
 	b.Run("Step()", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
@@ -30,7 +32,7 @@ func BenchmarkGameOfLifeHashing(b *testing.B) {
 				states = states[:200]
 			}
 			for _, s2 := range states {
-				equalStates(s, s2)
+				compareStates(s, s2)
 			}
 			states = append(states, s)
 		}
