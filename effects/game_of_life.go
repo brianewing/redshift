@@ -15,7 +15,7 @@ type GameOfLife struct {
 	StartingCells int
 
 	NumPrevStates int
-	Restart       bool
+	RestartOnLoop bool
 
 	life *life
 
@@ -28,9 +28,9 @@ type GameOfLife struct {
 
 func NewGameOfLife() *GameOfLife {
 	return &GameOfLife{
-		Color: strip.LED{255, 255, 255},
-		N:     5,
-		Restart: true,
+		Color:         strip.LED{255, 255, 255},
+		N:             5,
+		RestartOnLoop: true,
 	}
 }
 
@@ -62,7 +62,7 @@ func (e *GameOfLife) Render(s *strip.LEDStrip) {
 	if e.i++; e.i%e.N == 0 {
 		e.life.Step()
 
-		if e.Restart {
+		if e.RestartOnLoop {
 			for _, prevState := range e.prevStates {
 				if compareStates(state, prevState) {
 					e.Init()
