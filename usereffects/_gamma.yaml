@@ -1,0 +1,67 @@
+- Controls: null
+  Disabled: false
+  Effect: {}
+  Type: Clear
+- Controls: null
+  Disabled: false
+  Effect:
+    Color:
+    - 180
+    - 37
+    - 37
+  Type: Fill
+- Controls: null
+  Disabled: false
+  Effect:
+    Speed: 0.2
+  Type: BlueEffect
+- Controls: null
+  Disabled: false
+  Effect:
+    Blend:
+      Factor: 0.5
+      Force: false
+      Func: rgb
+      Offset: 0
+      Reverse: false
+    Effects:
+    - Controls: null
+      Disabled: false
+      Effect: {}
+      Type: Clear
+    - Controls: null
+      Disabled: false
+      Effect:
+        Color:
+        - 255
+        - 255
+        - 255
+        Position: 16
+        Speed: 0.1
+        Width: 2
+      Type: LarsonEffect
+    Size: 30
+  Type: Layer
+- Controls:
+  - Type: TweenControl
+    Control:
+      Field: Value
+      Min: 0
+      Max: 255
+      Function: sin
+      Speed: 0.5
+  Disabled: false
+  Effect:
+    Value: 9
+  Type: Gamma
+- Controls: null
+  Disabled: true
+  Effect:
+    B: 1
+    G: 0
+    R: 2
+  Type: Channels
+- Controls: null
+  Disabled: false
+  Effect: {}
+  Type: "Null"

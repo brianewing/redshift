@@ -2,21 +2,27 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
+	"log"
+	"math/rand"
+	"os"
+	"os/signal"
+	"path"
+	"runtime"
+	"time"
+
 	"github.com/brianewing/redshift/animator"
 	"github.com/brianewing/redshift/effects"
 	"github.com/brianewing/redshift/midi"
+	"github.com/brianewing/redshift/repl"
 	"github.com/brianewing/redshift/server"
 	"github.com/brianewing/redshift/strip"
-	"io/ioutil"
-	"math/rand"
-	"os"
-	"path"
-	"time"
 )
 
-var numLeds = flag.Int("leds", 30, "number of leds")
+var numLeds = flag.Int("leds", 100, "number of leds")
 var scriptsDir = flag.String("scriptsDir", "scripts", "scripts directory relative to cwd")
-var animationInterval = flag.Duration("animationInterval", 16*time.Millisecond, "interval between animation frames")
+var effectsDir = flag.String("effectsDir", "usereffects", "effect definitions directory relative to cwd")
+var animationInterval = flag.Duration("animationInterval", time.Second/60, "interval between animation frames")
 
 var pathToEffectsJson = flag.String("effectsJson", "", "path to effects json file")
 var pathToEffectsYaml = flag.String("effectsYaml", "", "path to effects yaml file")
@@ -30,24 +36,30 @@ var midiDeviceId = flag.Int("midiDeviceId", 0, "midi device id")
 
 var httpAddr = flag.String("httpAddr", "0.0.0.0:9191", "http service address")
 var davAddr = flag.String("davAddr", "0.0.0.0:9292", "webdav (scripts) service address")
+var effectsDavAddr = flag.String("effectsDavAddr", "0.0.0.0:9393", "webdav (effects) service address")
 var opcAddr = flag.String("opcAddr", "0.0.0.0:7890", "opc service address")
 var oscAddr = flag.String("oscAddr", "0.0.0.0:9494", "osc service address")
 
-func main() {
-	flag.Parse()
+var logToFile = flag.Bool("log", false, "log to redshift.log")
+var logDebug = flag.Bool("logDebug", false, "include source code filenames in log messages")
 
+func init() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	rand.Seed(time.Now().UnixNano())
 
+	flag.Parse()
+
+	if *logDebug {
+		log.SetFlags(log.Ltime | log.Lshortfile)
+	}
+}
+
+func main() {
 	if _, err := os.Stat(*scriptsDir); os.IsNotExist(err) {
 		writePackedScripts(*scriptsDir)
 	}
 
-	ledStrip := strip.New(*numLeds)
-
-	opcBuffer := strip.NewBuffer(ledStrip.Size)
-	wssBuffer := strip.NewBuffer(ledStrip.Size)
-
-	if *midiListDevices == true {
+	if *midiListDevices {
 		devices := midi.Devices()
 		println("** MIDI Devices Available **")
 		for i, device := range devices {
@@ -56,6 +68,11 @@ func main() {
 		println("")
 		return
 	}
+
+	ledStrip := strip.New(*numLeds)
+
+	opcBuffer := strip.NewBuffer(ledStrip.Size)
+	wssBuffer := strip.NewBuffer(ledStrip.Size)
 
 	animator := &animator.Animator{
 		Strip:   ledStrip,
@@ -71,13 +88,28 @@ func main() {
 	}
 
 	go server.RunWebServer(*httpAddr, animator, wssBuffer)
-	go server.RunWebDavServer(*davAddr, *scriptsDir)
+	go server.RunWebDavServer(*davAddr, *scriptsDir, true)
+	go server.RunWebDavServer(*effectsDavAddr, *effectsDir, false)
 	go server.RunOpcServer(*opcAddr, animator, opcBuffer)
 	go server.RunOscServer(*oscAddr)
 
-	go repl(animator)
+	// if *opcForwardAddr != "" {
+	// 	go opc.RunForwarder(*opcForwardAddr, ledStrip)
+	// }
+
+	go repl.Run(animator, os.Stdin, "> ")
+	go repl.RunReplServer(":9999", animator)
+
+	go cleanupOnCtrlC(animator)
 
 	animator.Run(*animationInterval)
+}
+
+func cleanupOnCtrlC(animator *animator.Animator) {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	<-c
+	animator.Finish()
 }
 
 //go:generate go-bindata --prefix skel/ skel/...

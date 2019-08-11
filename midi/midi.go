@@ -1,8 +1,11 @@
+// +build midi
+
 package midi
 
 import (
-	"github.com/rakyll/portmidi"
 	"sync"
+
+	"github.com/rakyll/portmidi"
 )
 
 func init() {

@@ -1,11 +1,12 @@
 package server
 
 import (
+	"log"
+	"net"
+
 	"github.com/brianewing/redshift/animator"
 	"github.com/brianewing/redshift/opc"
 	"github.com/brianewing/redshift/strip"
-	"log"
-	"net"
 )
 
 type opcServer struct {
@@ -36,7 +37,7 @@ func (s *opcServer) ListenAndServe(protocol string, port string) error {
 }
 
 func (s *opcServer) readMessages(conn net.Conn) {
-	session := &opc.Session{Animator: s.animator, Client: tcpOpcWriter{Conn: conn}}
+	session := opc.NewSession(s.animator, tcpOpcWriter{Conn: conn})
 	for {
 		msg, err := opc.ReadMessage(conn)
 		if err != nil {

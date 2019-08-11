@@ -1,0 +1,71 @@
+- Controls: null
+  Disabled: false
+  Effect: {}
+  Type: Clear
+- Controls: null
+  Disabled: true
+  Effect:
+    Color:
+    - 255
+    - 255
+    - 255
+    "N": 2
+  Type: Stripe
+- Controls: null
+  Disabled: false
+  Effect:
+    Args: null
+    Program: scripts/client-side.js
+    Shellhack: false
+  Type: External
+- Controls: null
+  Disabled: false
+  Effect:
+    Blend:
+      Factor: 0.5
+      Force: false
+      Func: rgb
+      Offset: 0
+      Reverse: false
+    Depth: 1
+    Size: 1000
+    Speed: 0.1
+  Type: RainbowEffect
+- Controls: null
+  Disabled: true
+  Effect:
+    Blend:
+      Factor: 0.5
+      Force: false
+      Func: rgb
+      Offset: 0
+      Reverse: false
+    "N": 247
+  Type: Wheee
+- Controls:
+  - Type: TweenControl
+    Control:
+      Field: Level
+      Func: sin
+      Max: 255
+      Speed: 0.1
+      Transform: +v
+  Disabled: true
+  Effect:
+    Func: hsl
+    # Level: 143
+    Level: 50
+  Type: Brightness
+- Controls: null
+  Disabled: true
+  Effect:
+    Speed: 1
+  Type: BlueEffect
+- Controls: null
+  Disabled: false
+  Effect:
+    Args:
+    - "6"
+    Program: scripts/example.py
+    Shellhack: false
+  Type: External

@@ -1,11 +1,12 @@
 package effects
 
 import (
+	colorful "github.com/lucasb-eyer/go-colorful"
+
 	"github.com/brianewing/redshift/strip"
-	"math/rand"
 )
 
-type MoodEffect struct {
+type Mood struct {
 	fill       *Fill
 	brightness *Brightness
 	layer      *Layer
@@ -13,13 +14,14 @@ type MoodEffect struct {
 	Speed float64
 }
 
-func NewMoodEffect() *MoodEffect {
-	return &MoodEffect{
-		Speed: 0.1,
+func NewMood() *Mood {
+	return &Mood{
+		// Speed: 0.1,
+		Speed: 0.3,
 	}
 }
 
-func (e *MoodEffect) Init() {
+func (e *Mood) Init() {
 	e.fill = &Fill{}
 	e.brightness = &Brightness{}
 	e.layer = NewLayer()
@@ -32,10 +34,10 @@ func (e *MoodEffect) Init() {
 				ControlEnvelope{
 					Control: &TweenControl{
 						BaseControl: BaseControl{Field: "Level"},
-						Min:   0,
-						Max:   255,
-						Function: "triangle",
-						Speed: e.Speed,
+						Min:         1,
+						Max:         255,
+						Function:    "sin",
+						Speed:       e.Speed,
 					},
 				},
 			},
@@ -45,7 +47,11 @@ func (e *MoodEffect) Init() {
 	e.layer.Init()
 }
 
-func (e *MoodEffect) Render(s *strip.LEDStrip) {
+func (e *Mood) Destroy() {
+	e.layer.Destroy()
+}
+
+func (e *Mood) Render(s *strip.LEDStrip) {
 	if e.brightness.Level <= 5 {
 		e.fill.Color = e.newColor()
 	}
@@ -53,6 +59,7 @@ func (e *MoodEffect) Render(s *strip.LEDStrip) {
 	e.layer.Render(s)
 }
 
-func (e *MoodEffect) newColor() []uint8 {
-	return []uint8{uint8(rand.Intn(255)), uint8(rand.Intn(255)), uint8(rand.Intn(255))}
+func (e *Mood) newColor() []uint8 {
+	r, g, b := colorful.FastHappyColor().Clamped().RGB255()
+	return []uint8{uint8(r), uint8(g), uint8(b)}
 }

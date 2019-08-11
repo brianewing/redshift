@@ -2,17 +2,19 @@ package effects
 
 import (
 	"github.com/brianewing/redshift/strip"
-	"github.com/lucasb-eyer/go-colorful"
+	colorful "github.com/lucasb-eyer/go-colorful"
 )
 
 type Blend struct {
-	Buffer  strip.Buffer `json:"-"`
-	Offset  int
-	Reverse bool
-	Force   bool
+	Buffer strip.Buffer `json:"-"`
 
-	Func   string // e.g. rgb, hcl, lab
+	Offset  int
+	Reverse bool // fixme: i think this has some bugs
+
+	Force bool // blend even when destination led is off (black)?
+
 	Factor float64
+	Func   string // e.g. rgb, hcl, lab
 }
 
 type blendFunction func(a, b strip.LED, factor float64) (c strip.LED)
@@ -31,17 +33,28 @@ func NewBlendFromBuffer(buffer strip.Buffer) *Blend {
 }
 
 func (e *Blend) Render(strip *strip.LEDStrip) {
-	for i := 0; i < len(e.Buffer) && i+e.Offset < strip.Size; i++ {
-		source := e.Buffer[i]
-		dest := strip.Buffer[i+e.Offset]
+	for i := 0; i < len(e.Buffer); i++ {
+		j := 0
 
 		if e.Reverse {
-			dest = strip.Buffer[len(e.Buffer)+e.Offset-i-1]
+			j = len(e.Buffer) - i + e.Offset - 1
+			// j = len(e.Buffer) + e.Offset - i - 1
+		} else {
+			j = i + e.Offset
 		}
+
+		if j < 0 || j >= len(strip.Buffer) {
+			continue
+		}
+
+		source := e.Buffer[i]
+		dest := strip.Buffer[j]
 
 		if dest.IsOff() && !e.Force {
 			copy(dest, source)
 		} else if !source.IsOff() || e.Force {
+			// copy(dest, []uint8{255, 0, 0})
+			// continue
 			blendFn := e.getFunction()
 			copy(dest, blendFn(dest, source, e.Factor))
 		}

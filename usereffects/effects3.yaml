@@ -1,0 +1,24 @@
+- Type: Clear
+- Type: Fill
+  Params:
+    Color: [ 100, 100, 100 ]
+- Type: Stripe
+- Type: MoodEffect
+# - Type: RainbowEffect
+#   Params:
+#     Speed: 0.39
+#     Size: 15
+
+# - Type: External
+#   Params:
+#     Program: scripts/Eyo
+
+# - Type: Layer
+#   Params:
+#     Offset: 15
+#     Size: 15
+#     Effects:
+#       - Type: Clear
+#       - Type: LarsonEffect
+#         Params:
+#           Speed: 0.2

@@ -1,9 +1,12 @@
 package animator
 
 import (
+	"io/ioutil"
+	"log"
+	"time"
+
 	"github.com/brianewing/redshift/effects"
 	"github.com/brianewing/redshift/strip"
-	"time"
 )
 
 type Animator struct {
@@ -13,11 +16,18 @@ type Animator struct {
 
 	Running bool
 	didInit bool
+
+	Performance *Performance
 }
 
 func (a *Animator) Run(interval time.Duration) {
+	log.Println("Running")
+
+	a.Running = true
+	a.Performance = NewPerformance()
+
 	ticker := time.NewTicker(interval)
-	for a.Running = true; a.Running; <-ticker.C {
+	for ; a.Running; <-ticker.C {
 		a.Strip.Lock()
 		a.Render()
 		a.Strip.Unlock()
@@ -27,19 +37,35 @@ func (a *Animator) Run(interval time.Duration) {
 
 func (a *Animator) Render() {
 	if !a.didInit {
-		a.Effects.Init()
-		a.PostEffects.Init()
+		a.Effects.InitWithStrip(a.Strip)
+		a.PostEffects.InitWithStrip(a.Strip)
 		a.didInit = true
 	}
 
+	t := time.Now()
+
 	a.Effects.Render(a.Strip)
 	a.PostEffects.Render(a.Strip)
+
+	if a.Performance != nil {
+		a.Performance.Tick(time.Now().Sub(t))
+	}
 }
 
 func (a *Animator) SetEffects(newEffects effects.EffectSet) {
+	newEffects.InitWithStrip(a.Strip)
+	newEffects.Render(strip.New(a.Strip.Size))
+
+	a.Strip.Lock()
+	defer a.Strip.Unlock()
+
 	a.Effects.Destroy()
 	a.Effects = newEffects
-	a.didInit = false // init again on next Render
+
+	if newEffects != nil {
+		y, _ := effects.MarshalYAML(newEffects)
+		ioutil.WriteFile("effects.yaml", y, 0644)
+	}
 }
 
 func (a *Animator) Finish() {

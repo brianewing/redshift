@@ -1,0 +1,79 @@
+- Type: Mirror
+  Controls:
+    - Type: OscControl
+      Control:
+        Address: /toggl1
+        Argument: 0
+        Field: BlendA.Reverse
+        Transform: "+v"
+    - Type: OscControl
+      Control:
+        Address: /toggl1
+        Argument: 0
+        Field: BlendB.Reverse
+        Transform: "!v"
+  Effect:
+    BlendA:
+      Reverse: false
+    BlendB:
+      Reverse: true
+    Effects:
+      - Type: Clear
+      - Type: RainbowEffect
+        Controls:
+          - Type: TweenControl
+            Control:
+              Field: Size
+              Initial: 1
+              Max: 2000.0
+              Speed: 0.1
+              Transform: >
+                function doIt(x) {
+                  if(v > 1000) {
+                    return 20;
+                  } else {
+                    return v/10;
+                  }
+                }
+                v/5
+
+          - Type: OscControl 
+            Control:
+              Address: /vslider0
+              Argument: 0
+              Field: Size
+              # Transform: "+((v+180)/180.0*90)+2"
+              Transform: "+(v*500)"
+
+- Type: Brightness
+  Effect:
+    Func: Basic
+  Controls:
+    - Type: MidiControl
+      Control:
+        Status: 176
+        Data1: 1
+        Device: 2
+        Max: 255
+        Field: Level
+
+    - Type: OscControl 
+      Control:
+        Address: /vslider1
+        Argument: 0
+        Field: Level
+        Transform: "+(v*255)"
+        Initial: 0.99
+
+- Type: Mirror
+  Effect:
+    Effects:
+      - Type: Clear
+      - Type: LarsonEffect
+        Effect:
+          Color: [ 255, 0, 0 ]
+          Speed: 0.5
+
+- Type: External
+  Effect:
+    Program: ./scripts/aaa.js

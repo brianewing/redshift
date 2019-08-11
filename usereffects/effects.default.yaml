@@ -1,0 +1,16 @@
+- Params:
+    Dynamic: false
+    Reverse: false
+    Size: 100
+    Speed: 1
+  Type: RainbowEffect
+- Params:
+    Color:
+    - 255
+    - 255
+    - 255
+    Position: 0
+  Type: LarsonEffect
+- Params:
+    Brightness: 255
+  Type: Brightness

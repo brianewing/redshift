@@ -8,8 +8,15 @@ type Effect interface {
 	Render(strip *strip.LEDStrip)
 }
 
-type Initable interface{ Init() }
-type Destroyable interface{ Destroy() }
+type Initable interface {
+	Init()
+}
+type InitableWithStrip interface {
+	Init(*strip.LEDStrip)
+}
+type Destroyable interface {
+	Destroy()
+}
 
 type EffectEnvelope struct {
 	Controls ControlSet
@@ -24,6 +31,13 @@ func (e *EffectEnvelope) Init() {
 	e.Controls.Init()
 }
 
+func (e *EffectEnvelope) InitWithStrip(s *strip.LEDStrip) {
+	if initable, ok := e.Effect.(InitableWithStrip); ok {
+		initable.Init(s)
+	}
+	e.Init()
+}
+
 func (e *EffectEnvelope) Destroy() {
 	if destroyable, ok := e.Effect.(Destroyable); ok {
 		destroyable.Destroy()
@@ -32,12 +46,10 @@ func (e *EffectEnvelope) Destroy() {
 }
 
 func (e *EffectEnvelope) Render(strip *strip.LEDStrip) {
-	if e.Disabled {
+	if e.Disabled || e.Effect == nil {
 		return
 	}
-	// apply controls
 	e.Controls.Apply(e.Effect)
-	// render effect
 	e.Effect.Render(strip)
 }
 
@@ -46,6 +58,12 @@ type EffectSet []EffectEnvelope
 func (s EffectSet) Init() {
 	for _, envelope := range s {
 		envelope.Init()
+	}
+}
+
+func (s EffectSet) InitWithStrip(strip *strip.LEDStrip) {
+	for _, envelope := range s {
+		envelope.InitWithStrip(strip)
 	}
 }
 
@@ -75,32 +93,56 @@ func NewByName(name string) Effect {
 		return NewBrightness()
 	case "Clear":
 		return &Clear{}
+	case "Channels":
+		return NewChannels()
 	case "External":
-		return &External{}
+		return NewExternal()
 	case "Fill":
-		return &Fill{}
+		return NewFill()
+	case "GameOfLife":
+		return NewGameOfLife()
+	case "Gamma":
+		return NewGamma()
+	case "GGJ":
+		return NewGGJ()
 	case "Greyscale":
 		return &Greyscale{}
 	case "Layer":
 		return NewLayer()
-	case "LarsonEffect":
-		return NewLarsonEffect()
+	case "Layout":
+		return NewLayout()
 	case "Mirror":
 		return NewMirror()
-	case "MoodEffect":
-		return NewMoodEffect()
-	case "RainbowEffect":
-		return NewRainbowEffect()
+	case "Mood", "MoodEffect":
+		return NewMood()
+	case "Rainbow", "RainbowEffect":
+		return NewRainbow()
 	case "RandomEffect":
 		return &RandomEffect{}
+	case "Resettable":
+		return &Resettable{}
+	case "Scanner", "LarsonEffect":
+		return NewScanner()
+	case "Script":
+		return &Script{}
+	case "Sepia":
+		return NewSepia()
 	case "Stripe":
 		return NewStripe()
 	case "Strobe":
 		return NewStrobe()
+	case "Slideshow":
+		return NewSlideshow()
 	case "Switch":
 		return &Switch{}
+	case "Trigger":
+		return &Trigger{}
 	case "Toggle":
-		return &Toggle{}
+		return NewToggle()
+	case "VideoOSC":
+		return NewVideoOSC()
+	case "Wheee", "Whoosh":
+		return NewWhoosh()
 	default:
 		return &Null{}
 	}
@@ -110,21 +152,32 @@ func Names() []string {
 	return []string{
 		"BlueEffect",
 		"Brightness",
-		"Buffer",
 		"Clear",
+		"Channels",
 		"External",
 		"Fill",
+		"GameOfLife",
+		"Gamma",
+		"GGJ",
 		"Greyscale",
 		"Layer",
-		"LarsonEffect",
+		"Layout",
 		"Mirror",
-		"MoodEffect",
+		"Mood",
 		"Null",
-		"RainbowEffect",
+		"Rainbow",
 		"RandomEffect",
+		"Resettable",
+		"Scanner",
+		"Script",
+		"Sepia",
 		"Stripe",
 		"Strobe",
+		"Slideshow",
 		"Switch",
 		"Toggle",
+		"Trigger",
+		"VideoOSC",
+		"Whoosh",
 	}
 }

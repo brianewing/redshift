@@ -1,0 +1,56 @@
+- Type: Clear
+
+- Type: External Nah
+  Params:
+    Program: scripts/strip_redblue.js
+
+- Type: Layer
+  Params:
+    Effects:
+      - Type: Clear
+      - Type: Stripe
+        Params:
+          N: 2
+          Test: 6
+          Color: [ 255, 255, 0 ]
+
+- Type: RainbowEffect
+  Params:
+    Size: 60
+    Speed: 0.5
+  Controls:
+    Phase: # instead of speed parameter, control phase w/function
+      - EaseInOut: 0.16
+    Size:
+      - Midi:
+        - Key: A#4
+          Map: multiply_by_two
+        - Knob: 118
+          Map: multiply_by_two
+
+- Type: Layer
+  Params:
+    # Offset: 5
+    # Size: 20
+    Effects:
+      - Type: Clear
+      - Type: LarsonEffect
+        Params:
+          Speed: 0.8
+          Color: [ 255, 0, 0 ]
+
+      - Type: External Nah
+        Params:
+          Program: scripts/example.py
+
+- Type: LarsonEffect
+  Params:
+    Speed: 0.6
+    Color: [ 255, 0, 0 ]
+
+
+
+# - Type: LarsonEffect
+#   Params:
+#     Color: [ 255, 255, 255 ]
+#     Speed: 0.2

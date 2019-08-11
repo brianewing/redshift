@@ -1,10 +1,11 @@
 package opc
 
 import (
-	"github.com/brianewing/redshift/strip"
 	"encoding/binary"
 	"errors"
 	"io"
+
+	"github.com/brianewing/redshift/strip"
 )
 
 type Message struct {
@@ -21,6 +22,8 @@ func (m Message) Bytes() []byte {
 		sysex := m.SystemExclusive.Bytes()
 		m.Length = uint16(len(sysex))
 		m.Data = sysex
+	} else {
+		m.Length = uint16(len(m.Data))
 	}
 	binary.BigEndian.PutUint16(bytes[2:4], m.Length)
 	return append(bytes, m.Data...)
@@ -53,19 +56,23 @@ func ReadMessage(r io.Reader) (Message, error) {
 	msg.Length = binary.BigEndian.Uint16(header[2:4])
 
 	msg.Data = make([]byte, msg.Length)
-	bytesRead, err = r.Read(msg.Data)
+
+	if bytesRead, err = r.Read(msg.Data); err != nil {
+		return msg, err
+	} else if bytesRead != int(msg.Length) {
+		return msg, errors.New("data length mismatch")
+	}
 
 	if msg.Command == 255 {
 		if len(msg.Data) < 2 {
-			return msg, errors.New("missing sysex data")
+			return msg, errors.New("missing sysex system id")
+		} else if len(msg.Data) < 3 {
+			return msg, errors.New("missing sysex command")
 		}
 
-		msg.SystemExclusive.SystemId = binary.BigEndian.Uint16(msg.Data[0:2])
+		msg.SystemExclusive.SystemID = binary.BigEndian.Uint16(msg.Data[0:2])
 
-		if msg.SystemExclusive.SystemId == OpcSystemId {
-			if len(msg.Data) < 3 {
-				return msg, errors.New("missing sysex command byte")
-			}
+		if msg.SystemExclusive.SystemID == OpcSystemID {
 			msg.SystemExclusive.Command = SystemExclusiveCmd(msg.Data[2])
 			msg.SystemExclusive.Data = msg.Data[3:]
 		} else {
@@ -73,23 +80,17 @@ func ReadMessage(r io.Reader) (Message, error) {
 		}
 	}
 
-	if err != nil {
-		return msg, err
-	} else if bytesRead != int(msg.Length) {
-		return msg, errors.New("data length mismatch")
-	} else {
-		return msg, nil
-	}
+	return msg, nil
 }
 
 // System exclusive messages
 
-const OpcSystemId uint16 = 65535
+const OpcSystemID uint16 = 65535
 
 type SystemExclusiveCmd uint8
 
 const (
-	CmdWelcome = iota
+	CmdWelcome SystemExclusiveCmd = iota
 
 	CmdOpenStream
 	CmdCloseStream
@@ -104,16 +105,29 @@ const (
 
 	CmdOscSummary
 	CmdClearOscSummary
+
+	CmdErrorOccurred
+
+	CmdRepl
+
+	CmdPing
+	CmdPong
+
+	CmdClose
 )
 
 type SystemExclusive struct {
-	SystemId uint16
+	SystemID uint16
 	Command  SystemExclusiveCmd
 	Data     []byte
 }
 
 func (se SystemExclusive) Bytes() []byte {
 	bytes := append([]byte{0, 0, byte(se.Command)}, se.Data...)
-	binary.BigEndian.PutUint16(bytes[0:2], OpcSystemId)
+	if se.SystemID == 0 {
+		binary.BigEndian.PutUint16(bytes[0:2], OpcSystemID)
+	} else {
+		binary.BigEndian.PutUint16(bytes[0:2], se.SystemID)
+	}
 	return bytes
 }

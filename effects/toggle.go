@@ -9,6 +9,9 @@ type Toggle struct {
 
 func NewToggle() *Toggle {
 	return &Toggle{
+		Effects: EffectSet{
+			EffectEnvelope{Effect: &Clear{}},
+		},
 		Enabled: true,
 	}
 }

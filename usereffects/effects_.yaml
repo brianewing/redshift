@@ -1,0 +1,163 @@
+# - Type: Clear
+
+- Type: Toggle
+  Effect:
+    Effects:
+      - Type: Fill
+        Effect:
+          Color: [ 1, 1, 1 ]
+      - Type: MoodEffect
+  Controls:
+    - Type: OscControl
+      Control:
+        Field: Enabled
+        Initial: false
+        Address: /toggle
+        Transform: "!!v"
+
+- Type: Layer
+  Controls:
+    - Type: OscControl
+      Control:
+        Address: /toggl1
+        Argument: 0
+        Field: BlendA.Reversef
+        Transform: "!!v"
+    - Type: OscControl
+      Control:
+        Address: /toggl1
+        Argument: 0
+        Field: BlendB.Reverse
+        Transform: "!v"
+    - Type: OscControl
+      Control:
+        Address: /toggl2
+        Argument: 0
+        Field: Effects[1].Enabled
+        Transform: "!!v"
+  Effect:
+    BlendA:
+      Reverse: false
+    BlendB:
+      Reverse: true
+    Effects:
+      - Type: Clear
+      - Type: Toggle
+        Effect:
+          Enabled: false
+          Effects:
+            - Type: Stripe
+              Effect:
+                N: 2
+      - Type: RainbowEffect
+        Controls:
+          - Type: OscControl
+            Control:
+              Field: Size
+              Initial: 1
+              Max: 2000.0
+              Speed: 0.1
+              Transformx: >
+                function doIt(x) {
+                  if(v > 1000) {
+                    return 10;
+                  } else {
+                    return v/10;
+                  }
+                }
+                doIt(v); v/10
+              Transform: v*500
+              Address: /vslider0
+
+          # - Type: TimeControl
+          #   Control:
+          #     Field: Size
+          #     Format: seconds
+          #     Transform: v*100
+
+          - Type: OscControl 
+            Control:
+              Address: /vslider1
+              Argument: 0
+              Field: Speed
+              Initial: 0.01
+              # Transform: "+((v+180)/180.0*90)+2"
+              # Transform: "+(v*500)"
+              Transform: "v*5"
+
+- Type: Brightness
+  Controls:
+    - Type: MidiControl
+      Control:
+        Status: 176
+        Data1: 1
+        Device: 2
+        Max: 255
+        Field: Level
+
+    - Type: OscControl 
+      Control:
+        Address: /hslider
+        Argument: 0
+        Field: Level
+        Transform: "255-(v*255)"
+        Initial: 0
+
+- Type: Layer
+  Effect:
+    Effects:
+      - Type: Clear
+      - Type: LarsonEffect
+        Effect:
+          Color: [ 255, 0, 0 ]
+          Speed: 0.5
+      - Type: Mirror
+        Effect:
+          Effects:
+            - Type: External !!
+              Effect:
+                Program: "scripts/example.py"
+      - Type: Brightness
+        Controls:
+          - Type: OscControl
+            Control:
+              Field: Level
+              Address: /hslider
+              Transform: "+(v*255)"
+              Initial: 0
+
+- Type: LarsonEffect
+  Effect:
+    Color: [ 100, 100, 100 ]
+  Controls:
+    - Type: OscControl
+      Control:
+        Address: /pad
+        Field: Color[0]
+        Transform: "+(v*2.55)-1"
+    - Type: OscControl
+      Control:
+        Address: /pad
+        Field: Color[1]
+        Argument: 1
+        Transform: "+(v)"
+    - Type: OscControl
+      Control:
+        Address: /pad
+        Field: Color[2]
+        Argument: 1
+        Transform: "+(v*2.55)-1"
+    - Type: OscControl
+      Control:
+        Address: /pad
+        Field: Position
+        Argument: 0
+        Transform: "+(v/100*58)"
+
+- Type: Brightness
+  Controls:
+    - Type: OscControl
+      Control:
+        Address: /brightness
+        Field: Level
+        Transform: "+(v*255)"

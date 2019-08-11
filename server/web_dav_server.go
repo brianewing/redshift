@@ -1,40 +1,42 @@
 package server
 
 import (
-	"golang.org/x/net/webdav"
-	"net/http"
-	"log"
-	"time"
-	"path/filepath"
 	"github.com/phayes/permbits"
+	"golang.org/x/net/webdav"
+	"log"
+	"net/http"
+	"path/filepath"
+	"time"
 )
 
 // todo: implement a custom webdav.FileSystem to store changes in git!
 // todo: implement a custom VERSIONS method (or extend PROPFIND) to list old versions
 // todo: maybe use a header on a GET to request old version?
 
-func RunWebDavServer(addr string, directory string) {
+func RunWebDavServer(addr string, directory string, makeNewFilesExecutable bool) {
 	webDavHandler := &webdav.Handler{
 		FileSystem: webdav.Dir(directory),
 		LockSystem: webdav.NewMemLS(),
 		Logger: func(r *http.Request, err error) {
-			log.Println("WD", r.Method, r.RequestURI, "[" + r.RemoteAddr + "]", "|", err)
+			log.Println("DAV", r.Method, r.RequestURI, "["+r.RemoteAddr+"]", "|", err)
 		},
 	}
 
-	wrappedHandler := corsWrapper(
-		noCacheWrapper(
-			makeNewFilesExecutableWrapper(directory, webDavHandler),
-		),
-	)
+	wrappedHandler := corsWrapper(noCacheWrapper(webDavHandler))
+
+	if makeNewFilesExecutable {
+		wrappedHandler = makeNewFilesExecutableWrapper(directory, wrappedHandler)
+	}
 
 	server := &http.Server{Addr: addr, Handler: wrappedHandler}
-	log.Fatalln("WD", server.ListenAndServe())
+	log.Fatalln("DAV", server.ListenAndServe())
 }
 
-func slowWrapper(h http.Handler) http.Handler {
+func slowWrapper(wait time.Duration, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "OPTIONS" { time.Sleep(4 * time.Second) }
+		if r.Method != "OPTIONS" {
+			time.Sleep(wait)
+		}
 		h.ServeHTTP(w, r)
 	})
 }

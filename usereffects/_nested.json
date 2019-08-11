@@ -1,0 +1,187 @@
+[
+  {
+    "Controls": null,
+    "Disabled": false,
+    "Effect": {
+      "Size": 100,
+      "Depth": 60,
+      "Speed": 0.1,
+      "Blend": {
+        "Offset": 0,
+        "Reverse": false,
+        "Force": false,
+        "Factor": 0.5,
+        "Func": "rgb"
+      },
+      "Reverse": false
+    },
+    "Type": "RainbowEffect"
+  },
+  {
+    "Controls": [
+      {
+        "Control": {
+          "Field": "Position",
+          "LastError": "",
+          "Initial": null,
+          "Transform": "+(v*n)",
+          "Address": "/cursor",
+          "Argument": 2,
+          "Debug": null
+        },
+        "Controls": null,
+        "Type": "OscControl"
+      }
+    ],
+    "Disabled": false,
+    "Effect": {
+      "Color": [
+        255,
+        168,
+        0
+      ],
+      "Speed": 0.454,
+      "Position": 26,
+      "Width": 5
+    },
+    "Type": "LarsonEffect"
+  },
+  {
+    "Controls": null,
+    "Disabled": false,
+    "Effect": {
+      "Size": 60,
+      "Effects": [
+        {
+          "Controls": null,
+          "Disabled": false,
+          "Effect": {
+            "Color": [
+              217,
+              255,
+              0
+            ]
+          },
+          "Type": "Fill"
+        },
+        {
+          "Controls": null,
+          "Disabled": false,
+          "Effect": {
+            "Size": 60,
+            "Effects": [
+              {
+                "Controls": null,
+                "Disabled": false,
+                "Effect": {
+                  "Effects": [
+                    {
+                      "Controls": null,
+                      "Disabled": false,
+                      "Effect": {},
+                      "Type": "Clear"
+                    },
+                    {
+                      "Controls": null,
+                      "Disabled": false,
+                      "Effect": {
+                        "Size": 150,
+                        "Depth": 60,
+                        "Speed": 1,
+                        "Blend": {
+                          "Offset": 0,
+                          "Reverse": false,
+                          "Force": false,
+                          "Factor": 0.5,
+                          "Func": "rgb"
+                        },
+                        "Reverse": false
+                      },
+                      "Type": "RainbowEffect"
+                    },
+                    {
+                      "Controls": null,
+                      "Disabled": false,
+                      "Effect": {
+                        "Program": "scripts/example.py",
+                        "Args": null,
+                        "WatchForChanges": false,
+                        "IsShellScript": false
+                      },
+                      "Type": "External"
+                    },
+                    {
+                      "Controls": null,
+                      "Disabled": false,
+                      "Effect": {
+                        "Effects": [
+                          {
+                            "Controls": null,
+                            "Disabled": false,
+                            "Effect": {
+                              "Name": "bouncingballs.js",
+                              "Args": null
+                            },
+                            "Type": "Script"
+                          }
+                        ],
+                        "Size": 30,
+                        "BlendA": {
+                          "Offset": 0,
+                          "Reverse": true,
+                          "Force": false,
+                          "Factor": 0.5,
+                          "Func": "rgb"
+                        },
+                        "BlendB": {
+                          "Offset": 15,
+                          "Reverse": false,
+                          "Force": false,
+                          "Factor": 0.5,
+                          "Func": "rgb"
+                        }
+                      },
+                      "Type": "Mirror"
+                    }
+                  ],
+                  "Size": 60,
+                  "BlendA": {
+                    "Offset": 0,
+                    "Reverse": true,
+                    "Force": false,
+                    "Factor": 0.5,
+                    "Func": "rgb"
+                  },
+                  "BlendB": {
+                    "Offset": 30,
+                    "Reverse": false,
+                    "Force": false,
+                    "Factor": 0.5,
+                    "Func": "rgb"
+                  }
+                },
+                "Type": "Mirror"
+              }
+            ],
+            "Blend": {
+              "Offset": 0,
+              "Reverse": false,
+              "Force": false,
+              "Factor": 0.5,
+              "Func": "rgb"
+            }
+          },
+          "Type": "Layer"
+        }
+      ],
+      "Blend": {
+        "Offset": 0,
+        "Reverse": false,
+        "Force": false,
+        "Factor": 0.5,
+        "Func": "rgb"
+      }
+    },
+    "Type": "Layer"
+  }
+]

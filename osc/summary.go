@@ -1,28 +1,39 @@
 package osc
 
-// osc address => last msg
-var summary = make(map[string]OscMessage)
+import "sync"
 
-// Returns a summary map all the messages that have been received
-// Keys represent an osc address and values are the latest
-// message received for that address
+var summaryMutex sync.Mutex
+var summary = make(map[string]OscMessage) // osc address => last msg
+
+// returns a summary of the messages that have been received so far as a map,
+// where keys represent an osc address and values are the latest message received for that address
 func Summary() map[string]OscMessage {
-	return summary
+	summaryMutex.Lock()
+	_copy := make(map[string]OscMessage, len(summary))
+	for addr, msg := range summary {
+		_copy[addr] = msg
+	}
+	summaryMutex.Unlock()
+	return _copy
 }
 
-// Resets the summary by replacing it with an empty map
 func ClearSummary() {
+	summaryMutex.Lock()
 	summary = make(map[string]OscMessage)
+	summaryMutex.Unlock()
 }
 
-func readSummary() {
+// streams messages the spool contained in this package
+// and sets summary[msg.Address] = msg for each one
+func createSummary() {
 	msgs, _ := StreamMessages()
-
 	for msg := range msgs {
+		summaryMutex.Lock()
 		summary[msg.Address] = msg
+		summaryMutex.Unlock()
 	}
 }
 
 func init() {
-	go readSummary()
+	go createSummary()
 }

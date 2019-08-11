@@ -9,7 +9,7 @@ func animationSet() EffectSet {
 		EffectEnvelope{Effect: &Clear{}},
 		EffectEnvelope{Effect: &RainbowEffect{Size: 150, Speed: 1}},
 		EffectEnvelope{Effect: &BlueEffect{}},
-		EffectEnvelope{Effect: &LarsonEffect{Color: []uint8{0,0,0}}},
+		EffectEnvelope{Effect: &LarsonEffect{Color: []uint8{0, 0, 0}}},
 	}
 }
 
