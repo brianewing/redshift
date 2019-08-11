@@ -127,6 +127,8 @@ func NewByName(name string) Effect {
 		return &Script{}
 	case "Sepia":
 		return NewSepia()
+	case "SimplexNoise":
+		return &SimplexNoise{}
 	case "Stripe":
 		return NewStripe()
 	case "Strobe":
@@ -171,6 +173,7 @@ func Names() []string {
 		"Scanner",
 		"Script",
 		"Sepia",
+		"SimplexNoise",
 		"Stripe",
 		"Strobe",
 		"Slideshow",
