@@ -3,7 +3,7 @@ package effects
 import "github.com/brianewing/redshift/strip"
 
 type Whoosh struct {
-	N, i, x int
+	N, I, x int
 	Reverse bool
 	Blend   Blend
 }
@@ -20,10 +20,10 @@ func (e *Whoosh) Render(s *strip.LEDStrip) {
 		copy(tmp[i], led)
 	}
 
-	e.Blend.Buffer = tmp.Rotate(e.i%len(s.Buffer), e.Reverse)
+	e.Blend.Buffer = tmp.Rotate(e.I%len(s.Buffer), e.Reverse)
 	e.Blend.Render(s)
 
 	if e.x++; e.N > 0 && e.x%e.N == 0 {
-		e.i++
+		e.I++
 	}
 }
