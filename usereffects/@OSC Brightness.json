@@ -1,0 +1,1 @@
+[{"Controls":[{"Control":{"Field":"Level","Error":"","Initial":null,"Latch":false,"Transform":"","Address":"/brightness","Argument":0,"Debug":255},"Controls":null,"Disabled":false,"Type":"OscControl"}],"Disabled":false,"Effect":{"Level":255,"Func":"hsl"},"Type":"Brightness"}]
