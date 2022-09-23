@@ -31,7 +31,7 @@ func (p *Performance) Reset() {
 func (p *Performance) Tick(t time.Duration) {
 	p.mutex.Lock()
 	p.frameCount += 1
-	p.Durations = append(p.Durations, t)
+	p.durations = append(p.durations, t)
 	p.mutex.Unlock()
 }
 
