@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/brianewing/redshift/animator"
 	"github.com/brianewing/redshift/opc"
@@ -38,6 +39,8 @@ func RunWebServer(addr string, animator *animator.Animator, buffer strip.Buffer)
 func (s *webServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/welcome" {
 		s.serveWelcome(w, r)
+	} else if r.URL.Path == "/sse" {
+		s.serveEventStream(w, r)
 	} else {
 		s.serveWebSocket(w, r)
 	}
@@ -51,6 +54,41 @@ func (s *webServer) serveWelcome(w http.ResponseWriter, r *http.Request) {
 func (s *webServer) welcomeInfo() map[string]interface{} {
 	return map[string]interface{}{
 		"redshift": "0.1.0",
+	}
+}
+
+func (s *webServer) serveEventStream(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	w.WriteHeader(200)
+
+	interval := time.Second / 80
+
+	var buf bytes.Buffer
+
+	flusher := w.(http.Flusher)
+
+	for {
+		s.animator.Strip.Lock()
+		data, _ := json.Marshal(s.animator.Strip.Buffer)
+		s.animator.Strip.Unlock()
+
+		buf.Truncate(0)
+		buf.WriteString("data: ")
+		buf.Write(data)
+		buf.WriteString("\n\n")
+
+		if _, err := w.Write(buf.Bytes()); err == nil {
+			flusher.Flush()
+		} else {
+			log.Println("SSE client left", err)
+			break
+		}
+
+		time.Sleep(interval)
 	}
 }
 
