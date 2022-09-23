@@ -31,14 +31,14 @@ func (p *Performance) Reset() {
 func (p *Performance) Tick(t time.Duration) {
 	p.mutex.Lock()
 	p.frameCount += 1
-	p.durations = append(p.durations, t)
+	p.Durations = append(p.Durations, t)
 	p.mutex.Unlock()
 }
 
 func (p *Performance) String() string {
 	min, max, avg := p.MinMaxAvg()
 	fps := p.FPS()
-	return fmt.Sprintf("fps %.2f | %v | %v | %v", fps, min, max, avg)
+	return fmt.Sprintf("fps %.2f | %v min | %v max | %v avg", fps, min, max, avg)
 }
 
 func (p *Performance) FPS() (fps float64) {
