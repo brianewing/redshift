@@ -5,6 +5,7 @@ import (
 )
 
 type External struct {
+	Name string
 	Program string
 	Args []string
 	WatchForChanges bool

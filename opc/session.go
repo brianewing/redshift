@@ -17,7 +17,7 @@ import (
 	"github.com/brianewing/redshift/strip"
 )
 
-var REDSHIFT_VERSION = "0.1.0"
+var REDSHIFT_VERSION = "0.2.0"
 
 type Writer interface {
 	WriteOpc(msg Message) error
@@ -148,6 +148,9 @@ func (s *Session) Receive(msg Message) error {
 				c.Close()
 			}
 
+		case CmdTickAnimation:
+			s.Animator.Render()
+		
 		default:
 			println("unrecognised opc system cmd", strconv.Itoa(int(msg.SystemExclusive.Command)))
 		}
@@ -167,7 +170,7 @@ func (s *Session) sendWelcome() error {
 		"version": REDSHIFT_VERSION,
 		"started": startTime,
 		"config": map[string]interface{}{
-			"serverName": "Living Room Ceiling Strip",
+			"serverName": "LedPlane Demo Matrix",
 		},
 		"availableEffects": effects.Names(),
 	})
@@ -206,8 +209,9 @@ func (s *Session) openStream(channel uint8, description string) (*stream, error)
 	case "virtual":
 		stream.virtual = true
 		stream.animator = &animator.Animator{}
+		stream.animator.Init()
 
-		numLeds := 30
+		numLeds := 100
 		if len(desc) >= 2 {
 			if v, _ := strconv.Atoi(desc[1]); v > 0 {
 				numLeds = v
@@ -215,6 +219,8 @@ func (s *Session) openStream(channel uint8, description string) (*stream, error)
 		}
 
 		stream.animator.Strip = strip.New(numLeds)
+		stream.animator.Effects = effects.EffectSet{}
+		stream.animator.PostEffects = effects.EffectSet{}
 	}
 
 	go stream.Run(s.Client)

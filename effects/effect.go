@@ -83,6 +83,8 @@ func (s EffectSet) Render(strip *strip.LEDStrip) {
  * Construction
  */
 
+// TODO: Time for a registry pattern
+
 func NewByName(name string) Effect {
 	switch name {
 	case "BlueEffect":

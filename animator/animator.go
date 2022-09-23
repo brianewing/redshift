@@ -20,12 +20,18 @@ type Animator struct {
 	Performance *Performance
 }
 
+func (a *Animator) Init() {
+	a.Performance = NewPerformance()
+}
+
 func (a *Animator) Run(interval time.Duration) {
+	a.Running = true
 	log.Println("Running")
 
-	a.Running = true
-	a.Performance = NewPerformance()
-
+	// TODO: ensure race safety here.
+	//       a.Running may be set to false,
+	//       then true in another Go routine
+	//       before the for loop here can check it.
 	ticker := time.NewTicker(interval)
 	for ; a.Running; <-ticker.C {
 		a.Strip.Lock()

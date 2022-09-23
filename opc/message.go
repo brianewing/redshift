@@ -114,6 +114,8 @@ const (
 	CmdPong
 
 	CmdClose
+
+	CmdTickAnimation
 )
 
 type SystemExclusive struct {
