@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from redshift import run, log
 import random, sys
@@ -35,5 +35,5 @@ def series(effects):
 
 n = int(sys.argv[1]) if len(sys.argv) > 1 else 1
 
-effects = [Example() for _ in xrange(n)]
+effects = [Example() for _ in range(n)]
 run(series(effects))
