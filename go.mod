@@ -11,8 +11,9 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/ojrac/opensimplex-go v1.0.2
 	github.com/phayes/permbits v0.0.0-20190612203442-39d7c581d2ee
+	github.com/rakyll/portmidi v0.0.0-20201020180702-d436ceaa537a
 	github.com/robertkrimen/otto v0.0.0-20210614181706-373ff5438452
-	golang.org/x/net v0.0.0-20210716203947-853a461950ff
+	golang.org/x/net v0.7.0
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
